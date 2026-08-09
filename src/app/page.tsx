@@ -27,7 +27,7 @@ export default function Home() {
         <div className="home-hero-copy">
           <p className="eyebrow">Process-led digital transformation · Montréal</p>
           <h1>
-            Process-first digital transformation that <em>pays for itself.</em>
+            Process-first digital transformation that <em>pays for itself.RKD</em>
           </h1>
           <p className="hero-lede">
             We improve your process first, then implement Odoo and agentic AI
