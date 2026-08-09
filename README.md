@@ -9,7 +9,7 @@ Production marketing website for NBT Labs, a Montreal-based process improvement,
 - **Tailwind CSS** foundations with a custom responsive design system
 - Custom Magic UI-inspired motion components
 - Server-rendered metadata, structured data, sitemap, and robots directives
-- Deployed on **Vercel** from the monorepo `website/` directory
+- Deployed on **Vercel** from this repository
 
 ## Requirements
 
@@ -37,6 +37,7 @@ npm start
 ## Project structure
 
 ```text
+public/             Logo, social preview, sitemap, and robots files
 src/
   app/
     _components/    Shared navigation, footer, motion, forms, and page sections
@@ -44,7 +45,6 @@ src/
     */page.tsx      Individual website routes
     globals.css     Complete responsive visual system
   registry/magicui/ Reusable animation and interaction components
-public/             Logo, social preview, sitemap, and robots files
 ```
 
 ## Content map
@@ -66,7 +66,19 @@ public/             Logo, social preview, sitemap, and robots files
 Connect this GitHub repo to Vercel with:
 
 ```text
-Root Directory: website
 Framework: Next.js
 Build Command: npm run build
+```
+
+Leave **Root Directory** empty (repository root). Production deploys run automatically on push to `main`:
+
+```bash
+git push origin main
+```
+
+Optional CLI deploy:
+
+```bash
+npx vercel
+npx vercel --prod
 ```
