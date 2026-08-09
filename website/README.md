@@ -34,13 +34,6 @@ npm start
 
 `npm run build` creates the Next.js production build in `.next/` (generated, not committed).
 
-## Quality checks
-
-```bash
-npm run lint
-npm run build
-```
-
 ## Project structure
 
 ```text
@@ -77,31 +70,3 @@ Root Directory: website
 Framework: Next.js
 Build Command: npm run build
 ```
-
-Production deploys run automatically on push to `main`:
-
-```bash
-git push origin main
-```
-
-Optional CLI deploy from `website/`:
-
-```bash
-npx vercel
-npx vercel --prod
-```
-
-## Moving to the final domain
-
-Before launch on the final domain, update all of the following:
-
-1. `SITE_URL` in `src/app/_data/seo.ts`
-2. Every URL in `public/sitemap.xml`
-3. The sitemap URL in `public/robots.txt`
-4. The contact form delivery integration, if one is added
-
-The present contact form opens the visitor's email application with a prepared message. It stores no data. Connect it to a form, email, or CRM service if submissions should be delivered without relying on the visitor's email application.
-
-## Environment and secrets
-
-The repository contains no production credentials. Do not commit a populated `.env` file.

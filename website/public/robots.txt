@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://nbt-labs-process-first.natdas.chatgpt.site/sitemap.xml
+Sitemap: https://www.nbtlabs.ca/sitemap.xml

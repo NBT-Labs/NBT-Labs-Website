@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 
 export const SITE_NAME = "NBT Labs";
-export const SITE_URL =
-  "https://nbt-labs-process-first.natdas.chatgpt.site";
+export const SITE_URL = "https://www.nbtlabs.ca";
 
 export const DEFAULT_DESCRIPTION =
   "NBT Labs helps Quebec and Canadian SMBs improve operations, implement Odoo, automate workflows, and apply practical agentic AI to live business data.";
