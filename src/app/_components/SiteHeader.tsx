@@ -95,7 +95,7 @@ export function SiteHeader() {
             tabIndex={menuOpen ? 0 : -1}
             onClick={() => setMenuOpen(false)}
           >
-            Book a Free Process Audit <span aria-hidden="true">↗</span>
+            Book a Free Audit <span aria-hidden="true">↗</span>
           </ShimmerButton>
         </nav>
       </div>

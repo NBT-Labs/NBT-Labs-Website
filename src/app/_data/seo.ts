@@ -60,7 +60,7 @@ export const organizationSchema = {
       name: SITE_NAME,
       url: SITE_URL,
       logo: `${SITE_URL}/nbt-logo-mark.png`,
-      email: "hello@nbtlabs.ca",
+      email: "info@nbtlabs.ca",
       description: DEFAULT_DESCRIPTION,
       address: {
         "@type": "PostalAddress",

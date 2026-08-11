@@ -40,7 +40,7 @@ export default function Home() {
               background="#b9f45d"
               shimmerColor="#ff4fa3"
             >
-              Book a Free Process Audit <span aria-hidden="true">↗</span>
+              Book a Free Audit <span aria-hidden="true">↗</span>
             </ShimmerButton>
             <a className="text-link" href="/how-we-work">
               See how we work <span aria-hidden="true">↓</span>
@@ -188,7 +188,7 @@ export default function Home() {
             {`We’re a new studio, and we’re proving it with our own numbers before we ask you to trust ours. The first 2–3 clients get a free process audit and 25–30% off implementation in exchange for being a reference. If that’s you, let’s talk.`}
           </TextAnimate>
           <a className="button" href="/contact">
-            Book a Free Process Audit <span aria-hidden="true">→</span>
+            Book a Free Audit <span aria-hidden="true">→</span>
           </a>
         </div>
       </section>
@@ -197,7 +197,7 @@ export default function Home() {
         eyebrow="Start with your process"
         title="Let’s find out what’s costing you the most time."
         copy="Book a free 20-minute call. We’ll ask a few questions about how your business runs today. There is no pitch and no obligation."
-        label="Book a Free Process Audit"
+        label="Book a Free Audit"
         animateText
       />
       <script

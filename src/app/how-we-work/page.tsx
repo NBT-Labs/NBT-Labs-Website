@@ -114,7 +114,7 @@ export default function HowWeWorkPage() {
         eyebrow="Step one · 20 minutes"
         title="Let’s find the costliest bottleneck."
         copy="No deck. No obligation. Just a focused conversation about your current process, tools, and what is costing you time."
-        label="Book a Free Process Audit"
+        label="Book a Free Audit"
       />
     </>
   );

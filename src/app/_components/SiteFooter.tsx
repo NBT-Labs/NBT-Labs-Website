@@ -34,7 +34,7 @@ export function SiteFooter() {
         </div>
         <div className="footer-contact">
           <span>Start with the bottleneck.</span>
-          <a href="mailto:hello@nbtlabs.ca">hello@nbtlabs.ca</a>
+          <a href="mailto:info@nbtlabs.ca">info@nbtlabs.ca</a>
           <p>Montréal, Québec · French & English</p>
         </div>
       </div>

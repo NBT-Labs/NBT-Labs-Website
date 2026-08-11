@@ -34,6 +34,20 @@ npm start
 
 `npm run build` creates the Next.js production build in `.next/` (generated, not committed).
 
+## Run with Docker
+
+```bash
+docker compose up --build
+```
+
+Serves the production build at http://localhost:3010 (container listens on 3000 internally; mapped to 3010 on the host to avoid clashing with anything else already on 3000, e.g. the nbt_odoo stack). Override the host port with `WEB_PORT`:
+
+```bash
+WEB_PORT=3000 docker compose up --build
+```
+
+The build stage needs outbound internet access (it fetches the Geist fonts from Google Fonts at build time, same as `npm run build` locally). Stop with `docker compose down`.
+
 ## Project structure
 
 ```text

@@ -1,0 +1,12 @@
+services:
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    image: nbt-labs-website:latest
+    container_name: nbt-labs-website
+    ports:
+      - "${WEB_PORT:-3010}:3000"
+    environment:
+      - NODE_ENV=production
+    restart: unless-stopped

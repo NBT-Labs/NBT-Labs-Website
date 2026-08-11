@@ -76,7 +76,7 @@ export default function ContactPage() {
           </ViewportReveal>
           <ViewportReveal className="direct-email" delay={0.08}>
             <span>Prefer email?</span>
-            <a href="mailto:hello@nbtlabs.ca">hello@nbtlabs.ca</a>
+            <a href="mailto:info@nbtlabs.ca">info@nbtlabs.ca</a>
             <small>Montréal · French & English</small>
           </ViewportReveal>
         </div>

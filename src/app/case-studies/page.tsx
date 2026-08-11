@@ -126,7 +126,7 @@ export default function CaseStudiesPage() {
         eyebrow="Your result could be first"
         title="Build the result before the case study."
         copy="We will agree on the number worth moving at the start. The story only gets written after the work has earned it."
-        label="Book a Free Process Audit"
+        label="Book a Free Audit"
       />
     </>
   );

@@ -456,7 +456,7 @@ export default function StickyStory() {
           href="/contact"
           background="#b9f45d"
         >
-          Book a Free Process Audit <span aria-hidden="true">↗</span>
+          Book a Free Audit <span aria-hidden="true">↗</span>
         </PulsatingButton>
       </div>
 

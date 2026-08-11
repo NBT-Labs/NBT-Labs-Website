@@ -20,7 +20,7 @@ export function AuditForm() {
     );
 
     setStatus("Your email app is opening with your details ready to send.");
-    window.location.href = `mailto:hello@nbtlabs.ca?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:info@nbtlabs.ca?subject=${subject}&body=${body}`;
   };
 
   return (

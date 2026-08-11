@@ -45,7 +45,7 @@ export function PageHero({
   eyebrow,
   title,
   description,
-  primary = { href: "/contact", label: "Book a Free Process Audit" },
+  primary = { href: "/contact", label: "Book a Free Audit" },
   secondary,
   compact = false,
   variant = "default",

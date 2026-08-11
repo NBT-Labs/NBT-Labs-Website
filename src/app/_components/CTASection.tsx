@@ -13,7 +13,7 @@ export function CTASection({
   eyebrow = "Start with clarity",
   title = "Find the bottleneck worth fixing first.",
   copy = "A free 20-minute process audit is enough to identify the most useful next step, whether or not that step is with us.",
-  label = "Book a Free Process Audit",
+  label = "Book a Free Audit",
   animateText = true,
 }: CTASectionProps) {
   return (
