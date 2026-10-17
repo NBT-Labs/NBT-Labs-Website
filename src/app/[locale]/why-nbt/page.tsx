@@ -3,7 +3,8 @@ import { TextAnimate } from "@/registry/magicui/text-animate";
 import { CTASection } from "../../_components/CTASection";
 import { PageHero } from "../../_components/PageHero";
 import { ViewportReveal } from "../../_components/ViewportReveal";
-import { team } from "../../_data/site";
+// Team section hidden: we stay anonymous for now. Restore with the section below.
+// import { team } from "../../_data/site";
 import { Highlighter } from "@/registry/magicui/highlighter";
 import { createPageMetadata } from "../../_data/seo";
 import { isLocale } from "@/i18n/config";
@@ -227,6 +228,7 @@ export default async function WhyNbtPage({
         </div>
       </section>
 
+      {/* Team section hidden: we stay anonymous for now. Uncomment (and the `team` import) to show it again.
       <section className="team-section section-pad">
         <div className="section-heading section-heading-tight">
           <div>
@@ -250,6 +252,7 @@ export default async function WhyNbtPage({
           ))}
         </div>
       </section>
+      */}
 
       <section className="promise-section section-pad">
         <div>
