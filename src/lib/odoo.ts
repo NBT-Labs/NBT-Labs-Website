@@ -19,6 +19,8 @@ type LeadValues = {
   partner_name?: string | false;
   phone?: string | false;
   description: string;
+  /** Studio text field "Audit answers": the scorecard report as plain text. */
+  x_studio_audit_scorecard?: string;
 };
 
 /** UTM sources (crm.lead.source_id) that must already exist in Odoo, looked up by name. */
