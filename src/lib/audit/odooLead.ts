@@ -145,6 +145,7 @@ export async function toOdoo(submission: Submission): Promise<void> {
     partner_name: contact.company,
     phone: contact.phone || false,
     x_studio_audit_scorecard: `Source: ${source}\n\n${toText(report)}`,
+    x_studio_marketing_consent: submission.consent.marketing,
     description:
       `<p><strong>Source:</strong> ${escapeHtml(source)}</p>` +
       `<p><strong>Marketing consent:</strong> ${submission.consent.marketing ? "Yes" : "No"}</p>` +

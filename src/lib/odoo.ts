@@ -21,6 +21,8 @@ type LeadValues = {
   description: string;
   /** Studio text field "Audit answers": the scorecard report as plain text. */
   x_studio_audit_scorecard?: string;
+  /** Studio boolean "Marketing Consent": opted in to marketing (scorecard only). */
+  x_studio_marketing_consent?: boolean;
 };
 
 /** UTM sources (crm.lead.source_id) that must already exist in Odoo, looked up by name. */
