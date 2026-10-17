@@ -1,0 +1,766 @@
+{
+  "bank_id": "ind_aec",
+  "bank_version": "1.0.0",
+  "layer": "industry",
+  "label": {
+    "en": "Engineering, architecture and technical consulting",
+    "fr": "Génie, architecture et conseil technique"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q04", "op": "eq", "value": "aec" }
+  ],
+  "reweight": {
+    "performance_management": 1.5,
+    "quote_to_cash": 1.5,
+    "procure_inventory": 0.5
+  },
+  "notes": "Professional services plus project delivery plus construction-adjacent documents. The firm's fee is tied to a construction project's phases and it carries professional liability, which is what makes this a separate layer rather than the professional-services model bank.\n\nVocabulary discipline: every question in this bank that touches money says net revenue — gross revenue less sub-consultants and reimbursables — and never 'revenue' loosely. ind_aec.data.q01 establishes which one the client manages on before any other money question is asked. A question that used 'revenue' loosely here would be read as naive by any firm that has seen a Deltek or BQE report.\n\nreveals keys introduced by this bank, all feeding the cost model: net_revenue_basis, phase_hour_budget_coverage, additional_services_claimed_share, ca_hours_overrun_known, collection_period_days_aec.\n\nbenchmark_ref keys used and their source, all Deltek Clarity Architecture & Engineering FY2025: deltek_utilization_cost_based (utilization 58.9%, cost-based denominator, down from 61.1%), deltek_net_labour_multiplier (net revenue divided by direct labour; 3.0+ is the common target), deltek_average_collection_period (67.71 days, improved from 73.47). Backlog (6.33 months), overhead rate (161.3%) and net revenue per employee ($186,681) are available in the same study but are not attached to a question in this version. Win rate, proposal cost and phase overrun carry no defensible median and are left without a benchmark_ref on purpose.\n\nOdoo functional gaps raised as diagnostic questions rather than objections: no net-multiplier reporting without an analytic design that separates direct labour, sub-consultants and reimbursables so net revenue is computable (perf.q01); no phase-level budget versus actual without configuration, and no automated percent complete (q2c.q01, q2c.q02); no upset-limit control (q2c.q03); and no drawing register, no revision control and no transmittals — Odoo Documents is not a document-management system for CAD or BIM (doc.q01). Deltek Vantagepoint, Ajera and BQE exist because this reporting shape is hard; a client who has demoed them will test whether we know that.",
+  "questions": [
+    {
+      "id": "ind_aec.data.q01",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When your team says revenue, do they mean gross, or net of sub-consultants and reimbursables — and which one do you manage the firm on?",
+        "fr": "Quand votre équipe parle de revenus, s'agit-il des revenus bruts ou des revenus nets des sous-consultants et des débours — et sur lequel gérez-vous la firme?"
+      },
+      "instruments": ["quiz", "audit"],
+      "reveals": ["net_revenue_basis"],
+      "artifact_probe": {
+        "en": "Show me last month's revenue figure and point to the sub-consultant and reimbursable lines inside it.",
+        "fr": "Montrez-moi le chiffre de revenus du mois dernier et indiquez-moi les lignes de sous-consultants et de débours qu'il contient."
+      },
+      "notes": "Asked first on purpose: every multiplier, every per-employee figure and every margin in this sector is computed on net revenue, so a firm that manages on gross is comparing itself to nothing. Odoo implication: net revenue is only computable if the analytic design separates direct labour, sub-consultant pass-through and reimbursables from the start — a configuration decision, not a report.",
+      "options": [
+        {
+          "value": "gross_only",
+          "label": {
+            "en": "Gross — what we invoiced, sub-consultants included",
+            "fr": "Brut — ce que nous avons facturé, sous-consultants inclus"
+          },
+          "level": 1,
+          "reveals": { "net_revenue_basis": "gross" }
+        },
+        {
+          "value": "gross_with_estimate",
+          "label": {
+            "en": "Gross, and someone can estimate the net figure if asked",
+            "fr": "Brut, et quelqu'un peut estimer le net si on le demande"
+          },
+          "level": 2,
+          "reveals": { "net_revenue_basis": "gross_estimated_net" }
+        },
+        {
+          "value": "net_at_year_end",
+          "label": {
+            "en": "We get to a net figure at year end, with the accountant",
+            "fr": "Nous arrivons à un chiffre net à la fin de l'exercice, avec le comptable"
+          },
+          "level": 3,
+          "reveals": { "net_revenue_basis": "net_annual" }
+        },
+        {
+          "value": "net_monthly",
+          "label": {
+            "en": "Net revenue comes out of the system monthly, consultants and reimbursables stripped out",
+            "fr": "Les revenus nets sortent du système chaque mois, sous-consultants et débours retirés"
+          },
+          "level": 4,
+          "reveals": { "net_revenue_basis": "net_monthly" }
+        },
+        {
+          "value": "net_managed",
+          "label": {
+            "en": "Net revenue monthly, and it's the number the partners actually run the firm on",
+            "fr": "Revenus nets chaque mois, et c'est le chiffre sur lequel les associés gèrent réellement la firme"
+          },
+          "level": 5,
+          "reveals": { "net_revenue_basis": "net_managed" }
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.perf.q01",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Your net labour multiplier — how do you calculate it, and when did you last look at it?",
+        "fr": "Votre multiplicateur de main-d'œuvre nette — comment le calculez-vous, et quand l'avez-vous regardé la dernière fois?"
+      },
+      "help": {
+        "en": "Net revenue divided by direct labour. A firm that answers instantly is in good shape; asking what we mean is an honest answer and we score it as one.",
+        "fr": "Les revenus nets divisés par la main-d'œuvre directe. Une firme qui répond instantanément est en bonne posture; demander ce que nous voulons dire est une réponse honnête et nous la notons comme telle."
+      },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "deltek_net_labour_multiplier",
+      "artifact_probe": {
+        "en": "Show me the calculation: the net revenue figure, the direct labour figure, and what sits in each.",
+        "fr": "Montrez-moi le calcul : le chiffre de revenus nets, celui de la main-d'œuvre directe, et ce que contient chacun."
+      },
+      "notes": "Odoo gap: no net-multiplier reporting out of the box. The sector's core pricing KPI, and the one that tells you in a single answer whether the firm prices from arithmetic or from habit.",
+      "options": [
+        {
+          "value": "not_a_number",
+          "label": {
+            "en": "That isn't a number we use",
+            "fr": "Ce n'est pas un chiffre que nous utilisons"
+          },
+          "level": 1
+        },
+        {
+          "value": "heard_of_it",
+          "label": {
+            "en": "We know the term — we'd have to work it out",
+            "fr": "Nous connaissons le terme — il faudrait le calculer"
+          },
+          "level": 2
+        },
+        {
+          "value": "annual",
+          "label": {
+            "en": "We compute it once a year from the financial statements",
+            "fr": "Nous le calculons une fois par an à partir des états financiers"
+          },
+          "level": 3
+        },
+        {
+          "value": "monthly_firm",
+          "label": {
+            "en": "Monthly, for the firm, from net revenue and direct labour",
+            "fr": "Chaque mois, pour la firme, à partir des revenus nets et de la main-d'œuvre directe"
+          },
+          "level": 4
+        },
+        {
+          "value": "monthly_by_project",
+          "label": {
+            "en": "Monthly, by project and by studio as well as for the firm, against a target we set",
+            "fr": "Chaque mois, par projet et par studio autant que pour la firme, par rapport à une cible que nous fixons"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.perf.q02",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Your utilization number: does the denominator use hours or labour dollars, and who is in it?",
+        "fr": "Votre taux d'utilisation : le dénominateur est-il en heures ou en dollars de main-d'œuvre, et qui y est inclus?"
+      },
+      "help": {
+        "en": "The same word means two different ratios in this sector, and they are not close. We need yours before we compare anything.",
+        "fr": "Le même mot désigne deux ratios différents dans ce secteur, et ils ne se ressemblent pas. Nous avons besoin du vôtre avant toute comparaison."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "deltek_utilization_cost_based",
+      "artifact_probe": {
+        "en": "Open the report it comes from and show me the numerator and the denominator.",
+        "fr": "Ouvrez le rapport d'où il provient et montrez-moi le numérateur et le dénominateur."
+      },
+      "notes": "The bank's calculation-method question. Deltek's FY2025 A&E median of 58.9% is a direct-labour-cost ratio; the hours-based figure circulating from professional-services studies is around 74%, so comparing a client's hours-based number to the cost-based median manufactures a crisis that does not exist. Ask the method, then pick the right benchmark at scoring time.",
+      "options": [
+        {
+          "value": "no_number",
+          "label": {
+            "en": "We don't have a utilization number",
+            "fr": "Nous n'avons pas de taux d'utilisation"
+          },
+          "level": 1
+        },
+        {
+          "value": "unknown_basis",
+          "label": {
+            "en": "We have one but nobody here could tell you how it's built",
+            "fr": "Nous en avons un, mais personne ici ne pourrait dire comment il est construit"
+          },
+          "level": 2
+        },
+        {
+          "value": "hours_all_staff",
+          "label": {
+            "en": "Hours-based, billable over all hours, everyone included",
+            "fr": "En heures, les heures facturables sur toutes les heures, tout le monde inclus"
+          },
+          "level": 3
+        },
+        {
+          "value": "defined_consistent",
+          "label": {
+            "en": "One written definition, applied the same way every month — we know whether it's hours or labour dollars",
+            "fr": "Une définition écrite, appliquée de la même façon chaque mois — nous savons si c'est en heures ou en dollars de main-d'œuvre"
+          },
+          "level": 4
+        },
+        {
+          "value": "both_and_reviewed",
+          "label": {
+            "en": "Direct-labour-cost based for the firm, hours for the studios, both reviewed against targets",
+            "fr": "Basé sur le coût de la main-d'œuvre directe pour la firme, en heures pour les studios, les deux révisés par rapport à des cibles"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "You price a fee as a percentage of construction cost, or as a lump sum. What hour budget sits behind it, by phase?",
+        "fr": "Vous fixez des honoraires en pourcentage du coût de construction, ou en forfait. Quel budget d'heures se trouve derrière, par phase?"
+      },
+      "help": {
+        "en": "Schematic design, design development, construction documents, tender, construction administration. Hours against each, before the fee goes out.",
+        "fr": "Esquisse, développement du projet, documents de construction, appel d'offres, surveillance des travaux. Des heures pour chacune, avant l'envoi de l'offre d'honoraires."
+      },
+      "instruments": ["audit"],
+      "reveals": ["phase_hour_budget_coverage"],
+      "artifact_probe": {
+        "en": "Open your last fee proposal and the hour budget behind it, and show me the construction administration line.",
+        "fr": "Ouvrez votre dernière offre d'honoraires et le budget d'heures derrière, et montrez-moi la ligne de surveillance des travaux."
+      },
+      "notes": "Odoo gap: phase-level budget versus actual needs a deliberate project-phase-task structure with a budget at the phase level; it is not there by default. A lump sum with no hour budget behind it means the firm cannot tell a phase is over budget until it is finished, which is the sector's structural blindness.",
+      "options": [
+        {
+          "value": "none",
+          "label": {
+            "en": "No hour budget — the fee is a judgment call on the project's size",
+            "fr": "Aucun budget d'heures — les honoraires sont un jugement sur la taille du projet"
+          },
+          "level": 1,
+          "reveals": { "phase_hour_budget_coverage": "none" }
+        },
+        {
+          "value": "total_hours",
+          "label": {
+            "en": "A total hour figure for the project, not split by phase",
+            "fr": "Un total d'heures pour le projet, sans répartition par phase"
+          },
+          "level": 2,
+          "reveals": { "phase_hour_budget_coverage": "project_total" }
+        },
+        {
+          "value": "by_phase_spreadsheet",
+          "label": {
+            "en": "Hours by phase, in the proposal spreadsheet, which nobody opens again after we win",
+            "fr": "Des heures par phase, dans le chiffrier de l'offre, que personne ne rouvre après l'obtention du mandat"
+          },
+          "level": 3,
+          "reveals": { "phase_hour_budget_coverage": "phase_proposal_only" }
+        },
+        {
+          "value": "by_phase_in_system",
+          "label": {
+            "en": "Hours by phase and by role, loaded into the project as the budget we then track against",
+            "fr": "Des heures par phase et par rôle, chargées dans le projet comme budget que nous suivons ensuite"
+          },
+          "level": 4,
+          "reveals": { "phase_hour_budget_coverage": "phase_tracked" }
+        },
+        {
+          "value": "phase_tracked_reviewed",
+          "label": {
+            "en": "That, and at closeout we compare actual hours per phase to the budget and it changes how we price the next one",
+            "fr": "Cela, et à la fermeture nous comparons les heures réelles par phase au budget, et cela change notre tarification du prochain mandat"
+          },
+          "level": 5,
+          "reveals": { "phase_hour_budget_coverage": "phase_tracked_fed_back" }
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "How do you decide a phase is 60 percent complete for invoicing?",
+        "fr": "Comment décidez-vous qu'une phase est complétée à 60 % aux fins de facturation?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Take last month's invoice on one project: show me the percentage billed per phase and what it was derived from.",
+        "fr": "Prenez la facture du mois dernier sur un projet : montrez-moi le pourcentage facturé par phase et ce qui l'a produit."
+      },
+      "notes": "Odoo gap: no automated percent complete, and revenue recognized over time stays manual. A partner's judgment is a scored level 2 here, not a failure — but it is also the reason WIP is wrong in most firms this size, because invoicing follows phase milestones while revenue should follow effort.",
+      "options": [
+        {
+          "value": "whatever_billable",
+          "label": {
+            "en": "We bill what feels reasonable, or what the client will accept this month",
+            "fr": "Nous facturons ce qui semble raisonnable, ou ce que le client acceptera ce mois-ci"
+          },
+          "level": 1
+        },
+        {
+          "value": "partner_judgment",
+          "label": {
+            "en": "The partner in charge decides, from looking at the drawings",
+            "fr": "L'associé responsable décide, en regardant les dessins"
+          },
+          "level": 2
+        },
+        {
+          "value": "hours_spent_manual",
+          "label": {
+            "en": "Hours spent against the phase budget, worked out by hand",
+            "fr": "Les heures passées par rapport au budget de la phase, calculées à la main"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_derived",
+          "label": {
+            "en": "The system derives it from hours against the phase budget, and the project manager adjusts with a reason",
+            "fr": "Le système le calcule à partir des heures sur le budget de la phase, et le chargé de projet l'ajuste en justifiant"
+          },
+          "level": 4
+        },
+        {
+          "value": "derived_and_reconciled",
+          "label": {
+            "en": "That, and we reconcile billed percentage to earned revenue monthly so WIP is right between invoices",
+            "fr": "Cela, et nous rapprochons mensuellement le pourcentage facturé des revenus gagnés pour que les travaux en cours soient exacts entre les factures"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "On an hourly mandate with an upset limit, what happens as the fees approach it — and who finds out first?",
+        "fr": "Sur un mandat horaire avec une limite supérieure, que se passe-t-il quand les honoraires s'en approchent — et qui l'apprend en premier?"
+      },
+      "help": {
+        "en": "The not-to-exceed amount. We're asking whether anything stops the work or warns someone before it is passed.",
+        "fr": "Le montant maximal à ne pas dépasser. Nous demandons si quelque chose arrête le travail ou avertit quelqu'un avant qu'il soit franchi."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me a current mandate with an upset limit: the limit, fees to date, and whatever displays the two together.",
+        "fr": "Montrez-moi un mandat en cours avec une limite supérieure : la limite, les honoraires à ce jour, et ce qui affiche les deux ensemble."
+      },
+      "notes": "Odoo gap: no upset-limit control. Quietly breached upset limits are unrecoverable write-offs that look like normal hours until invoicing. Where the answer is 'accounting notices at invoice time', the work is already done and unbillable — that is the finding, and it is usually worth more than the fee for the audit.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We never work with an upset limit — everything is lump sum",
+            "fr": "Nous ne travaillons jamais avec une limite supérieure — tout est forfaitaire"
+          },
+          "na": true
+        },
+        {
+          "value": "discovered_after",
+          "label": {
+            "en": "We find out after the fact, when the invoice can't go out",
+            "fr": "Nous l'apprenons après coup, quand la facture ne peut pas sortir"
+          },
+          "level": 1,
+          "flag": "upset_limit_uncontrolled"
+        },
+        {
+          "value": "pm_watches",
+          "label": {
+            "en": "The project manager keeps an eye on it when he thinks of it",
+            "fr": "Le chargé de projet le surveille quand il y pense"
+          },
+          "level": 2
+        },
+        {
+          "value": "monthly_report",
+          "label": {
+            "en": "A monthly report shows fees against the limit, so we're at most a month behind",
+            "fr": "Un rapport mensuel montre les honoraires par rapport à la limite, donc nous avons au plus un mois de retard"
+          },
+          "level": 3
+        },
+        {
+          "value": "alert_threshold",
+          "label": {
+            "en": "The system warns the project manager at a set threshold before the limit",
+            "fr": "Le système avertit le chargé de projet à un seuil fixé avant la limite"
+          },
+          "level": 4
+        },
+        {
+          "value": "alert_and_authorized",
+          "label": {
+            "en": "That, and no hours go past the limit without a client authorization recorded against the project",
+            "fr": "Cela, et aucune heure ne dépasse la limite sans une autorisation du client consignée au projet"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "A client changes their mind after signing off a drawing set. What's the process for claiming it as additional services — and how often do you actually claim it?",
+        "fr": "Un client change d'idée après avoir approuvé un jeu de dessins. Quel est le processus pour le réclamer en services additionnels — et à quelle fréquence le réclamez-vous réellement?"
+      },
+      "instruments": ["audit"],
+      "reveals": ["additional_services_claimed_share"],
+      "artifact_probe": {
+        "en": "Show me the last three additional-services claims you issued, and then tell me about one you decided not to issue.",
+        "fr": "Montrez-moi les trois dernières réclamations de services additionnels émises, puis parlez-moi d'une que vous avez choisi de ne pas émettre."
+      },
+      "notes": "The sector's chronic margin killer: revision work after sign-off absorbed rather than claimed, because the basic-services contract and the hourly additional service are two fee bases on one project and nobody wants the conversation. The second half of the question — how often do you actually claim it — is where the honest answer lives.",
+      "options": [
+        {
+          "value": "absorbed",
+          "label": {
+            "en": "We absorb it — it's easier than the conversation",
+            "fr": "Nous l'absorbons — c'est plus simple que la conversation"
+          },
+          "level": 1,
+          "reveals": { "additional_services_claimed_share": 0.0 }
+        },
+        {
+          "value": "claimed_if_large",
+          "label": {
+            "en": "We claim it when it's large enough to hurt, verbally first",
+            "fr": "Nous le réclamons quand c'est assez gros pour faire mal, verbalement d'abord"
+          },
+          "level": 2,
+          "reveals": { "additional_services_claimed_share": 0.25 }
+        },
+        {
+          "value": "written_sometimes",
+          "label": {
+            "en": "There's a written process and we use it on maybe half of them",
+            "fr": "Il y a un processus écrit et nous l'utilisons pour environ la moitié des cas"
+          },
+          "level": 3,
+          "reveals": { "additional_services_claimed_share": 0.5 }
+        },
+        {
+          "value": "logged_and_authorized",
+          "label": {
+            "en": "Every post-sign-off change is logged and goes out as an additional-services authorization before the work starts",
+            "fr": "Chaque changement après approbation est consigné et part en autorisation de services additionnels avant le début du travail"
+          },
+          "level": 4,
+          "reveals": { "additional_services_claimed_share": 0.9 }
+        },
+        {
+          "value": "measured",
+          "label": {
+            "en": "That, and we track additional-services revenue as a share of fee by project and know which clients generate it",
+            "fr": "Cela, et nous suivons les revenus de services additionnels en proportion des honoraires par projet et savons quels clients les génèrent"
+          },
+          "level": 5,
+          "reveals": { "additional_services_claimed_share": 1.0 }
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.perf.q03",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Construction administration on your last completed project: how many hours did it take against what you budgeted?",
+        "fr": "La surveillance des travaux sur votre dernier projet terminé : combien d'heures a-t-elle prises par rapport à ce que vous aviez budgété?"
+      },
+      "help": {
+        "en": "Site reviews, RFIs, shop drawing reviews, certificates for payment — for the whole construction period, however long it ran.",
+        "fr": "Visites de chantier, demandes d'information, revues de dessins d'atelier, certificats de paiement — pour toute la durée des travaux, quelle qu'elle ait été."
+      },
+      "instruments": ["audit"],
+      "reveals": ["ca_hours_overrun_known"],
+      "artifact_probe": {
+        "en": "Pull the timesheet total coded to construction administration on that project and put the budget beside it.",
+        "fr": "Sortez le total des feuilles de temps codées à la surveillance des travaux sur ce projet et placez le budget à côté."
+      },
+      "notes": "Construction administration is time-driven and schedule-driven: when construction slips, the phase extends at the firm's cost unless the contract says otherwise. It is grossly under-budgeted across the sector and a firm that cannot answer this has no basis for pricing it on the next project. No benchmark exists for phase overrun — the client's own number is the finding.",
+      "options": [
+        {
+          "value": "cannot_tell",
+          "label": {
+            "en": "We couldn't separate it — time isn't coded to that phase",
+            "fr": "Nous ne pourrions pas l'isoler — le temps n'est pas codé à cette phase"
+          },
+          "level": 1,
+          "reveals": { "ca_hours_overrun_known": false }
+        },
+        {
+          "value": "known_no_budget",
+          "label": {
+            "en": "We know the hours, but there was no separate budget for the phase",
+            "fr": "Nous connaissons les heures, mais il n'y avait pas de budget distinct pour la phase"
+          },
+          "level": 2,
+          "reveals": { "ca_hours_overrun_known": false }
+        },
+        {
+          "value": "compared_after",
+          "label": {
+            "en": "We compared the two at closeout and it was over",
+            "fr": "Nous avons comparé les deux à la fermeture et c'était dépassé"
+          },
+          "level": 3,
+          "reveals": { "ca_hours_overrun_known": true }
+        },
+        {
+          "value": "tracked_during",
+          "label": {
+            "en": "We watch the phase against its budget monthly during construction",
+            "fr": "Nous suivons la phase par rapport à son budget chaque mois pendant les travaux"
+          },
+          "level": 4,
+          "reveals": { "ca_hours_overrun_known": true }
+        },
+        {
+          "value": "tracked_and_priced",
+          "label": {
+            "en": "That, and when construction extends we raise it with the client against the contract rather than absorbing it",
+            "fr": "Cela, et quand les travaux se prolongent nous le soulevons auprès du client en vertu du contrat plutôt que de l'absorber"
+          },
+          "level": 5,
+          "reveals": { "ca_hours_overrun_known": true }
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "How do you know what a sub-consultant has actually earned before their invoice arrives?",
+        "fr": "Comment savez-vous ce qu'un sous-consultant a réellement gagné avant que sa facture arrive?"
+      },
+      "help": {
+        "en": "Structural, mechanical, electrical, civil — their progress against their fee, not their invoice.",
+        "fr": "Structure, mécanique, électricité, civil — leur avancement par rapport à leurs honoraires, pas leur facture."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Take one project: show me each sub-consultant's fee, what they've invoiced to date, and what you've invoiced the client for their work.",
+        "fr": "Prenez un projet : montrez-moi les honoraires de chaque sous-consultant, ce qu'ils ont facturé à ce jour, et ce que vous avez facturé au client pour leur travail."
+      },
+      "notes": "Sub-consultants managed on trust is the standard failure: the prime invoices the client before the sub-consultant invoices the prime, so WIP is wrong in the firm's favour until the catch-up month. Odoo shape: sub-consultant fees as commitments (purchase orders) against the project, which is configuration rather than a gap — but nobody does it unless it is asked for in the audit.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We use no sub-consultants — everything is in-house",
+            "fr": "Nous n'utilisons aucun sous-consultant — tout est à l'interne"
+          },
+          "na": true
+        },
+        {
+          "value": "invoice_only",
+          "label": {
+            "en": "We find out when the invoice arrives",
+            "fr": "Nous l'apprenons quand la facture arrive"
+          },
+          "level": 1
+        },
+        {
+          "value": "ask_them",
+          "label": {
+            "en": "We call and ask if we need to know",
+            "fr": "Nous appelons pour demander si nous avons besoin de le savoir"
+          },
+          "level": 2
+        },
+        {
+          "value": "spreadsheet_tracked",
+          "label": {
+            "en": "A spreadsheet per project tracks their fee and what they've billed",
+            "fr": "Un chiffrier par projet suit leurs honoraires et ce qu'ils ont facturé"
+          },
+          "level": 3
+        },
+        {
+          "value": "commitment_in_system",
+          "label": {
+            "en": "Their fee is a commitment on the project and we record their progress each period alongside ours",
+            "fr": "Leurs honoraires sont un engagement sur le projet et nous consignons leur avancement chaque période, en parallèle du nôtre"
+          },
+          "level": 4
+        },
+        {
+          "value": "commitment_reconciled",
+          "label": {
+            "en": "That, and we reconcile what we billed the client for their scope to what they've earned, every month",
+            "fr": "Cela, et nous rapprochons chaque mois ce que nous avons facturé au client pour leur portée de ce qu'ils ont gagné"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.sys.q01",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When someone fills a timesheet, how many levels do they code to — project only, project and phase, or project, phase and task?",
+        "fr": "Quand quelqu'un remplit sa feuille de temps, à combien de niveaux code-t-il — projet seulement, projet et phase, ou projet, phase et tâche?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Open last week's timesheets for two people and show me the coding, including the reimbursables and the non-billable time.",
+        "fr": "Ouvrez les feuilles de temps de la semaine dernière de deux personnes et montrez-moi le codage, y compris les débours et le temps non facturable."
+      },
+      "notes": "Three levels, not one. Multi-discipline time entry without phase codes makes every phase-level analysis in this bank impossible — the phase budget question, the construction administration question and percent complete all depend on this one answer, so a low score here caps what the rest can be worth.",
+      "options": [
+        {
+          "value": "project_weekly_late",
+          "label": {
+            "en": "Project only, filled in at the end of the week from memory — and some people are chronically late",
+            "fr": "Le projet seulement, rempli en fin de semaine de mémoire — et certains sont chroniquement en retard"
+          },
+          "level": 1
+        },
+        {
+          "value": "project_only",
+          "label": {
+            "en": "Project only, filled in daily",
+            "fr": "Le projet seulement, rempli chaque jour"
+          },
+          "level": 2
+        },
+        {
+          "value": "project_phase",
+          "label": {
+            "en": "Project and phase",
+            "fr": "Le projet et la phase"
+          },
+          "level": 3
+        },
+        {
+          "value": "project_phase_task",
+          "label": {
+            "en": "Project, phase and task, with billable and non-billable distinguished",
+            "fr": "Le projet, la phase et la tâche, en distinguant le facturable du non facturable"
+          },
+          "level": 4
+        },
+        {
+          "value": "three_levels_reviewed",
+          "label": {
+            "en": "That, approved weekly by the project manager, and we measure how many timesheets are in on time",
+            "fr": "Cela, approuvé chaque semaine par le chargé de projet, et nous mesurons le taux de feuilles de temps remises à temps"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.doc.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Which revision of a drawing went out for tender, when, and to whom? Where would you look?",
+        "fr": "Quelle révision d'un dessin est partie pour appel d'offres, quand, et à qui? Où chercheriez-vous?"
+      },
+      "help": {
+        "en": "The drawing register and the transmittals. This is also what you stand on if the standard of care is ever questioned.",
+        "fr": "Le registre des dessins et les bordereaux de transmission. C'est aussi ce sur quoi vous vous appuyez si le devoir de diligence est mis en question."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Pick a project from last year and find me the transmittal for the issue-for-tender set.",
+        "fr": "Choisissez un projet de l'an dernier et trouvez-moi le bordereau de transmission du jeu émis pour appel d'offres."
+      },
+      "notes": "Odoo gap: no drawing register, no revision control and no transmittals — Documents is file storage, not a CAD or BIM document-management system. Say this plainly in scoping: the register and the transmittal log either stay in a specialist tool or become a focused custom build, and either way the ERP is not where that lives. This is also where professional liability meets record-keeping, which makes it a partner-level conversation rather than an IT one.",
+      "options": [
+        {
+          "value": "email_only",
+          "label": {
+            "en": "In somebody's sent email, and we'd search for it",
+            "fr": "Dans les courriels envoyés de quelqu'un, et nous ferions une recherche"
+          },
+          "level": 1
+        },
+        {
+          "value": "folder_names",
+          "label": {
+            "en": "In the folder names on the server, if the naming held up",
+            "fr": "Dans les noms de dossiers sur le serveur, si la nomenclature a tenu"
+          },
+          "level": 2
+        },
+        {
+          "value": "spreadsheet_register",
+          "label": {
+            "en": "A drawing register spreadsheet someone keeps per project",
+            "fr": "Un chiffrier de registre des dessins tenu par quelqu'un, par projet"
+          },
+          "level": 3
+        },
+        {
+          "value": "register_with_transmittals",
+          "label": {
+            "en": "A register with revision numbers and dated transmittals recording who received each issue",
+            "fr": "Un registre avec numéros de révision et bordereaux de transmission datés indiquant qui a reçu chaque émission"
+          },
+          "level": 4
+        },
+        {
+          "value": "register_audited",
+          "label": {
+            "en": "That, and it's part of a closeout checklist that gets verified before the file is archived",
+            "fr": "Cela, et cela fait partie d'une liste de fermeture vérifiée avant l'archivage du dossier"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_aec.fin.q01",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "On average, how many days from issuing a fee invoice to the money arriving?",
+        "fr": "En moyenne, combien de jours entre l'émission d'une facture d'honoraires et l'arrivée de l'argent?"
+      },
+      "help": {
+        "en": "If some of your work is sub-consulting to a prime on pay-when-paid terms, tell us — it belongs in a separate number.",
+        "fr": "Si une partie de votre travail est en sous-consultation pour un donneur d'ordre avec clause de paiement sur paiement, dites-le — cela mérite un chiffre distinct."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "deltek_average_collection_period",
+      "reveals": ["collection_period_days_aec"],
+      "artifact_probe": {
+        "en": "Show me the aged AR and tell me what's beyond 90 days and why.",
+        "fr": "Montrez-moi l'âge des comptes clients et dites-moi ce qui dépasse 90 jours et pourquoi."
+      },
+      "notes": "benchmark_ref keyed to Deltek Clarity FY2025 average collection period of 67.71 days. Bands are set around that median rather than around a generic SMB payment-terms curve, because fee invoices on construction projects collect slowly by construction, not by negligence — and a firm at 65 days is at the sector norm even though it would be a red flag in distribution.",
+      "numeric": {
+        "unit": { "en": "days", "fr": "jours" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 45, "level": 5 },
+          { "lte": 60, "level": 4 },
+          { "lte": 75, "level": 3 },
+          { "lte": 100, "level": 2 },
+          { "gt": 100, "level": 1 }
+        ]
+      }
+    }
+  ]
+}

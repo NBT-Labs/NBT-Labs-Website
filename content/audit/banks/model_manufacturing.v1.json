@@ -1,0 +1,388 @@
+{
+  "bank_id": "model_manufacturing",
+  "bank_version": "1.0.0",
+  "layer": "model",
+  "label": {
+    "en": "Making or assembling a product",
+    "fr": "Fabrication ou assemblage d'un produit"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q02", "op": "eq", "value": "manufacturing" }
+  ],
+  "reweight": {
+    "scheduling_capacity": 1.6,
+    "procure_inventory": 1.4,
+    "quote_to_cash": 1.1,
+    "process_documentation": 1.1
+  },
+  "notes": "ROUTER: served on base.firmo.q02 = manufacturing. The router ALSO activates this layer when base.firmo.q03 (multi-select mix) includes manufacturing; applies_when uses AND semantics so the q03 alternative cannot be expressed here and lives in the router instead.\n\nMTS, MTO and ETO are three different businesses sharing a vocabulary. firmo.q01 sorts them before any production question is asked, and a mixed answer IS the finding — most 10-150 employee manufacturers run two of the three.\n\nNEW reveals KEYS introduced by this bank, to be added to scoring/scoring.v1.json#cost_model.inputs: repeat_build_count, quoted_vs_actual_tracked (shared with model_prof_services), otif_pct, scrap_rework_pct, wip_floor_valuation.\n\nNEW benchmark_ref KEYS used by this bank, to be added to scoring/benchmarks.v1.json: mfg_otif_industry_standard (Symestic production metrics — on-time delivery / OTIF 75-85% typical start, 92-97% industry standard, over 98% world class); mfg_oee_industry_standard (Symestic — OEE 45-60% typical start, 65-75% industry standard, 85%+ world class, with the documented caveat that OEE drops 15-20 points when honest automated measurement replaces self-reported numbers).\n\nDELIBERATELY NO BENCHMARK: scrap and rework as a share of production HOURS (perf.q01). The published 0.5-1.5% scrap figure is a units/material rate on an automotive reference and applying it to hours would be false precision, so the help text says we use the client's number.\n\nODOO GAPS SURFACED AS DIAGNOSTICS (not objections): finite capacity scheduling with sequence-dependent setups is coarse to absent, which is why MTO shops keep a chiffrier beside the ERP (sched.q01); MTO is a per-product route, not a mode, and mixing it with stock replenishment on one component is the classic misconfiguration (inv.q01); subcontracting-as-a-route breaks owner-of-stock accounting when the sous-traitant holds your material (inv.q04); ECO cost-back to the customer order is not modelled (q2c.q03).",
+  "questions": [
+    {
+      "id": "model_manufacturing.firmo.q01",
+      "dimension": "firmographic",
+      "type": "number",
+      "weight": 0,
+      "stem": {
+        "en": "Of your last 20 orders, how many were a repeat of something you'd built before, with no drawing changes?",
+        "fr": "Sur vos 20 dernières commandes, combien étaient la reprise d'un produit déjà fabriqué, sans changement de dessin?"
+      },
+      "instruments": ["audit"],
+      "notes": "Unscored. Sorts make-to-stock from make-to-order from engineer-to-order and quantifies the mix, which drives how the rest of this layer is read. 20 repeats means a forecasting and cost-roll conversation; 2 repeats means an estimating and capacity conversation.",
+      "reveals": ["repeat_build_count"],
+      "artifact_probe": {
+        "en": "Pull the last 20 ordres de fabrication and tell me which ones carried a revision.",
+        "fr": "Sortez les 20 derniers ordres de fabrication et dites-moi lesquels portaient une révision."
+      },
+      "numeric": {
+        "unit": { "en": "orders out of 20", "fr": "commandes sur 20" },
+        "min": 0,
+        "max": 20,
+        "integer": true,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 18, "level": 5, "label": { "en": "Essentially make-to-stock", "fr": "Essentiellement fabrication pour stock" } },
+          { "gte": 12, "level": 4, "label": { "en": "Mostly repeat, some custom", "fr": "Surtout de la reprise, un peu de sur-mesure" } },
+          { "gte": 5, "level": 3, "label": { "en": "Genuinely mixed-mode", "fr": "Réellement en mode mixte" } },
+          { "gte": 1, "level": 2, "label": { "en": "Mostly made to order", "fr": "Surtout sur commande" } },
+          { "lt": 1, "level": 1, "label": { "en": "Engineer-to-order, every time", "fr": "Conception sur commande, chaque fois" } }
+        ]
+      }
+    },
+    {
+      "id": "model_manufacturing.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "For your last big job, what did you quote in hours and what did you actually burn — and where is that comparison stored?",
+        "fr": "Pour votre dernier gros contrat, qu'avez-vous soumissionné en heures et combien avez-vous réellement brûlé — et où cette comparaison est-elle conservée?"
+      },
+      "instruments": ["quiz", "audit"],
+      "reveals": ["quoted_vs_actual_tracked"],
+      "artifact_probe": {
+        "en": "Open that comparison for the job you just shipped.",
+        "fr": "Ouvrez cette comparaison pour le contrat que vous venez d'expédier."
+      },
+      "options": [
+        { "value": "nobody_compares", "label": { "en": "Nobody compares those", "fr": "Personne ne compare les deux" }, "level": 1 },
+        { "value": "foreman_knows", "label": { "en": "The foreman knows it went long", "fr": "Le contremaître sait que ça a débordé" }, "level": 2 },
+        { "value": "spreadsheet_after", "label": { "en": "Someone rebuilds it in a chiffrier afterwards", "fr": "Quelqu'un la refait dans un chiffrier après coup" }, "level": 3 },
+        { "value": "in_system", "label": { "en": "Actual hours sit against the gamme de fabrication in the system", "fr": "Les heures réelles sont inscrites en regard de la gamme de fabrication dans le système" }, "level": 4 },
+        { "value": "report_estimator", "label": { "en": "It's in a report the estimator reads before the next soumission", "fr": "C'est dans un rapport que l'estimateur consulte avant la prochaine soumission" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Long-lead material on a new job — when does it get ordered?",
+        "fr": "Le matériel à long délai sur un nouveau contrat — quand est-il commandé?"
+      },
+      "instruments": ["audit"],
+      "notes": "Ordering long-lead items after order confirmation rather than at soumission is the most common single cause of a blown promise date in a 10-150 employee MTO shop.",
+      "artifact_probe": {
+        "en": "Show me the bon de commande date against the order date on your last late job.",
+        "fr": "Montrez-moi la date du bon de commande en regard de la date de commande sur votre dernier contrat en retard."
+      },
+      "options": [
+        { "value": "when_short", "label": { "en": "When the shop runs short", "fr": "Quand l'atelier en manque" }, "level": 1 },
+        { "value": "after_confirm_memory", "label": { "en": "After the order is confirmed, from the buyer's memory", "fr": "Après la confirmation, selon la mémoire de l'acheteur" }, "level": 2 },
+        { "value": "after_confirm_list", "label": { "en": "After confirmation, from a written list per product", "fr": "Après la confirmation, à partir d'une liste écrite par produit" }, "level": 3 },
+        { "value": "at_quote", "label": { "en": "At soumission time, for the items we know run long", "fr": "Dès la soumission, pour les articles reconnus longs" }, "level": 4 },
+        { "value": "measured_lead_times", "label": { "en": "At soumission, off measured supplier lead times we keep current", "fr": "Dès la soumission, selon des délais fournisseurs mesurés et tenus à jour" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "An engineering change arrives after the material is bought. What happens commercially?",
+        "fr": "Un changement d'ingénierie arrive après l'achat du matériel. Que se passe-t-il sur le plan commercial?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. PLM handles the engineering change itself, but costing the scrapped material and the rework hours back to the customer order is not modelled — it needs analytic work. Asked here so the scope conversation happens in the audit.",
+      "artifact_probe": {
+        "en": "Find the last change and show me what the customer was charged for it.",
+        "fr": "Trouvez le dernier changement et montrez-moi ce qui a été facturé au client pour celui-ci."
+      },
+      "options": [
+        { "value": "absorbed", "label": { "en": "We eat it", "fr": "On l'absorbe" }, "level": 1 },
+        { "value": "sometimes_billed", "label": { "en": "We mention it; sometimes it gets billed", "fr": "On le mentionne; parfois c'est facturé" }, "level": 2 },
+        { "value": "priced_by_hand", "label": { "en": "Someone prices it by hand and emails the customer", "fr": "Quelqu'un le chiffre à la main et écrit au client" }, "level": 3 },
+        { "value": "change_order", "label": { "en": "A priced change order, approved before work resumes", "fr": "Un avenant chiffré, approuvé avant la reprise des travaux" }, "level": 4 },
+        { "value": "costed_back", "label": { "en": "That, and the scrapped material and rework hours get costed back to the job", "fr": "Cela, et le matériel mis au rebut et les heures de reprise sont imputés au contrat" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "At your busiest poste de charge, what sets the order of jobs this week, and does anything check the hours fit?",
+        "fr": "À votre poste de charge le plus occupé, qu'est-ce qui détermine l'ordre des travaux cette semaine, et est-ce que quelque chose vérifie que les heures entrent?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Work-centre capacity planning is coarse: there is no constraint-based scheduling and no sequence-dependent temps de réglage. This is the top reason MTO shops keep a chiffrier running beside the ERP, and the answer here tells us whether that chiffrier is load-bearing.",
+      "artifact_probe": {
+        "en": "Show me this week's sequence at that work centre, wherever it actually lives.",
+        "fr": "Montrez-moi la séquence de cette semaine à ce poste de charge, où qu'elle se trouve réellement."
+      },
+      "options": [
+        { "value": "expedite_list", "label": { "en": "Whoever shouts loudest — it's an expedite list", "fr": "Celui qui crie le plus fort — c'est une liste d'urgences" }, "level": 1 },
+        { "value": "supervisor_morning", "label": { "en": "The supervisor decides each morning", "fr": "Le superviseur décide chaque matin" }, "level": 2 },
+        { "value": "spreadsheet_beside", "label": { "en": "A chiffrier kept beside the system", "fr": "Un chiffrier tenu à côté du système" }, "level": 3 },
+        { "value": "system_sequence", "label": { "en": "The system sequences it and shows the load", "fr": "Le système établit la séquence et montre la charge" }, "level": 4 },
+        { "value": "capacity_measured", "label": { "en": "Sequenced against finite capacity and temps de réglage, and we measure schedule adherence", "fr": "Séquencé selon une capacité finie et les temps de réglage, et nous mesurons le respect de l'horaire" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.sched.q02",
+      "dimension": "scheduling_capacity",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "Of the orders you shipped in the last 90 days, what share went out on the date you promised?",
+        "fr": "Des commandes expédiées au cours des 90 derniers jours, quelle proportion est partie à la date promise?"
+      },
+      "help": {
+        "en": "The date you first promised, not the date you renegotiated. \"We don't track that\" is a real answer.",
+        "fr": "La date promise au départ, pas celle renégociée. « Nous ne suivons pas cela » est une vraie réponse."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "mfg_otif_industry_standard",
+      "reveals": ["otif_pct"],
+      "artifact_probe": {
+        "en": "Show me where the promised date and the shipped date sit side by side.",
+        "fr": "Montrez-moi où la date promise et la date d'expédition apparaissent côte à côte."
+      },
+      "numeric": {
+        "unit": { "en": "% of orders", "fr": "% des commandes" },
+        "min": 0,
+        "max": 100,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 98, "level": 5 },
+          { "gte": 92, "level": 4 },
+          { "gte": 85, "level": 3 },
+          { "gte": 75, "level": 2 },
+          { "lt": 75, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_manufacturing.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "A part you normally stock also gets bought specially for certain orders. What triggers each purchase?",
+        "fr": "Une pièce que vous gardez normalement en stock est aussi achetée spécialement pour certaines commandes. Qu'est-ce qui déclenche chaque achat?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Replenish-on-Order (MTO) is a route set per product, not a mode of operation. Enabling it on a component that is also stocked produces one bon de commande per sale line — the classic misconfiguration. This question finds the components where that will happen before go-live.",
+      "artifact_probe": {
+        "en": "Pick one such part and show me how its replenishment is set up.",
+        "fr": "Choisissez une telle pièce et montrez-moi comment son réapprovisionnement est configuré."
+      },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody could tell you — it's whatever the buyer did", "fr": "Personne ne pourrait vous le dire — c'est ce que l'acheteur a fait" }, "level": 1 },
+        { "value": "buyer_case", "label": { "en": "The buyer decides case by case", "fr": "L'acheteur décide cas par cas" }, "level": 2 },
+        { "value": "one_rule", "label": { "en": "One rule for the part, whichever way the order came in", "fr": "Une seule règle pour la pièce, peu importe d'où vient la commande" }, "level": 3 },
+        { "value": "two_paths", "label": { "en": "Two separate paths, set up on purpose", "fr": "Deux chemins distincts, configurés exprès" }, "level": 4 },
+        { "value": "two_paths_reviewed", "label": { "en": "Two paths, and we review the purchases that fired the wrong way", "fr": "Deux chemins, et nous révisons les achats qui se sont déclenchés du mauvais côté" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.inv.q02",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "On a finished ordre de fabrication, how do you know what material was actually consumed?",
+        "fr": "Sur un ordre de fabrication terminé, comment savez-vous quel matériel a réellement été consommé?"
+      },
+      "instruments": ["quiz", "audit"],
+      "artifact_probe": {
+        "en": "Open a closed ordre de fabrication and compare what it planned to what it consumed.",
+        "fr": "Ouvrez un ordre de fabrication fermé et comparez ce qui était prévu à ce qui a été consommé."
+      },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody knows — we find out at the yearly count", "fr": "Personne ne le sait — on l'apprend au dénombrement annuel" }, "level": 1 },
+        { "value": "assumed_bom", "label": { "en": "The system assumes the nomenclature", "fr": "Le système présume la nomenclature" }, "level": 2 },
+        { "value": "written_down", "label": { "en": "Someone writes down what they took", "fr": "Quelqu'un note ce qu'il a pris" }, "level": 3 },
+        { "value": "scanned", "label": { "en": "It's scanned or declared at the machine", "fr": "C'est balayé ou déclaré à la machine" }, "level": 4 },
+        { "value": "scanned_variance", "label": { "en": "Scanned, and the material variance against the nomenclature gets reviewed", "fr": "Balayé, et l'écart de matière par rapport à la nomenclature est révisé" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.inv.q03",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "When were your product or standard costs last updated, and by whom?",
+        "fr": "Quand vos coûts de revient ou coûts standards ont-ils été mis à jour la dernière fois, et par qui?"
+      },
+      "help": {
+        "en": "After a material price move, a stale standard cost makes margin wrong on every item that uses it.",
+        "fr": "Après un mouvement de prix de matière, un coût standard périmé rend la marge fausse sur chaque article qui l'utilise."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the last-modified date on the coût de revient of your top-selling item.",
+        "fr": "Montrez-moi la date de dernière modification du coût de revient de votre article le plus vendu."
+      },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody knows", "fr": "Personne ne le sait" }, "level": 1 },
+        { "value": "at_setup", "label": { "en": "When the system was set up", "fr": "Quand le système a été installé" }, "level": 2 },
+        { "value": "when_noticed", "label": { "en": "When somebody notices a price moved", "fr": "Quand quelqu'un remarque qu'un prix a bougé" }, "level": 3 },
+        { "value": "scheduled", "label": { "en": "On a schedule, by a named person", "fr": "Selon un calendrier, par une personne nommée" }, "level": 4 },
+        { "value": "scheduled_variance", "label": { "en": "On a schedule, and purchase price variance gets reviewed against them", "fr": "Selon un calendrier, et l'écart de prix d'achat est révisé par rapport à eux" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.inv.q04",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "When a sous-traitant is holding your material, where does it show up in your stock?",
+        "fr": "Quand un sous-traitant détient votre matériel, où apparaît-il dans votre stock?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Subcontracting exists as a route, but owner-of-stock accounting breaks when the sous-traitant holds your material — the stock is yours and physically not yours. Clients who answer 'nowhere' are carrying an unquantified inventory difference.",
+      "artifact_probe": {
+        "en": "Show me what one sous-traitant is holding for you right now.",
+        "fr": "Montrez-moi ce qu'un sous-traitant détient pour vous en ce moment."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We don't use sous-traitance", "fr": "Nous ne faisons pas de sous-traitance" }, "na": true },
+        { "value": "nowhere", "label": { "en": "Nowhere — it leaves and it comes back", "fr": "Nulle part — il part et il revient" }, "level": 1 },
+        { "value": "email_or_sheet", "label": { "en": "In an email trail or a chiffrier", "fr": "Dans un fil de courriels ou un chiffrier" }, "level": 2 },
+        { "value": "adjustments", "label": { "en": "We adjust the stock out and back in", "fr": "Nous sortons et rentrons le stock par ajustement" }, "level": 3 },
+        { "value": "subcontract_location", "label": { "en": "In a sous-traitant location in the system", "fr": "Dans un emplacement sous-traitant du système" }, "level": 4 },
+        { "value": "reconciled", "label": { "en": "That, and we reconcile what they hold against what we sent", "fr": "Cela, et nous concilions ce qu'il détient avec ce que nous avons envoyé" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.perf.q01",
+      "dimension": "performance_management",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "Last month, what share of production hours went to scrap and rework?",
+        "fr": "Le mois dernier, quelle proportion des heures de production est allée au rebut et à la reprise?"
+      },
+      "help": {
+        "en": "The published scrap figures are material rates from other industries, so there is no honest benchmark in hours. We use your number. If rework hours get booked to the next job, say so — that is the real answer.",
+        "fr": "Les taux de rebut publiés sont des taux de matière venant d'autres industries; il n'existe donc pas de référence honnête en heures. Nous utilisons votre chiffre. Si les heures de reprise sont imputées au contrat suivant, dites-le — c'est la vraie réponse."
+      },
+      "instruments": ["audit"],
+      "reveals": ["scrap_rework_pct"],
+      "artifact_probe": {
+        "en": "Show me where rework hours get booked, on a real job.",
+        "fr": "Montrez-moi où les heures de reprise sont imputées, sur un contrat réel."
+      },
+      "numeric": {
+        "unit": { "en": "% of production hours", "fr": "% des heures de production" },
+        "min": 0,
+        "max": 100,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 3, "level": 4 },
+          { "lte": 6, "level": 3 },
+          { "lte": 12, "level": 2 },
+          { "gt": 12, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_manufacturing.perf.q02",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Of last week's planned run time on your bottleneck machine, how much did it actually run — and where does that number come from?",
+        "fr": "Du temps de production prévu la semaine dernière sur votre machine goulot, combien a-t-elle réellement tourné — et d'où vient ce chiffre?"
+      },
+      "help": {
+        "en": "When honest measurement replaces a self-reported number, it usually drops 15 to 20 points. That's the measurement working, not a regression.",
+        "fr": "Quand une mesure honnête remplace un chiffre auto-déclaré, il baisse habituellement de 15 à 20 points. C'est la mesure qui fonctionne, pas un recul."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "mfg_oee_industry_standard",
+      "artifact_probe": {
+        "en": "Show me last week's downtime for that machine, by cause.",
+        "fr": "Montrez-moi les arrêts de la semaine dernière pour cette machine, par cause."
+      },
+      "options": [
+        { "value": "not_tracked", "label": { "en": "Nobody tracks run time", "fr": "Personne ne suit le temps de marche" }, "level": 1 },
+        { "value": "operator_sheet", "label": { "en": "The operator notes stoppages on a sheet nobody totals", "fr": "L'opérateur note les arrêts sur une feuille que personne ne totalise" }, "level": 2 },
+        { "value": "spreadsheet_monthly", "label": { "en": "It's totalled in a chiffrier, monthly", "fr": "C'est totalisé dans un chiffrier, mensuellement" }, "level": 3 },
+        { "value": "system_daily", "label": { "en": "It's in a system, visible daily", "fr": "C'est dans un système, visible chaque jour" }, "level": 4 },
+        { "value": "measured_reviewed", "label": { "en": "Measured at the machine, with a target, and losses reviewed by cause", "fr": "Mesuré à la machine, avec une cible, et les pertes révisées par cause" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.doc.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Where does the nomenclature live, and how does the shop know it has the current revision?",
+        "fr": "Où vit la nomenclature, et comment l'atelier sait-il qu'il a la bonne révision?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Open the nomenclature for your top product and show me its revision history.",
+        "fr": "Ouvrez la nomenclature de votre produit principal et montrez-moi son historique de révisions."
+      },
+      "options": [
+        { "value": "in_heads", "label": { "en": "In the heads of the people who build it", "fr": "Dans la tête de ceux qui le fabriquent" }, "level": 1 },
+        { "value": "shared_folder", "label": { "en": "Drawings in a shared folder, the revision in the file name", "fr": "Des dessins dans un dossier partagé, la révision dans le nom du fichier" }, "level": 2 },
+        { "value": "spreadsheet", "label": { "en": "A chiffrier per product, kept by one person", "fr": "Un chiffrier par produit, tenu par une seule personne" }, "level": 3 },
+        { "value": "in_system", "label": { "en": "In the system, with a revision level on the ordre de fabrication", "fr": "Dans le système, avec un niveau de révision sur l'ordre de fabrication" }, "level": 4 },
+        { "value": "controlled_release", "label": { "en": "In the system, changes go through a controlled release and old revisions get locked", "fr": "Dans le système, les changements passent par une émission contrôlée et les anciennes révisions sont verrouillées" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_manufacturing.fin.q01",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "What are the travaux en cours on the floor worth right now, and where does that number come from?",
+        "fr": "Combien valent les travaux en cours sur le plancher en ce moment, et d'où vient ce chiffre?"
+      },
+      "help": {
+        "en": "Nobody publishes a credible benchmark for shop-floor WIP. We use your number, not somebody else's.",
+        "fr": "Personne ne publie de référence crédible pour les travaux en cours à l'atelier. Nous utilisons votre chiffre, pas celui d'un autre."
+      },
+      "instruments": ["audit"],
+      "reveals": ["wip_floor_valuation"],
+      "artifact_probe": {
+        "en": "Walk me onto the floor and then show me the figure in the books.",
+        "fr": "Emmenez-moi sur le plancher, puis montrez-moi le chiffre dans les livres."
+      },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody could put a number on it", "fr": "Personne ne pourrait y mettre un chiffre" }, "level": 1 },
+        { "value": "year_end", "label": { "en": "We find out at year end", "fr": "On l'apprend à la fin de l'exercice" }, "level": 2 },
+        { "value": "controller_spreadsheet", "label": { "en": "A chiffrier the controller builds at close", "fr": "Un chiffrier que le contrôleur bâtit à la fermeture" }, "level": 3 },
+        { "value": "system_valued", "label": { "en": "The system values it from the hours and material booked", "fr": "Le système le valorise selon les heures et le matériel imputés" }, "level": 4 },
+        { "value": "reconciled_monthly", "label": { "en": "That, reconciled to what's physically on the floor, monthly", "fr": "Cela, concilié à ce qui est physiquement sur le plancher, mensuellement" }, "level": 5 }
+      ]
+    }
+  ]
+}

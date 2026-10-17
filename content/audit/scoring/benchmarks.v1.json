@@ -1,0 +1,687 @@
+{
+  "benchmarks_version": "1.0.0",
+  "compiled": "2026-10-04",
+  "purpose": "Every external number the audit is allowed to put in front of a client, with its source, its date and an honest provenance tier. If a figure is not in this file, it does not go in a report. The exclusions list at the bottom is published in the methodology page on purpose: showing a controller which famous numbers we refused to use pre-empts the 'isn't that one debunked?' objection and is cheaper than being caught.",
+
+  "provenance_tiers": {
+    "T1_government": "Government or statistical agency. Canadian, current, unimpeachable. The whole denominator of the cost model is T1 — lead with it.",
+    "T2_consortium": "Industry consortium or association benchmark. Method disclosed, large sample, often partly member-paywalled.",
+    "T3_analyst": "Independent analyst primary research. Disclose the sponsor where one exists.",
+    "T4_academic": "Peer-reviewed. Use for MECHANISM; discount the magnitude for sector and age.",
+    "T5_vendor": "Vendor-published. Usable only when the method and sample are disclosed, and always named as vendor research in the report.",
+    "T6_convention": "A convention or rule of thumb with no measurement behind it. Label it as one, out loud."
+  },
+
+  "cost_model_constants": {
+    "quebec_median_hourly_wages": {
+      "tier": "T1_government",
+      "source": "Gouvernement du Québec, occupation wage pages (hourly wage averaged over 2023-2025)",
+      "url": "https://www.quebec.ca/en/employment/learn-trade-occupation/exploring-trades-occupations/13110-administrative-assistants",
+      "statcan_table": "14-10-0417",
+      "note": "Quebec administrative-assistant median sits essentially at the national median, so these are usable for Canada-wide work on these roles without adjustment.",
+      "roles": {
+        "admin_assistant": { "noc": "13110", "low": 20.0, "median": 26.66, "high": 36.51 },
+        "accounting_technician": { "noc": "12200", "low": 21.0, "median": 28.85, "high": 43.96 },
+        "ap_clerk": { "noc": "14200", "low": 19.0, "median": 25.0, "high": 34.13 },
+        "dispatcher": { "noc": "14404", "low": 21.0, "median": 27.88, "high": 38.5 },
+        "inventory_clerk": { "noc": "14400", "low": 17.0, "median": 22.68, "high": 30.0 },
+        "ops_coordinator": { "noc": "13201", "low": 22.0, "median": 31.0, "high": 45.19 }
+      }
+    },
+
+    "employer_burden_quebec_2026": {
+      "tier": "T1_government",
+      "source": "Revenu Québec 2026 employer changes; ESDC 2026 EI premium rates; Services Québec consolidated charges sociales table",
+      "urls": [
+        "https://www.revenuquebec.ca/fr/entreprises/retenues-a-la-source-et-cotisations-de-lemployeur/employeur-principaux-changements-2026/",
+        "https://www.canada.ca/en/employment-social-development/programs/ei/ei-list/reports/premium/rates2026.html",
+        "https://www.accueil.servicesquebec.gouv.qc.ca/fileadmin/fichiers_ServicesQC/guide_mesures_services/02_Generalites/02_2_Charges_sociales_imputees_yeur/2_2_charges_sociales_employeur.pdf"
+      ],
+      "components_pct": {
+        "qpp_rrq": 6.3,
+        "ei_quebec_rate": 1.82,
+        "qpip_rqap": 0.602,
+        "health_services_fund_payroll_under_1m": 1.65,
+        "labour_standards": 0.06,
+        "cnesst_services_office": 0.6,
+        "cnesst_average_all_sectors": 1.48,
+        "vacation_two_weeks": 4.0
+      },
+      "multipliers": {
+        "floor_statutory_plus_vacation": 1.16,
+        "typical_smb_default": 1.25,
+        "upper_bound_larger_or_unionized": 1.38,
+        "isq_all_employee_published_ceiling": 1.39
+      },
+      "default_multiplier": 1.25,
+      "honesty_note": "There is NO published non-wage-benefit loading figure for Quebec private-sector firms under 200 employees — the ISQ private-sector table starts at 200+. The 1.16 statutory floor is solid; 1.22-1.28 is a construction from the floor plus observed SMB benefit spend, not a published figure. Disclose the 1.25 default. Being visibly conservative here buys credibility to spend elsewhere."
+    },
+
+    "productive_hours_per_year": {
+      "tier": "T6_convention",
+      "value": 1900,
+      "derivation": "2,080 paid hours less two weeks vacation (80h) less eight Quebec statutory holidays (56h) = 1,944; with three weeks vacation = 1,904. Use 1,900.",
+      "trap": "The most common error in these audits is applying a burden multiplier to 2,080 hours AND separately costing vacation. That double-counts. Burden the annual salary, then divide by PRODUCTIVE hours."
+    },
+
+    "loaded_cost_per_productive_hour": {
+      "tier": "T1_government",
+      "worked_example": "Accounting technician at the Quebec median: $28.85 x 2,080 = $60,008 direct pay; + 11.9% statutory = $67,149; + ~7% group insurance and RRSP = ~$71,850; divided by 1,900 productive hours = ~$37.80 per productive hour. Effective ratio to posted wage: ~1.31x.",
+      "defaults_cad_per_hour": {
+        "admin_assistant": 34.9,
+        "accounting_technician": 37.8,
+        "ap_clerk": 32.8,
+        "dispatcher": 36.5,
+        "inventory_clerk": 29.7,
+        "ops_coordinator": 40.6,
+        "blended_default": 36.0
+      },
+      "note": "State this derivation explicitly in the audit. It is the step that signals you know what you are doing, and it is the number to apply against reclaimed hours."
+    },
+
+    "working_capital_rate": {
+      "tier": "T1_government",
+      "default_pct": 6.0,
+      "construction": "Canadian prime 4.45% (unchanged since 2025-10-29) plus ~1.5% typical SMB operating-line premium.",
+      "reference_points": {
+        "bank_of_canada_policy_rate": 2.25,
+        "canadian_prime": 4.45,
+        "ised_average_small_business_credit_rate_2024": 7.3,
+        "ised_small_business_premium_over_prime_2024": 0.5
+      },
+      "source": "ISED, Small Business Credit Condition Trends 2014-2024 (updated 2025-11-17)",
+      "url": "https://ised-isde.canada.ca/site/sme-research-statistics/en/small-business-credit-condition-trends-2014-2024",
+      "gate": "Ask whether the client is DRAWN on the line before monetizing any DSO improvement. For a firm sitting in cash the benefit is only the deposit rate. Getting this wrong is the fastest way to lose a controller."
+    }
+  },
+
+  "benchmarks": {
+    "ap_invoices_per_fte_year": {
+      "tier": "T2_consortium",
+      "source": "APQC Open Standards, 'Number of invoices processed per FTE'",
+      "url": "https://www.apqc.org/what-we-do/benchmarking/open-standards-benchmarking/measures/number-invoices-processed-fte-1",
+      "values": { "mostly_manual": 6082, "average_all_automation": 10853, "cross_industry_median": 12000, "fully_automated": 23333 },
+      "sample": "n=3,748 for the median measure",
+      "use": "Build the AP module on invoices/FTE/year times a Quebec loaded rate, NOT on a US dollar cost-per-invoice. It sidesteps the enterprise-skew problem and a controller can verify it against their own headcount in thirty seconds.",
+      "conservative_target": "average_all_automation",
+      "target_note": "Model the improvement to the ALL-AUTOMATION AVERAGE, not to fully_automated. Claiming 23,333 for a 40-person distributor is not credible."
+    },
+    "ap_staff_time_on_supplier_inquiries": {
+      "tier": "T3_analyst",
+      "value_pct": 21.9,
+      "best_in_class_pct": 12.8,
+      "all_others_pct": 24.0,
+      "source": "Ardent Partners, State of ePayables 2025 (June 2025, n=204, fielded March-May 2025; sponsored by Bottomline)",
+      "url": "https://payablesplace.ardentpartners.com/2026/01/state-of-epayables-part-nine-ap-benchmarks-and-best-in-class-performance/",
+      "caveat": "Sample is 54% companies over $1B revenue. Enterprise-skewed. Use the PERCENTAGE of AP time answering 'where is my payment', which travels better than the dollar figures, and name the sponsor.",
+      "use": "The single most persuasive line item in AP for an SMB owner: it converts directly to loaded labour hours."
+    },
+    "ap_other_ardent_2025": {
+      "tier": "T3_analyst",
+      "source": "same as ap_staff_time_on_supplier_inquiries",
+      "values": {
+        "invoice_exception_rate_pct": 18.4,
+        "processing_time_days": 8.2,
+        "straight_through_processing_pct": 35.4,
+        "invoices_linked_to_po_pct": 65.4,
+        "cost_per_invoice_cad_equiv_all_orgs": 9.84,
+        "cost_per_invoice_best_in_class": 2.65
+      },
+      "do_not_anchor_on": "cost_per_invoice_cad_equiv_all_orgs — enterprise-weighted and vendor-sponsored."
+    },
+    "invoice_error_free_first_time": {
+      "tier": "T2_consortium",
+      "value_pct": 92.0,
+      "implied_rework_rate_pct": 8.0,
+      "sample": "n=2,342 organizations",
+      "source": "APQC Open Standards, percentage of customer invoices error-free first time",
+      "use": "The most defensible order-to-cash error figure available anywhere, cross-industry, large sample. Build the invoice-rework and credit-note module on it.",
+      "note": "There is NO primary research on the cost to correct an order error. Every circulating figure ($30-50, $8/order, $200/error) traces to vendor marketing. Make the client supply minutes-per-fix instead."
+    },
+    "canadian_smb_invoice_to_payment_days": {
+      "tier": "T3_analyst",
+      "values": { "time_to_be_paid_days": 29.0, "days_paid_late": 11.3, "provincial_low_bc": 25.7, "provincial_high_maritimes": 31.8 },
+      "source": "Xero Small Business Insights, Canada, June quarter 2026 (published 2026-07-30)",
+      "url": "https://www.xero.com/resources/small-business-insights/latest-canada/",
+      "use": "The best single order-to-cash source for this audience: genuinely SMB, genuinely Canadian, current.",
+      "do_not_use": "The Hackett Group working-capital survey. Excellent research about the top 1,000 US public companies — a population with nothing in common with a 60-person Quebec distributor."
+    },
+    "canada_b2b_payment_practices": {
+      "tier": "T3_analyst",
+      "values": { "receivables_overdue_pct": 25, "firms_experiencing_late_payment_pct": 70, "b2b_sales_on_credit_pct": 50, "firms_reporting_cash_squeeze_pct": 34 },
+      "source": "Atradius Payment Practices Barometer, Canada 2026 (2026-09-21)",
+      "url": "https://group.atradius.com/knowledge-and-research/reports/b2b-payment-practices-trends-in-canada-2026",
+      "sector_colour": "Manufacturing SMEs are the heaviest trade-credit users; construction and services SMEs most often grant extended terms."
+    },
+    "close_within_six_days": {
+      "tier": "T3_analyst",
+      "values": {
+        "all_orgs_close_monthly_within_6_days_pct": 62,
+        "close_monthly_within_4_days_pct": 46,
+        "substantial_automation_within_6_days_pct": 88,
+        "some_automation_within_6_days_pct": 50,
+        "little_or_no_automation_within_6_days_pct": 40,
+        "reconciliation_automated_within_6_days_pct": 69,
+        "reconciliation_not_automated_within_6_days_pct": 53
+      },
+      "source": "Ventana Research, Office of Finance benchmark, September 2019, n=162",
+      "url": "https://www.ventanaresearch.com/hubfs/Research/Benchmarks/Finance/Ventana_Research_Benchmark_Research_Office_of_Finance_2019_Executive_Summary.pdf",
+      "caveats": "2019 data — seven years old, flag it. Ventana's close research was repeatedly sponsored by BlackLine; the benchmark survey itself is independent, the white papers built on it are not.",
+      "why_it_earns_its_place": "The 40% / 50% / 88% automation gradient is exactly the shape an audit needs, and Ventana separately found NO correlation between close speed and whether a company is public — which defends applying it to private SMBs.",
+      "gap": "Hours of manual journal entry and reconciliation per close has no primary source at any company size. The client supplies it."
+    },
+    "close_reopen_rate": {
+      "tier": "T5_vendor",
+      "value_pct": 75,
+      "statement": "75% of close practitioners had to reopen the books after close to fix errors; only 25% were 'very confident' the last close was error-free.",
+      "source": "FloQast / Dimensional Research, 2017-01-22, n=259 close practitioners",
+      "url": "https://www.floqast.com/uk/press-releases/survey-reveals-chaotic-month-end-close-process-robs-employees-work-life-balance-error-prone",
+      "use": "Vendor-commissioned and 2016 fieldwork, but the method is disclosed. Use as a qualitative hook — 'three in four finance teams reopen the books' — never as a precise claim."
+    },
+    "data_entry_error_rates": {
+      "tier": "T4_academic",
+      "values": { "single_entry_pct": 0.95, "visual_checking_pct": 0.82, "double_entry_pct": 0.027 },
+      "unit": "errors per value keyed",
+      "source": "Barchard & Pace (2011), Computers in Human Behavior 27(5); n=195 participants, each keying 1,260 values",
+      "url": "https://www.sciencedirect.com/science/article/abs/pii/S0747563211000707",
+      "corroboration": "Dhakal et al. (2018), 136 million keystrokes: 1.17% of characters left uncorrected. Garza et al. (2025) meta-analysis of 93 papers: single data entry 0.29%, double 0.14%.",
+      "killer_finding": "99.94% of errors fell within plausible value ranges. They are NOT findable by eyeballing a report or by range validation. This is the argument for why 'we check our work' is not a control.",
+      "note": "Visual checking produced 2,958% more errors than double entry and was statistically no better than single entry."
+    },
+    "manual_data_transfer_hours_week": {
+      "tier": "T5_vendor",
+      "value_hours": 9,
+      "statement": "More than 9 hours per week per professional transferring data from emails, PDFs, spreadsheets and scans.",
+      "source": "Parseur / QuestionPro, n=500 US professionals, fielded July 2025",
+      "url": "https://www.prnewswire.com/news-releases/survey-manual-data-entry-costs-american-companies-more-than-28-000-per-employee-each-year-302516867.html",
+      "use": "Reuse the 9 hours/week ONLY as a sanity check against the client's own answer, and apply the Quebec loaded rate. Do NOT reuse the survey's $28,500 annual figure — its assumptions are undisclosed.",
+      "preferred": "base.sys.q02 makes the client supply their own hours. That answer always beats this benchmark."
+    },
+    "knowledge_worker_time": {
+      "tier": "T4_academic",
+      "values": { "hours_week_email_search_collaboration": 28, "week_freed_by_email_reduction_pct": 7.5, "week_freed_by_search_reduction_pct": 6 },
+      "source": "McKinsey Global Institute, The Social Economy, July 2012",
+      "url": "https://www.mckinsey.com/~/media/mckinsey/industries/technology%20media%20and%20telecommunications/high%20tech/our%20insights/the%20social%20economy/mgi_the_social_economy_executive_summary.pdf",
+      "note": "The widely-quoted '19% of time searching for information' legitimately derives from these numbers. The related 'knowledge workers spend 30% of their day searching' family traces to a 2001 IDC study and a Butler Group estimate that have been mis-cited for 25 years. Cite McKinsey, never IDC.",
+      "caveat": "The headline 20-25% productivity claim is heavily conditional on time savings being redirected to productive uses plus substantial organizational change. Do not quote the headline."
+    },
+    "inventory_count_accuracy_median": {
+      "tier": "T2_consortium",
+      "values": { "median_pct": 98.4, "best_in_class_2025_pct": 99.5, "typical_band": "97-99.01%", "disadvantage_band": "90-97%" },
+      "source": "WERC DC Measures (2019 edition n=489, with full quintile tables; 2025 best-in-class thresholds)",
+      "url": "https://cdn2.hubspot.net/hubfs/476052/2019_WERC_DC_Measures%202019_Handout.pdf"
+    },
+    "order_picking_accuracy_median": {
+      "tier": "T2_consortium",
+      "values": { "median_pct": 99.4, "implied_pick_error_rate_pct": 0.6, "best_in_class_pct": 99.89, "on_time_shipments_median_pct": 98 },
+      "source": "WERC DC Measures, same as above",
+      "note": "The '1-3% pick error rate' on fulfilment-vendor sites is folklore and 2-5x worse than the real median. Use 0.6%. It is a smaller number but it is defensible, and for a distributor doing 200 picks a day it is still more than one error daily."
+    },
+    "inventory_record_inaccuracy_mechanism": {
+      "tier": "T4_academic",
+      "value_pct": 65,
+      "statement": "65% of inventory records were inaccurate (recorded quantity not equal to actual).",
+      "source": "DeHoratius & Raman, Inventory Record Inaccuracy: An Empirical Analysis, Management Science, April 2008; ~370,000 records across 37 retail stores",
+      "url": "https://www.hbs.edu/faculty/Pages/item.aspx?num=30461",
+      "use": "Cite for the MECHANISM — inventory records drift silently and systematically — and cite WERC for the NUMBER. This is retail store-level data and 'any discrepancy', so quoting 65% at a distributor with a cycle-count program would be wrong."
+    },
+    "out_of_stock": {
+      "tier": "T4_academic",
+      "values": { "worldwide_average_oos_pct": 8.3, "retail_sales_lost_to_oos_pct": 4, "consumer_buys_at_another_store_pct": 32, "root_cause_in_store_practices_pct": 72 },
+      "source": "Gruen, Corsten & Bharadwaj, Retail Out-of-Stocks (2002); 52 studies, 29 countries, 661 outlets, 71,000 consumers; sponsored by Procter & Gamble",
+      "url": "https://www.supplychain247.com/images/pdfs/GMA_2002_Worldwide_OOS_Study.pdf",
+      "caveat": "Retail/CPG and 24 years old. The portable parts are the 4% of sales lost and the 32% who go elsewhere.",
+      "the_real_gift": "70-75% of stockouts originate in store/internal practices, not upstream supply. That establishes stockouts as an execution and data problem, not a supplier problem."
+    },
+    "inventory_carrying_cost_rate": {
+      "tier": "T6_convention",
+      "default_pct": 22.5,
+      "range_pct": [18, 75],
+      "standard_rule_of_thumb_pct": 25,
+      "source": "Stock & Lambert, Strategic Logistics Management, 2nd ed., 1987, via Lokad",
+      "url": "https://www.lokad.com/definition-inventory-costs/",
+      "use": "Use 20-25%, state out loud that it is a logistics convention traceable to a 1987 textbook, and build the cost-of-money COMPONENT from the client's actual borrowing rate. That one substitution turns a rule of thumb into a half-defensible figure, and it is the component a controller interrogates first."
+    },
+    "field_service_first_time_fix": {
+      "tier": "T5_vendor",
+      "values": { "top_20_pct": 86, "median_pct": 75, "bottom_20_pct": 53 },
+      "source": "Aquant, 2025 Field Service Benchmark Report; n=157 service organizations, 21M+ service events, 602,000+ technicians, ~$9.5B in service costs",
+      "url": "https://21176235.fs1.hubspotusercontent-na1.net/hubfs/21176235/2025%20General%20BMR%20010824.pdf",
+      "why_stronger_than_typical_vendor_data": "Derived from platform telemetry across 21 million real service events, not a survey of opinions, and the sample and method are disclosed. Use it and name the publisher openly."
+    },
+    "field_service_avoidable_dispatch": {
+      "tier": "T5_vendor",
+      "values": { "top_20_pct": 3, "median_pct": 14, "bottom_20_pct": 24, "queries_solvable_without_dispatch_pct": 33 },
+      "source": "Aquant 2025, same as above",
+      "use": "The most monetizable field-service number available: avoidable dispatch rate times the client's own truck cost is a clean, client-verifiable calculation.",
+      "no_benchmark_exists_for": "Technician utilization and revenue leakage from unbilled work. Every circulating figure comes from field-service-software vendor blogs. Make the client pull total technician paid hours and total hours billed to a work order for the last quarter; the ratio IS the finding, it is theirs, and they are usually shocked by it."
+    },
+    "construction_cfma_2025": {
+      "tier": "T2_consortium",
+      "source": "CFMA 2025 Construction Financial Benchmarker",
+      "url": "https://cfma.org/files/o-files/view-file/ce6fe0cc-2dfe-420a-999b-a2ad030acd9a",
+      "values": {
+        "net_income_before_tax_all_pct": 6.7,
+        "net_income_before_tax_specialty_trades_pct": 7.7,
+        "gross_profit_margin_specialty_trades_pct": 22.4,
+        "revenue_per_fte_all_cad": 514587,
+        "revenue_per_fte_specialty_trades_cad": 320661,
+        "months_in_backlog_all": 9.1,
+        "days_in_ar_all": 55.2,
+        "underbillings_to_equity_pct": 8.1
+      },
+      "note": "The authoritative construction benchmark, segmented by GC/prime vs sub vs CM. Profit fade greater than 2 points on a job between consecutive WIP reports is a management event."
+    },
+    "professional_services_spi_2025": {
+      "tier": "T3_analyst",
+      "source": "SPI Research / Kantata, 2025 PS Maturity Benchmark",
+      "url": "https://get.kantata.com/rs/677-LEJ-696/images/2025-ps-maturity-benchmark.pdf",
+      "values": {
+        "billable_utilization_all_firm_median_pct": 68.9,
+        "billable_utilization_under_10_employees_pct": 64.3,
+        "billable_utilization_10_to_30_employees_pct": 65.4,
+        "project_gross_margin_median_pct": 35.9,
+        "project_overrun_avg_pct": 11.3,
+        "on_time_delivery_pct": 73.4
+      },
+      "no_benchmark_exists_for": "Realization rate. Firms self-report 85-95% with no credible cross-industry median. Ask for theirs; do not quote one."
+    },
+    "aec_deltek_clarity_fy2025": {
+      "tier": "T3_analyst",
+      "source": "Deltek Clarity Architecture & Engineering study, FY2025",
+      "url": "https://www.deltek.com/resources/articles/kpis-for-architects/",
+      "values": {
+        "utilization_cost_based_median_pct": 58.9,
+        "overhead_rate_pct": 161.3,
+        "net_revenue_per_employee_cad": 186681,
+        "average_collection_period_days": 67.71,
+        "backlog_months": 6.33
+      },
+      "denominator_warning": "Deltek utilization is a LABOUR-COST ratio, not an hours ratio — which is why it is lower than the hours-based figure in the professional-services study. Always ask the client how they calculate it before comparing."
+    },
+    "food_traceability_retrieval": {
+      "tier": "T1_government",
+      "requirement": "Traceability documents must be producible within 24 hours of a request from the food inspection agency.",
+      "source": "Canadian Food Inspection Agency, traceability requirements",
+      "url": "https://inspection.canada.ca/en/food-safety-industry/traceability/traceability",
+      "use": "Set the internal target at under 4 hours to meet the 24-hour window comfortably, and ask whether anyone has ever TIMED a mock recall."
+    },
+    "bdc_digital_ai_2026": {
+      "tier": "T1_government",
+      "source": "BDC, Digital Transformation & AI Study (SMEs) 2026; n=1,500 Canadian owners and decision-makers, fielded February 2026, published 2026-06-03",
+      "url": "https://www.bdc.ca/en/about/mediaroom/news-releases/350b-opportunity-canadas-next-phase-of-growth-to-be-driven-by-ai-and-digital-technologies",
+      "values": { "smes_invested_in_digital_2025_pct": 96, "smes_using_generative_ai_pct": 30, "ai_adopters_productivity_premium_pct": 24 },
+      "mandatory_caveat": "The 24% is a CROSS-SECTIONAL CORRELATION between adopters and non-adopters, not a causal effect. Firms that adopt AI are plausibly already better run. Say 'adopters are 24% more productive'. Never say 'adopting AI makes you 24% more productive'.",
+      "why_it_leads": "A Crown corporation, a Canadian SMB sample, and current. The most citable source in the whole file for this audience."
+    },
+    "erp_project_reality_panorama_2026": {
+      "tier": "T5_vendor",
+      "source": "Panorama Consulting Group, 2026 ERP Report; n=170, collected Jan 2025 - Jan 2026, 56.5% multinational, median revenue $200.5M",
+      "url": "https://4439340.fs1.hubspotusercontent-na1.net/hubfs/4439340/Reports/ERP%20Report/2026-erp-report-panorama-consulting-group.pdf",
+      "values": { "exceeded_budget_pct": 25, "exceeded_schedule_pct": 24, "median_timeline_months": 9, "silo_reduction_realized_pct": 77.4, "intense_focus_on_change_management_pct": 25 },
+      "use": "Set expectations with this, do not sell with it. Median respondent revenue is at or above the top of the target band, so a 10-150 employee project is smaller, shorter and cheaper — but the overrun CAUSES (change management, scope, unanticipated adjacent technology) are scale-invariant and worth quoting.",
+      "honest_framing": "Fewer than a quarter of organizations reported an intense focus on organizational change management, and the most common cause of schedule overrun was organizational — governance, change resistance, process redesign. That is why this audit scores sponsorship and change readiness at all."
+    },
+
+    "ps_billable_utilization_median": {
+      "tier": "T3_analyst",
+      "values": { "all_firm_median_pct": 68.9, "under_10_employees_pct": 64.3, "ten_to_thirty_employees_pct": 65.4, "it_consulting_pct": 74.3, "management_consulting_pct": 69.3 },
+      "source": "SPI Research / Kantata, 2025 PS Maturity Benchmark",
+      "url": "https://get.kantata.com/rs/677-LEJ-696/images/2025-ps-maturity-benchmark.pdf",
+      "denominator_warning": "Hours-based. Do not compare it to the labour-cost-based figure used in architecture and engineering (see deltek_utilization_cost_based). Always ask the client which denominator they use before showing either."
+    },
+    "ps_project_margin_median": {
+      "tier": "T3_analyst",
+      "values": { "project_gross_margin_median_pct": 35.9, "revenue_per_billable_consultant_usd": 199000, "ebitda_margin_pct": 9.8 },
+      "source": "SPI Research / Kantata, 2025 PS Maturity Benchmark"
+    },
+    "project_overrun_rate": {
+      "tier": "T3_analyst",
+      "value_pct": 11.3,
+      "source": "SPI Research / Kantata, 2025 PS Maturity Benchmark"
+    },
+    "project_on_time_delivery_rate": {
+      "tier": "T3_analyst",
+      "values": { "all_firms_pct": 73.4, "under_10_employees_pct": 80.3 },
+      "source": "SPI Research / Kantata, 2025 PS Maturity Benchmark",
+      "note": "Small firms report BETTER on-time delivery than large ones. Do not present this as something scale fixes."
+    },
+    "evm_cpi_spi_threshold": {
+      "tier": "T6_convention",
+      "values": { "target": 1.0, "intervention_threshold": 0.9 },
+      "definition": "Cost performance index = earned value divided by actual cost. Schedule performance index = earned value divided by planned value.",
+      "use": "A convention, not a benchmark. Its value in the audit is diagnostic: a company that cannot compute earned value at all cannot have either index, which is the actual finding."
+    },
+    "mfg_oee_industry_standard": {
+      "tier": "T5_vendor",
+      "values": { "typical_start_pct": [45, 60], "industry_standard_pct": [65, 75], "world_class_pct": 85, "availability_standard_pct": [85, 90], "first_pass_yield_standard_pct": [98, 99.5] },
+      "source": "Symestic production metrics",
+      "url": "https://www.symestic.com/en-us/what-is/production-metrics",
+      "must_say_out_loud": "Overall equipment effectiveness typically drops 15 to 20 points when honest automated measurement replaces self-reported numbers. Warn the client that the first real measurement will look like a regression. Saying this before you measure is what makes the measurement survivable."
+    },
+    "mfg_otif_industry_standard": {
+      "tier": "T5_vendor",
+      "values": { "typical_start_pct": [75, 85], "industry_standard_pct": [92, 97], "world_class_pct": 98, "schedule_adherence_standard_pct": [85, 92], "scrap_rate_standard_pct": [0.5, 1.5] },
+      "source": "Symestic production metrics",
+      "note": "The scrap figure is a MATERIAL rate, not an hours rate. Do not convert it to rework hours."
+    },
+    "dist_fill_rate_target": {
+      "tier": "T5_vendor",
+      "values": { "line_or_order_or_case_fill_target_pct": 95, "perfect_order_rate_typical_pct": [90, 95], "stockout_rate_target_pct": 5 },
+      "source": "EasyReplenish inventory KPI compilation",
+      "url": "https://www.easyreplenish.com/blog/top-inventory-kpis-metrics-benchmarks-best-practices",
+      "denominator_warning": "Line fill, order fill and case fill are three different numbers and clients conflate them. Ask which one they mean and whether a partial shipment counts as a fill — the definition usually flatters the result."
+    },
+    "inventory_turns_general_anchor": {
+      "tier": "T5_vendor",
+      "values": { "general_anchor": [6, 8], "industrial_fasteners": [2, 4], "food": [15, 25], "gmroi_floor": 2.5 },
+      "source": "EasyReplenish inventory KPI compilation",
+      "must_say_out_loud": "Say 'it depends on your product class' before quoting any turns figure. The spread between an industrial fastener distributor and a fresh-food distributor is wider than any benchmark band."
+    },
+    "dist_ebitda_pct_naw": {
+      "tier": "T2_consortium",
+      "values": { "average_distributor_pct": 4, "elite_pct": [8, 12] },
+      "source": "National Association of Wholesaler-Distributors",
+      "url": "https://www.naw.org/data-driven-distributor-transformation-the-metrics-that-matter/",
+      "note": "The most defensible distribution benchmark available. Gross margin percentage is deliberately NOT benchmarked anywhere in this file — it runs from 3-8% in food and pharma to 30-45% in specialty industrial, so a single figure would be false precision."
+    },
+    "retail_ecommerce_conversion": {
+      "tier": "T3_analyst",
+      "values": { "overall_pct": 2.9, "mobile_pct": 2.8, "desktop_pct": 3.2, "food_and_beverage_high_pct": 4.9, "home_and_furniture_low_pct": 1.4, "add_to_cart_pct": 6.8 },
+      "source": "Dynamic Yield data via SmartInsights, 2025",
+      "url": "https://www.smartinsights.com/ecommerce/ecommerce-analytics/ecommerce-conversion-rates/"
+    },
+    "retail_cart_abandonment": {
+      "tier": "T3_analyst",
+      "values": { "overall_pct": 76.2, "mobile_pct": 79.0, "desktop_pct": 68.1 },
+      "source": "Dynamic Yield data via SmartInsights, 2025"
+    },
+    "retail_return_rate": {
+      "tier": "T5_vendor",
+      "values": { "overall_pct": [15, 20], "fashion_pct": [20, 25], "electronics_pct": [5, 10] },
+      "source": "EasyReplenish inventory KPI compilation",
+      "use": "Returns are the single most under-managed cost in small omnichannel retail. The useful question is not the rate but whether a returned unit has a disposition decision — restock, refurbish, write off — and whether reverse-logistics cost lands anywhere."
+    },
+    "retail_shrink_and_accuracy": {
+      "tier": "T5_vendor",
+      "values": { "inventory_accuracy_target_pct": 95, "shrink_grocery_pct": [1, 3], "shrink_apparel_pct": [1, 2], "sell_through_anchor_pct": [70, 85] },
+      "source": "EasyReplenish inventory KPI compilation",
+      "note": "Sell-through is heavily category-dependent; treat the anchor as a conversation starter, not a target."
+    },
+    "field_service_agreement_attach_rate": {
+      "tier": "T5_vendor",
+      "values": { "high_performers_pct": [30, 50], "call_booking_rate_industry_typical_pct": 42, "jobs_per_tech_per_day": [3, 5], "average_travel_time_min": [30, 60] },
+      "source": "ServiceTitan field service metrics",
+      "url": "https://www.servicetitan.com/blog/field-service-metrics",
+      "note": "The 42% call-booking rate is the figure that shocks owners most — it says most inbound opportunity calls never become a booked job. Average-ticket figures from the same source span $315 for plumbing to $7,500 for roofing, so they are illustration only and are deliberately not listed as a benchmark here."
+    },
+    "field_service_first_time_fix_rate": {
+      "tier": "T5_vendor",
+      "values": { "average_pct": 80, "ideal_pct": 90, "problem_threshold_pct": 70 },
+      "source": "ServiceTitan field service metrics",
+      "cross_reference": "Compare with field_service_first_time_fix above, which carries the Aquant telemetry distribution (86 / 75 / 53 across top, median and bottom quintiles) from a much stronger sample. Prefer the Aquant distribution when quoting a spread; use these round numbers only as thresholds."
+    },
+    "cfma_underbillings_to_equity": {
+      "tier": "T2_consortium",
+      "value_pct": 8.1,
+      "source": "CFMA 2025 Construction Financial Benchmarker",
+      "use": "Over and under-billing position by job and in total is the surety's first question, and the surety is frequently the real buyer of better reporting. That makes it a powerful lever in the sales conversation."
+    },
+    "cfma_days_in_ar_median": {
+      "tier": "T2_consortium",
+      "value_days": 55.2,
+      "source": "CFMA 2025 Construction Financial Benchmarker",
+      "note": "Ask for days in receivable EXCLUDING holdback and holdback receivable days separately. Mixed together they hide which problem you have."
+    },
+    "deltek_utilization_cost_based": {
+      "tier": "T3_analyst",
+      "value_pct": 58.9,
+      "prior_year_pct": 61.1,
+      "source": "Deltek Clarity Architecture & Engineering, FY2025",
+      "url": "https://www.deltek.com/resources/articles/kpis-for-architects/",
+      "denominator_warning": "Direct labour divided by TOTAL LABOUR COST — a dollar ratio, not an hours ratio. This is why it sits far below the hours-based professional-services figure. Asking a firm which denominator it uses is itself a maturity probe."
+    },
+    "deltek_net_labour_multiplier": {
+      "tier": "T6_convention",
+      "common_target": 3.0,
+      "definition": "Net revenue divided by direct labour, where net revenue is gross revenue less sub-consultants and reimbursables.",
+      "source": "Deltek Clarity Architecture & Engineering, FY2025 (overhead rate 161.3%, a ten-year high)",
+      "use": "A firm that answers instantly is mature. A firm that asks what you mean is the opportunity."
+    },
+    "deltek_average_collection_period": {
+      "tier": "T3_analyst",
+      "value_days": 67.71,
+      "prior_year_days": 73.47,
+      "additional": { "net_revenue_per_employee_cad": 186681, "backlog_months": 6.33 },
+      "source": "Deltek Clarity Architecture & Engineering, FY2025"
+    },
+    "sfcr_traceability_24h": {
+      "tier": "T1_government",
+      "requirement_hours": 24,
+      "internal_target_hours": 4,
+      "source": "Canadian Food Inspection Agency traceability requirements",
+      "url": "https://inspection.canada.ca/en/food-safety-industry/traceability/traceability",
+      "honesty_note": "The 24 hours is the regulatory requirement. The 4-hour internal target is OUR convention for meeting it comfortably, not a rule — label it as ours. The real question is whether anyone has ever timed a mock recall."
+    },
+    "dental_no_show_rate": {
+      "tier": "T5_vendor",
+      "values": { "good_pct": 5, "average_pct": 8 },
+      "source": "dentx.ca dental KPI compilation (Canadian)",
+      "url": "https://dentx.ca/dental-kpi/",
+      "scope_warning": "DENTAL-SPECIFIC. Physiotherapy, chiropractic and massage practices differ materially. Say so before quoting it to a non-dental clinic."
+    },
+    "dental_recall_rate": {
+      "tier": "T5_vendor",
+      "values": { "good_pct": 70, "average_pct": 60 },
+      "source": "dentx.ca dental KPI compilation",
+      "scope_warning": "DENTAL-SPECIFIC.",
+      "use": "The recall list is the cheapest source of revenue in any clinic and it usually exists only in a practitioner's head."
+    },
+    "dental_collection_rate": {
+      "tier": "T5_vendor",
+      "values": { "good_pct": 98, "average_pct": 95, "overhead_good_pct": [55, 60], "overhead_average_pct": 65, "ar_over_90_days_good_pct": 5 },
+      "source": "dentx.ca dental KPI compilation",
+      "scope_warning": "DENTAL-SPECIFIC."
+    },
+    "mgma_days_in_ar": {
+      "tier": "T3_analyst",
+      "values": { "optimal_days": [30, 40], "best_days": 30, "net_adjusted_collection_rate_minimum_pct": 95, "net_adjusted_collection_rate_optimal_pct": [97, 99] },
+      "source": "MGMA / Conifer revenue-cycle KPI whitepaper",
+      "url": "https://www.mgma.com/getkaiasset/64027d0a-cff9-43c6-8b43-17d6588d2413/PRCM-KPIWhitePaper-Final-19April23.pdf",
+      "scope_warning": "US-centred. The RATIOS transfer to a Canadian clinic; the payer mix does not — a Canadian practice juggles a public plan, private insurers, workers-compensation and third-party auto insurers, plus self-pay, each with its own submission channel."
+    },
+    "mgma_initial_denial_rate": {
+      "tier": "T3_analyst",
+      "values": { "industry_pct": [5, 10], "best_practice_pct": 5 },
+      "source": "MGMA / Conifer revenue-cycle KPI whitepaper",
+      "scope_warning": "US-centred."
+    },
+    "transport_no_benchmark": {
+      "tier": "T6_convention",
+      "statement": "No credible transport benchmark set exists for this audience. The circulating figures — roughly 22% average and 12% top-quartile empty kilometres, 88.5% average on-time delivery, a 1.8% claims ratio, an operating ratio below 0.95 as the carrier health line — come from aggregators, not from a consortium, an academic source or a statistical agency.",
+      "instruction": "Use these ONLY as verbal conversation anchors, never printed as a benchmark panel in a report. Every numeric transport question makes the client supply their own figure instead. Cost per loaded kilometre in particular is far more persuasive as their number than as anyone's average."
+    }
+  },
+
+  "benchmark_ref_aliases": {
+    "note": "Layer banks were authored against these keys. Each resolves to the canonical entry above or in regulatory_refs. Resolve aliases at load time; never duplicate a figure under two keys.",
+    "law25_pia_s33": "regulatory_refs.law25_privacy_impact_assessment",
+    "law25_outside_quebec_s17": "regulatory_refs.law25_outside_quebec",
+    "law25_automated_decision_s121": "regulatory_refs.law25_automated_decision",
+    "law25_retention_s23": "regulatory_refs.law25_retention_and_destruction",
+    "law25_portability_s27": "regulatory_refs.law25_portability",
+    "law25_consent_per_purpose_s14": "regulatory_refs.law25_consent",
+    "biometrics_cai_s44": "regulatory_refs.biometrics_disclosure",
+    "charter_software_french_s52_1": "regulatory_refs.charter_software_french",
+    "charter_commercial_documents_s52_s57": "regulatory_refs.charter_invoices_and_documents",
+    "charter_adhesion_contracts_s55": "regulatory_refs.charter_contracts_of_adhesion",
+    "charter_employment_docs_s41": "regulatory_refs.charter_employment_documents",
+    "charter_registration_s139": "regulatory_refs.charter_francisation_registration",
+    "ecommerce_conversion_rate": "benchmarks.retail_ecommerce_conversion",
+    "ecommerce_cart_abandonment_rate": "benchmarks.retail_cart_abandonment"
+  },
+
+  "regulatory_refs": {
+    "note": "These are not benchmarks. They are the obligations the compliance questions diagnose. Only items verified against an official source are listed. Items the research flagged as law-firm-sourced or unverified are deliberately absent, and the corresponding questions ask about the control WITHOUT asserting a threshold, amount or date.",
+    "law25_privacy_officer": {
+      "obligation": "The enterprise is responsible for the personal information it holds. The person with the highest authority is the person in charge by default; delegation must be in writing; title and contact details must be published on the website or made available by other appropriate means.",
+      "section": "P-39.1 s. 3.1",
+      "in_force": "2022-09-22",
+      "url": "https://www.legisquebec.gouv.qc.ca/fr/document/lc/P-39.1"
+    },
+    "law25_incident_register": {
+      "obligation": "A register of confidentiality incidents must be kept, with eight mandatory elements, retained five years after the enterprise became aware of the incident. On risk of serious injury, the regulator and each affected person must be notified with diligence.",
+      "section": "P-39.1 s. 3.5 and s. 3.8, plus the Règlement sur les incidents de confidentialité",
+      "in_force": "2022-09-22; regulation 2022-12-29",
+      "url": "https://www.legisquebec.gouv.qc.ca/fr/document/rc/A-2.1,%20r.%203.1"
+    },
+    "law25_privacy_impact_assessment": {
+      "obligation": "A privacy impact assessment is required for ANY project to acquire, develop or overhaul an information system or electronic service delivery involving the collection, use, communication, retention or destruction of personal information. The privacy officer must be consulted from the outset of the project.",
+      "section": "P-39.1 s. 3.3",
+      "in_force": "2023-09-22",
+      "why_it_matters_here": "An ERP implementation, a migration, or a major re-architecture is squarely inside this. It is the single most relevant legal fact in the whole audit."
+    },
+    "law25_outside_quebec": {
+      "obligation": "Before communicating personal information outside Quebec — or entrusting a third party outside Quebec with collecting, using, communicating or keeping it — an assessment is required considering sensitivity, purpose, protection measures including contractual ones, and the legal framework of the destination. Communication only if protection is adequate, and it must be the subject of a written agreement.",
+      "section": "P-39.1 s. 17",
+      "in_force": "2023-09-22",
+      "scope_note": "Covers cloud hosting outside Quebec, an outside payroll bureau, offshore support, and cloud backups. An ERP project therefore triggers TWO separate assessments: one for the system project, one per outside-Quebec destination."
+    },
+    "law25_automated_decision": {
+      "obligation": "A person must be informed, no later than when informed of the decision, that it was based exclusively on automated processing, and on request must be told the information used, the reasons and principal factors, and the right to rectification — with an opportunity to submit observations to a staff member able to review the decision.",
+      "section": "P-39.1 s. 12.1",
+      "in_force": "2023-09-22"
+    },
+    "law25_portability": {
+      "obligation": "Computerized personal information collected FROM the person (not created or inferred) must, on request, be communicated in a structured, commonly used technological format.",
+      "section": "P-39.1 s. 27",
+      "in_force": "2024-09-22",
+      "scope_note": "Inferred and derived data is expressly out of scope. A system that cannot separate collected from derived fields cannot satisfy this cleanly."
+    },
+    "law25_consent": {
+      "obligation": "Consent must be clear, free and informed, given for specific purposes, requested SEPARATELY FOR EACH PURPOSE, in clear and simple language. Express consent is required for sensitive personal information.",
+      "section": "P-39.1 s. 14, with transparency at collection under s. 8",
+      "in_force": "2023-09-22",
+      "practical_note": "The per-purpose requirement is the part systems fail. One checkbox covering marketing, analytics and service communications is not consent for three purposes."
+    },
+    "law25_retention_and_destruction": {
+      "obligation": "Once the purposes for which personal information was collected are achieved, it must be destroyed or anonymized, subject to any legal retention period. Governance policies must cover retention and destruction across the whole information lifecycle.",
+      "section": "P-39.1 s. 23, with governance policies under s. 3.2",
+      "in_force": "2023-09-22",
+      "deliberately_omitted": "The in-force date of the anonymization regulation is law-firm-sourced in our research, not read off the official gazette. Do not state it."
+    },
+    "biometrics_disclosure": {
+      "obligation": "Express consent is required to verify or confirm identity by a process capturing biometric characteristics, AND the process must be disclosed to the privacy regulator BEFORE being put into service.",
+      "section": "Act respecting the legal framework for information technology, c. C-1.1, s. 44",
+      "in_force": "2022-09-22",
+      "what_it_catches": "Fingerprint time clocks and facial recognition on a shop floor or a construction site. Both are common in this client base and the before-service disclosure is almost never done."
+    },
+    "charter_employment_documents": {
+      "obligation": "An employer must respect the worker's right to carry on activities in French: offers of employment, transfer and promotion offers, individual employment contracts, written communications to personnel, training documents, and work documents and tools. A job posting requiring another language must state the reasons for the requirement, after assessing genuine need.",
+      "section": "C-11 s. 41, with language requirements under s. 46",
+      "in_force": "2022-06-01",
+      "why_it_touches_an_erp_project": "'Work documents and tools' includes the system people use all day. Combined with s. 52.1 on software, this is what makes French-language custom fields and third-party modules an obligation rather than a nicety."
+    },
+    "charter_software_french": {
+      "obligation": "Any software, installed or not, must be available in French unless no French version exists anywhere. French must be accessible on terms at least as favourable with at least equivalent technical characteristics.",
+      "section": "C-11 s. 52.1",
+      "in_force": "1998-01-01",
+      "common_misstatement": "This is NOT a 2022 creation. It dates from 1997 and has been in force since January 1998, unamended. Because a French version of most business software exists, the exception is narrow — and in practice compliance means custom fields, custom modules and third-party modules must also be available in French. That is a recurring real finding on Quebec ERP audits."
+    },
+    "charter_invoices_and_documents": {
+      "obligation": "Invoices, receipts, releases and similar documents must be in French and may not be sent in another language unless the French version is equally accessible. Catalogues, brochures, order forms and any similar public document, on any medium including websites, must be in French.",
+      "section": "C-11 s. 57 and s. 52",
+      "in_force": "2022-06-01"
+    },
+    "charter_contracts_of_adhesion": {
+      "obligation": "Contracts of adhesion and related documents must be drawn up in French. A party may be bound by a non-French version only after the French version has been remitted and that is their express will.",
+      "section": "C-11 s. 55",
+      "in_force": "2023-06-01"
+    },
+    "charter_francisation_registration": {
+      "obligation": "An enterprise employing 25 persons or more during a six-month period must register with the language office within six months of the end of that period, then has three months to submit an analysis of its linguistic situation, leading to either a certificate or a mandated francisation programme. An enterprise of 100 or more must institute a francisation committee.",
+      "section": "C-11 s. 139 (threshold lowered from 50 to 25) and s. 136",
+      "in_force": "2025-06-01 for the 25+ threshold; 2022-06-01 for the committee",
+      "why_headcount_is_load_bearing": "Every client in the 10-150 band is at or above a Charter threshold. That is why employee count is question one."
+    },
+    "cra_records_in_canada": {
+      "obligation": "Records must generally be kept six years from the end of the last tax year they relate to, at the place of business or residence IN CANADA. Records kept outside Canada and accessed electronically from Canada are NOT considered kept in Canada; written permission is required otherwise.",
+      "source": "Canada Revenue Agency",
+      "url": "https://www.canada.ca/en/revenue-agency/services/tax/businesses/topics/keeping-records/where-keep-your-records-long-request-permission-destroy-them-early.html",
+      "the_tension": "This and the Quebec outside-Quebec rule pull in OPPOSITE directions. Tax law wants records in Canada; privacy law wants an assessment and a written agreement for anything leaving Quebec. A cloud instance in a United States region potentially breaches the first and definitely triggers the second. Asking about it is the strongest single compliance diagnostic in the instrument."
+    },
+    "record_retention_six_years": {
+      "obligation": "Six years following the end of the last year to which the records relate, for both sales-tax and source-deduction records. Electronic media must allow production of accessible and usable copies, with integrity maintained throughout.",
+      "source": "Revenu Québec",
+      "url": "https://www.revenuquebec.ca/fr/entreprises/taxes/tpstvh-et-tvq/regles-de-base-relatives-a-lapplication-de-la-tpstvh-et-de-la-tvq/tenue-de-registres-et-pieces-justificatives/"
+    },
+    "invoice_content_thresholds": {
+      "obligation": "Under $100: supplier name, invoice date, total. $100 to $499.99: plus the supplier's registration numbers and an indication of total tax charged. $500 or more: plus the purchaser's name and the terms of payment.",
+      "source": "Revenu Québec and CRA; thresholds raised effective 2021-04-20 from $30/$150",
+      "url": "https://www.revenuquebec.ca/fr/entreprises/taxes/tpstvh-et-tvq/perception-de-la-tps-et-de-la-tvq/preparation-des-factures/",
+      "practical_note": "Many Quebec bookkeeping guides still quote the old $30/$150 numbers. The $500+ 'terms of payment' element is the one most frequently missing from customized invoice templates."
+    },
+    "casl_consent_burden": {
+      "obligation": "The onus of proving consent, express or implied, is on the sender. Implied consent from an existing business relationship lasts two years from the last transaction and six months from an inquiry. Unsubscribe must be processed within ten business days and the link must remain valid at least sixty days.",
+      "source": "CRTC guidance",
+      "url": "https://crtc.gc.ca/eng/com500/guide.htm",
+      "two_best_erp_questions": "Does the CRM store consent source, type, method and timestamp per contact with an audit trail? And does implied consent EXPIRE automatically at two years and six months, or does it just sit there forever? Almost no out-of-box CRM does the second."
+    },
+    "ccq_monthly_report": {
+      "obligation": "Construction employers must file a monthly report and payment by the 15th of the following month, declaring per employee: identification, trade or occupation, sector, salary schedule, hours worked and wages paid. It must be filed even when no work was performed. Paper is no longer accepted — online services, authorized payroll software, or a JSON file upload.",
+      "source": "Commission de la construction du Québec",
+      "url": "https://www.ccq.org/fr-CA/loi-r20/etre-employeur/rapport-mensuel",
+      "late_penalties_pct": { "within_7_days": 7, "8_to_14_days": 11, "over_14_days": 20 },
+      "why_it_is_the_credibility_question": "This is the Canadian analogue of US certified payroll, and it is the single most credibility-establishing item in a Quebec construction questionnaire. The JSON upload channel is also the integration hook."
+    },
+    "revenu_quebec_construction_attestation": {
+      "obligation": "For subcontracts with a construction contractor concluded after 2016-02-29 requiring a contractor licence, at a cumulative threshold of $25,000 excluding taxes per contractor per year: the subcontractor must hold a valid attestation from bid submission until seven days after work starts; the contractor must obtain and verify validity within seven days of work start and verify authenticity by day ten. Validity runs to the end of the month of issue plus three months.",
+      "source": "Revenu Québec",
+      "url": "https://www.revenuquebec.ca/fr/entreprises/mesures-particulieres/attestation-de-revenu-quebec/contrats-autorisation-et-permis-necessitant-lattestation/contrats-de-construction/",
+      "why_it_is_a_good_erp_question": "A per-subcontractor, per-contract, date-windowed compliance artifact with a cumulative-threshold rule. Almost always handled on spreadsheets."
+    },
+    "quebec_mandatory_billing_sectors": {
+      "obligation": "Only two sectors are subject to mandatory billing with a certified sales-recording system: restaurants and bars, and remunerated passenger transport. Since 2026-01-01 a second-generation certified system is mandatory for taxi operators.",
+      "source": "Revenu Québec",
+      "url": "https://www.revenuquebec.ca/fr/entreprises/mesures-particulieres/facturation-obligatoire/",
+      "two_things_to_say_correctly": "Construction is NOT subject to mandatory billing — its Revenu Québec mechanism is the attestation regime. And no general-purpose ERP is a certified sales-recording system, so a restaurant or taxi client needs a certified system alongside it. That is a hard blocker, not a configuration gap."
+    },
+    "canada_e_invoicing_status": {
+      "statement": "There is NO Canadian or Quebec business-to-business e-invoicing mandate and no published government roadmap. Quebec's sales-recording regime is sector-specific fiscalization, not e-invoicing.",
+      "instruction": "Do not state in any client-facing document that Canada has an e-invoicing mandate or roadmap. For a client invoicing European customers, the defensible framing is that they should expect structured e-invoicing obligations from their European counterparties driven by individual member-state mandates already starting, well before the cross-border reporting date in the adopted European package."
+    }
+  },
+
+  "excluded_with_reasons": {
+    "note": "Publish this list in the methodology page. It demonstrates to a controller that we checked.",
+    "ibm_3_1_trillion_bad_data": "Traced to a September 2011 magazine piece whose author called it his own extrapolation and caveated 'no matter how far off my estimate is'. It became 'IBM's figure' through repetition. No national estimate with a published method exists. A sharp controller can destroy our credibility with one search.",
+    "one_percent_error_per_keystroke": "No source. The real figure is 0.95% per VALUE keyed (Barchard & Pace). The per-keystroke framing inflates it by roughly the number of characters per field.",
+    "four_percent_error_per_field": "Untraceable.",
+    "gartner_12_9m_poor_data_quality": "Method is a survey of 154 reference customers of 16 data-quality vendors — large enterprises, selected by vendors, already buying the software. Unusable for a 10-150 employee company, and scaling a selection-biased figure down does not fix the bias.",
+    "nucleus_erp_returns_7_23": "Published 2014, 'ROI case studies over the past five years' with the number of cases never disclosed, from a firm whose business model is producing ROI studies. Implausible as a population average given the overrun data.",
+    "cost_to_correct_an_order_error": "Every circulating figure traces to vendor marketing. The client supplies minutes-per-fix instead.",
+    "technician_utilization_benchmarks": "Every number in circulation comes from field-service-software vendor blogs. No consortium, academic or statistical source exists. The client pulls paid hours and billed hours; the ratio is the finding.",
+    "revenue_leakage_10_to_20_percent": "Folklore.",
+    "one_to_three_percent_pick_error_rate": "Fulfilment-vendor folklore, 2-5x worse than the WERC median of 0.6%.",
+    "multi_step_forms_convert_86_percent_better": "Attributed to a named research firm; no primary study exists. Citation laundering.",
+    "interactive_content_converts_16x_better": "The cited third-party verifier is not locatable and the ratio is almost certainly a denominator artefact — quiz starters versus page visitors are different denominators.",
+    "hackett_working_capital_figures": "Excellent research about the top 1,000 US public companies. The only portable item is the EXISTENCE of an 18-day top-quartile-to-median DSO gap, framed as 'large companies leave this much on the table; smaller ones typically leave more'.",
+    "dunning_kruger_framing": "The canonical quartile pattern is largely reproducible from a better-than-average effect plus regression to the mean, with no metacognitive deficit in the data. Say instead: almost everyone rates themselves above average, and self-ratings correlate about 0.3 with measured reality. Both halves are solidly evidenced, it is a cleaner story, and it does not insult the prospect."
+  },
+
+  "known_gaps": {
+    "note": "Where no credible benchmark exists, the instrument makes the CLIENT supply the number. This is deliberate: it is more persuasive than a benchmark anyway, because it is their own data, and it protects us from being caught citing a vendor blog.",
+    "client_supplied_by_design": [
+      "Hours of manual journal entry and reconciliation per close",
+      "Credit notes divided by invoices issued",
+      "Quote turnaround time",
+      "Technician billed hours divided by paid hours",
+      "Their actual operating-line rate",
+      "Realization rate (professional services)",
+      "Hours to rebuild the monthly manual report",
+      "Hours per week re-keying the same information"
+    ],
+    "worth_buying_if_this_becomes_a_product": "An IOFM membership has the only accounts-payable benchmark set cut by organization size AND automation level. For an audit sold repeatedly it is probably the highest-leverage purchase available. APQC membership would supply a citable process-management scoring rubric.",
+    "proprietary_asset_opportunity": "There is no published non-wage-benefit loading figure for Quebec private-sector firms under 200 employees. If that multiplier ends up load-bearing, surveying NBT's own client base would build a figure nobody else has."
+  }
+}

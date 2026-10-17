@@ -6,6 +6,8 @@ import {
   type TextAnimateBy,
 } from "@/registry/magicui/text-animate";
 import { ViewportReveal } from "./ViewportReveal";
+import { localePath } from "@/i18n/config";
+import type { Locale } from "@/lib/audit/types";
 
 type PageHeroVariant =
   | "default"
@@ -18,6 +20,7 @@ type PageHeroVariant =
   | "proof";
 
 type PageHeroProps = {
+  locale: Locale;
   eyebrow: string;
   title: ReactNode;
   description: string;
@@ -26,6 +29,27 @@ type PageHeroProps = {
   compact?: boolean;
   variant?: PageHeroVariant;
 };
+
+/**
+ * Kept deliberately general. The free audit is not only about process — it
+ * can be the tech stack, the finance systems, or whatever the bottleneck
+ * turns out to be — so no button on the site names a discipline.
+ */
+const DEFAULT_PRIMARY_LABEL: Record<Locale, string> = {
+  fr: "Audit gratuit",
+  en: "Free audit",
+};
+
+/** Decorative index line in the hero corner. */
+const HERO_INDEX_LINE: Record<Locale, string> = {
+  fr: "PROCESSUS / SYSTÈME / LEVIER",
+  en: "PROCESS / SYSTEM / LEVERAGE",
+};
+
+/** Locale-prefix in-site paths, leave anchors and absolute URLs alone. */
+function heroHref(locale: Locale, href: string): string {
+  return href.startsWith("/") ? localePath(locale, href) : href;
+}
 
 const heroMotion: Record<
   PageHeroVariant,
@@ -42,15 +66,20 @@ const heroMotion: Record<
 };
 
 export function PageHero({
+  locale,
   eyebrow,
   title,
   description,
-  primary = { href: "/contact", label: "Book a Free Audit" },
+  primary,
   secondary,
   compact = false,
   variant = "default",
 }: PageHeroProps) {
   const titleMotion = heroMotion[variant];
+  const resolvedPrimary = primary ?? {
+    href: "/contact",
+    label: DEFAULT_PRIMARY_LABEL[locale],
+  };
 
   return (
     <section
@@ -89,11 +118,11 @@ export function PageHero({
           {description}
         </TextAnimate>
         <ViewportReveal className="button-row" delay={0.14}>
-          <ShimmerButton href={primary.href}>
-            {primary.label} <span aria-hidden="true">↗</span>
+          <ShimmerButton href={heroHref(locale, resolvedPrimary.href)}>
+            {resolvedPrimary.label} <span aria-hidden="true">↗</span>
           </ShimmerButton>
           {secondary ? (
-            <a className="text-link" href={secondary.href}>
+            <a className="text-link" href={heroHref(locale, secondary.href)}>
               {secondary.label} <span aria-hidden="true">→</span>
             </a>
           ) : null}
@@ -101,7 +130,7 @@ export function PageHero({
       </div>
       <div className="page-hero-index" aria-hidden="true">
         <span>NBT</span>
-        <span>PROCESS / SYSTEM / LEVERAGE</span>
+        <span>{HERO_INDEX_LINE[locale]}</span>
       </div>
     </section>
   );

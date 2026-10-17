@@ -1,0 +1,390 @@
+{
+  "bank_id": "model_prof_services",
+  "bank_version": "1.0.0",
+  "layer": "model",
+  "label": {
+    "en": "Selling time and expertise",
+    "fr": "Vente de temps et d'expertise"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q02", "op": "eq", "value": "prof_services" }
+  ],
+  "reweight": {
+    "quote_to_cash": 1.4,
+    "performance_management": 1.5,
+    "scheduling_capacity": 1.2,
+    "procure_inventory": 0.4
+  },
+  "notes": "ROUTER: served on base.firmo.q02 = prof_services. The router ALSO activates this layer when base.firmo.q03 (multi-select mix) includes prof_services; applies_when uses AND semantics so the q03 alternative cannot be expressed here and lives in the router instead. Most 10-150 employee firms are mixed-mode, so expect this layer alongside model_project or model_manufacturing.\n\nNEW reveals KEYS introduced by this bank, to be added to scoring/scoring.v1.json#cost_model.inputs: quoted_vs_actual_tracked, writedown_tracked, timesheet_lag_days, unbilled_wip_value, billable_utilization_pct, last_mandate_margin_pct.\n\nNEW benchmark_ref KEYS used by this bank, to be added to scoring/benchmarks.v1.json: ps_billable_utilization_median (SPI/Kantata 2025 Professional Services Maturity Benchmark — 68.9% all-firm median; 10-30 employees 65.4%, under 10 employees 64.3%, 101-300 employees 72.4%); ps_project_margin_median (SPI/Kantata 2025 — 35.9% median project gross margin).\n\nDELIBERATELY NO BENCHMARK: realization / write-down rate, timesheet latency, unbilled WIP value. SPI publishes no defensible cross-industry median for realization and firms self-report 85-95%; the help text says so and we use the client's own number.\n\nODOO GAPS SURFACED AS DIAGNOSTICS (not objections): no native write-down/realization concept (q2c.q02), no native rate-card hierarchy by person x role x client with effective dates (q2c.q03), no stop-billing or alert on a capped T&M mandate and per-SO-line invoicing policies for mixed fee bases (q2c.q04).",
+  "questions": [
+    {
+      "id": "model_prof_services.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "For your last big mandate, what did you quote in hours and what did you actually burn — and where is that comparison stored?",
+        "fr": "Pour votre dernier gros mandat, qu'avez-vous soumissionné en heures et combien avez-vous réellement brûlé — et où cette comparaison est-elle conservée?"
+      },
+      "instruments": ["quiz", "audit"],
+      "reveals": ["quoted_vs_actual_tracked"],
+      "artifact_probe": {
+        "en": "Open that comparison for the mandate you just finished.",
+        "fr": "Ouvrez cette comparaison pour le mandat que vous venez de terminer."
+      },
+      "options": [
+        { "value": "nobody_compares", "label": { "en": "Nobody compares those", "fr": "Personne ne compare les deux" }, "level": 1 },
+        { "value": "partner_feel", "label": { "en": "The partner has a feel for it afterwards", "fr": "L'associé s'en fait une idée après coup" }, "level": 2 },
+        { "value": "spreadsheet_at_close", "label": { "en": "Someone rebuilds it in a chiffrier at close", "fr": "Quelqu'un la refait dans un chiffrier à la clôture du mandat" }, "level": 3 },
+        { "value": "in_system", "label": { "en": "It's in the system, visible during the mandate", "fr": "C'est dans le système, visible pendant le mandat" }, "level": 4 },
+        { "value": "report_reviewed", "label": { "en": "It's in a report the estimator reads, and the next soumission uses it", "fr": "C'est dans un rapport que l'estimateur consulte, et la prochaine soumission s'en sert" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "You decide not to bill some hours worked. Where does that decision get recorded?",
+        "fr": "Vous décidez de ne pas facturer certaines heures travaillées. Où cette décision est-elle consignée?"
+      },
+      "help": {
+        "en": "There is no credible benchmark for realization. We use your number, not somebody else's.",
+        "fr": "Il n'existe aucune référence crédible pour le taux de réalisation. Nous utilisons votre chiffre, pas celui d'un autre."
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Odoo bills timesheets at a product price; the gap between standard value and billed value is not captured as a measurable write-down unless a field or analytic is added. It is the single most common customization for accounting and law-adjacent firms, so it belongs in the audit rather than in the post-signature scope fight.",
+      "reveals": ["writedown_tracked"],
+      "artifact_probe": {
+        "en": "Show me last month's unbilled hours, by mandate.",
+        "fr": "Montrez-moi les heures non facturées du mois dernier, par mandat."
+      },
+      "options": [
+        { "value": "nowhere", "label": { "en": "Nowhere — the invoice total gets edited and that's it", "fr": "Nulle part — on ajuste le total de la facture, c'est tout" }, "level": 1, "flag": "realization_loss_invisible" },
+        { "value": "note_on_file", "label": { "en": "A note in the client file", "fr": "Une note au dossier du client" }, "level": 2 },
+        { "value": "hours_marked", "label": { "en": "The hours get marked non-billable in the system", "fr": "Les heures sont marquées non facturables dans le système" }, "level": 3 },
+        { "value": "against_mandate", "label": { "en": "As a radiation d'heures against that mandate", "fr": "Comme une radiation d'heures sur ce mandat" }, "level": 4 },
+        { "value": "reviewed_by_partner", "label": { "en": "That, and radiations by mandate and by partner get reviewed", "fr": "Cela, et les radiations par mandat et par associé sont révisées" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Who sets the rate on a mandate, and where is the standard rate for that person on that client stored?",
+        "fr": "Qui fixe le taux sur un mandat, et où est conservé le taux standard de cette personne pour ce client?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. There is no native rate-card hierarchy — rate by person x role x client x mandate with effective dates. You get pricelists and an employee hourly cost; a real rate matrix needs a module. Asking it here sizes that module before the proposal, not after.",
+      "artifact_probe": {
+        "en": "Pick one person and one client, and show me where their rate lives.",
+        "fr": "Choisissez une personne et un client, et montrez-moi où se trouve son taux."
+      },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody could tell you where it's stored", "fr": "Personne ne pourrait vous dire où il est conservé" }, "level": 1 },
+        { "value": "partner_memory", "label": { "en": "A partner decides mandate by mandate, from memory", "fr": "Un associé décide mandat par mandat, de mémoire" }, "level": 2 },
+        { "value": "one_list", "label": { "en": "One rate list, the same for every client", "fr": "Une seule liste de taux, la même pour tous les clients" }, "level": 3 },
+        { "value": "per_client_role", "label": { "en": "Rates by client and by role, in a system", "fr": "Des taux par client et par rôle, dans un système" }, "level": 4 },
+        { "value": "effective_dated", "label": { "en": "That, with effective dates, and billed rates get compared against them", "fr": "Cela, avec dates d'entrée en vigueur, et les taux facturés sont comparés à ceux-là" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "A mandate that's part fixed fee and part hourly up to a cap — what happens the day the cap is hit?",
+        "fr": "Un mandat en partie à forfait et en partie à l'heure jusqu'à un plafond — que se passe-t-il le jour où le plafond est atteint?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Capped T&M has no native stop-billing or alert mechanism, and Odoo's three invoicing policies are per sale-order line — a mandate that is part fixed fee, part T&M-over-cap and part pass-through needs deliberate SO line design. Most failed implementations try to model it on one line.",
+      "artifact_probe": {
+        "en": "Show me a current mandate with a cap and where the cap figure sits.",
+        "fr": "Montrez-moi un mandat en cours avec un plafond et où se trouve le montant du plafond."
+      },
+      "options": [
+        { "value": "found_out_later", "label": { "en": "We find out after the fact, at invoicing", "fr": "On s'en aperçoit après coup, à la facturation" }, "level": 1 },
+        { "value": "partner_watches", "label": { "en": "A partner watches it by eye", "fr": "Un associé le surveille à l'œil" }, "level": 2 },
+        { "value": "manual_check", "label": { "en": "Someone compares the total to the cap before each bill", "fr": "Quelqu'un compare le total au plafond avant chaque facture" }, "level": 3 },
+        { "value": "system_flag", "label": { "en": "The system flags it and the work gets re-authorized", "fr": "Le système le signale et le travail est réautorisé" }, "level": 4 },
+        { "value": "flag_and_measure", "label": { "en": "Flagged, re-authorized in writing, and we track how often caps get hit", "fr": "Signalé, réautorisé par écrit, et nous suivons la fréquence des plafonds atteints" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.q2c.q05",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Scope changes mid-mandate. Who tells the client, and what document changes?",
+        "fr": "La portée change en cours de mandat. Qui en informe le client, et quel document change?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the last signed amendment to a mandate.",
+        "fr": "Montrez-moi le dernier avenant signé à un mandat."
+      },
+      "options": [
+        { "value": "absorbed", "label": { "en": "We absorb it for the relationship", "fr": "On l'absorbe pour la relation" }, "level": 1 },
+        { "value": "verbal", "label": { "en": "Someone mentions it verbally; nothing changes on paper", "fr": "Quelqu'un le mentionne verbalement; rien ne change sur papier" }, "level": 2 },
+        { "value": "email", "label": { "en": "An email confirms it", "fr": "Un courriel le confirme" }, "level": 3 },
+        { "value": "amendment", "label": { "en": "A written, signed amendment to the mandate", "fr": "Un avenant écrit et signé au mandat" }, "level": 4 },
+        { "value": "amendment_tracked", "label": { "en": "Signed amendment, and we track what share of revenue comes from amendments", "fr": "Avenant signé, et nous suivons quelle part des revenus vient des avenants" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "On your busiest mandate, how many days old is the newest timesheet entry?",
+        "fr": "Sur votre mandat le plus occupé, le plus récent relevé d'heures a combien de jours?"
+      },
+      "help": {
+        "en": "Nobody publishes a defensible benchmark for this. We use your number, not somebody else's — and past about two days the travaux en cours figure is fiction.",
+        "fr": "Personne ne publie de référence défendable là-dessus. Nous utilisons votre chiffre, pas celui d'un autre — et au-delà d'environ deux jours, le chiffre des travaux en cours est une fiction."
+      },
+      "instruments": ["quiz", "audit"],
+      "reveals": ["timesheet_lag_days"],
+      "artifact_probe": {
+        "en": "Open the timesheet list for that mandate and sort it by entry date.",
+        "fr": "Ouvrez la liste des heures de ce mandat et triez-la par date de saisie."
+      },
+      "numeric": {
+        "unit": { "en": "days", "fr": "jours" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5, "label": { "en": "Same day", "fr": "Le jour même" } },
+          { "lte": 2, "level": 4, "label": { "en": "Within two days", "fr": "En deux jours" } },
+          { "lte": 7, "level": 3, "label": { "en": "Weekly", "fr": "Hebdomadaire" } },
+          { "lte": 31, "level": 2, "label": { "en": "Monthly", "fr": "Mensuel" } },
+          { "gt": 31, "level": 1, "label": { "en": "At invoicing, or later", "fr": "À la facturation, ou plus tard" } }
+        ]
+      }
+    },
+    {
+      "id": "model_prof_services.sched.q02",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "A new mandate is accepted. How do you decide who delivers it?",
+        "fr": "Un nouveau mandat est accepté. Comment décidez-vous qui le livre?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me who is assigned to what for the next three weeks.",
+        "fr": "Montrez-moi qui est affecté à quoi pour les trois prochaines semaines."
+      },
+      "options": [
+        { "value": "whoever_free", "label": { "en": "Whoever is free that week", "fr": "Celui qui est libre cette semaine" }, "level": 1 },
+        { "value": "partner_memory", "label": { "en": "A partner assigns it from memory of who's busy", "fr": "Un associé l'assigne selon son souvenir de qui est occupé" }, "level": 2 },
+        { "value": "spreadsheet_plan", "label": { "en": "A chiffrier of who's on what", "fr": "Un chiffrier de qui est sur quoi" }, "level": 3 },
+        { "value": "system_plan", "label": { "en": "A staffing plan in a system everyone involved can see", "fr": "Un plan d'affectation dans un système que tous les intervenants peuvent voir" }, "level": 4 },
+        { "value": "plan_vs_actual", "label": { "en": "That, and we compare planned hours to delivered hours afterwards", "fr": "Cela, et nous comparons les heures planifiées aux heures livrées après" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.fin.q01",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "Right now, what are the hours worked but not yet invoiced worth?",
+        "fr": "En ce moment, combien valent les heures travaillées mais pas encore facturées?"
+      },
+      "help": {
+        "en": "Travaux en cours, at your standard rates. Nobody publishes a credible median for this — we use your number. \"I'd have to check\" is a real answer.",
+        "fr": "Les travaux en cours, à vos taux standards. Personne ne publie de médiane crédible là-dessus — nous utilisons votre chiffre. « Il faudrait que je vérifie » est une vraie réponse."
+      },
+      "instruments": ["audit"],
+      "notes": "Scoring normalizes this against average monthly billings where base.fin.q06 and headcount allow it; the absolute bands below are the fallback. The dominant signal in practice is whether the respondent can produce the number at all.",
+      "reveals": ["unbilled_wip_value"],
+      "artifact_probe": {
+        "en": "Open the travaux en cours list and show me the oldest unbilled hours on it.",
+        "fr": "Ouvrez la liste des travaux en cours et montrez-moi les heures non facturées les plus vieilles."
+      },
+      "numeric": {
+        "unit": { "en": "CAD at standard rates", "fr": "$ CA aux taux standards" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 25000, "level": 5 },
+          { "lte": 100000, "level": 4 },
+          { "lte": 250000, "level": 3 },
+          { "lte": 500000, "level": 2 },
+          { "gt": 500000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_prof_services.fin.q02",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Who looks at unbilled travaux en cours, and how often?",
+        "fr": "Qui examine les travaux en cours non facturés, et à quelle fréquence?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the report they look at, and when it was last opened.",
+        "fr": "Montrez-moi le rapport qu'ils consultent, et quand il a été ouvert la dernière fois."
+      },
+      "options": [
+        { "value": "nobody", "label": { "en": "Nobody — it surfaces at invoicing", "fr": "Personne — ça ressort à la facturation" }, "level": 1 },
+        { "value": "at_billing", "label": { "en": "The person who bills, when they bill", "fr": "La personne qui facture, au moment de facturer" }, "level": 2 },
+        { "value": "monthly_spreadsheet", "label": { "en": "Monthly, from a chiffrier someone rebuilds", "fr": "Chaque mois, à partir d'un chiffrier que quelqu'un refait" }, "level": 3 },
+        { "value": "monthly_system", "label": { "en": "Monthly, from a report in the system", "fr": "Chaque mois, à partir d'un rapport du système" }, "level": 4 },
+        { "value": "weekly_aging", "label": { "en": "Weekly, with aging, and old WIP gets a decision", "fr": "Chaque semaine, avec le vieillissement, et les vieux travaux en cours sont tranchés" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.perf.q01",
+      "dimension": "performance_management",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "What was your billable utilization last quarter?",
+        "fr": "Quel était votre taux d'utilisation facturable au dernier trimestre?"
+      },
+      "help": {
+        "en": "Heures facturables divided by available hours, firm-wide. If nobody computes it, say you don't know — that is an answer.",
+        "fr": "Les heures facturables divisées par les heures disponibles, pour toute la firme. Si personne ne le calcule, dites que vous ne savez pas — c'est une réponse."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "ps_billable_utilization_median",
+      "notes": "Top band is level 4 on purpose: a high utilization number is not maturity, and it can be a staffing artefact. Level 5 for this dimension is carried by perf.q02 — how the number is calculated and whether anyone owns it.",
+      "reveals": ["billable_utilization_pct"],
+      "artifact_probe": {
+        "en": "Show me the utilization figure on the screen it comes from.",
+        "fr": "Montrez-moi le taux d'utilisation à l'écran d'où il provient."
+      },
+      "numeric": {
+        "unit": { "en": "% of available hours", "fr": "% des heures disponibles" },
+        "min": 0,
+        "max": 100,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 72, "level": 4 },
+          { "gte": 65, "level": 3 },
+          { "gte": 55, "level": 2 },
+          { "lt": 55, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_prof_services.perf.q02",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "How do you calculate taux d'utilisation — what's in the denominator?",
+        "fr": "Comment calculez-vous le taux d'utilisation — qu'est-ce qu'il y a au dénominateur?"
+      },
+      "instruments": ["audit"],
+      "notes": "Asked as 'how do you calculate X', not 'what is your X'. Utilization means hours-based in professional services and labour-cost-based in A/E, so the denominator is the maturity signal and it protects us from comparing apples to oranges across clients.",
+      "options": [
+        { "value": "not_calculated", "label": { "en": "We don't calculate it", "fr": "Nous ne le calculons pas" }, "level": 1 },
+        { "value": "how_busy", "label": { "en": "Roughly, from how busy people seem", "fr": "Approximativement, selon à quel point les gens semblent occupés" }, "level": 2 },
+        { "value": "revenue_proxy", "label": { "en": "From revenue per person, not from hours", "fr": "À partir du revenu par personne, pas des heures" }, "level": 3 },
+        { "value": "hours_defined", "label": { "en": "Heures facturables over a defined available-hours base, per person", "fr": "Les heures facturables sur une base d'heures disponibles définie, par personne" }, "level": 4 },
+        { "value": "target_reviewed", "label": { "en": "That, with a target per role, reviewed on a cadence", "fr": "Cela, avec une cible par rôle, révisée à intervalles réguliers" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.perf.q03",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your last three mandates that lost money — was it the estimate, the staffing mix, or unbilled scope?",
+        "fr": "Vos trois derniers mandats déficitaires — était-ce l'estimation, la composition de l'équipe, ou de la portée non facturée?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Pull the margin by mandate for last year and point at the three.",
+        "fr": "Sortez la marge par mandat de l'an dernier et montrez-moi les trois."
+      },
+      "options": [
+        { "value": "didnt_know", "label": { "en": "We didn't know any of them lost money", "fr": "Nous ne savions pas qu'ils étaient déficitaires" }, "level": 1 },
+        { "value": "knew_not_why", "label": { "en": "We knew, but not why", "fr": "Nous le savions, mais pas pourquoi" }, "level": 2 },
+        { "value": "one_opinion", "label": { "en": "One person has an opinion about why", "fr": "Une personne a une opinion sur le pourquoi" }, "level": 3 },
+        { "value": "can_decompose", "label": { "en": "We can separate the three causes from the data", "fr": "Nous pouvons distinguer les trois causes à partir des données" }, "level": 4 },
+        { "value": "postmortem_routine", "label": { "en": "We do that at the close of every mandate, and it changes the next soumission", "fr": "Nous le faisons à la clôture de chaque mandat, et ça change la prochaine soumission" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_prof_services.perf.q04",
+      "dimension": "performance_management",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "On your last closed mandate, what was the gross margin?",
+        "fr": "Sur votre dernier mandat terminé, quelle était la marge brute?"
+      },
+      "help": {
+        "en": "Net revenue less direct delivery cost, including any sous-traitance or associate hours passed through.",
+        "fr": "Le revenu net moins le coût direct de livraison, y compris la sous-traitance ou les heures de collaborateurs refacturées."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "ps_project_margin_median",
+      "notes": "Level 5 here is earned by producing a per-mandate margin at all, which requires delivery cost to be attributed to the mandate — measurement, not software. A firm that can only give a firm-wide gross margin answers 'I don't know' and scores 1.",
+      "reveals": ["last_mandate_margin_pct"],
+      "artifact_probe": {
+        "en": "Open that mandate and show me the cost side of it.",
+        "fr": "Ouvrez ce mandat et montrez-moi le côté coûts."
+      },
+      "numeric": {
+        "unit": { "en": "% gross margin", "fr": "% de marge brute" },
+        "min": -100,
+        "max": 100,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 45, "level": 5 },
+          { "gte": 36, "level": 4 },
+          { "gte": 25, "level": 3 },
+          { "gte": 10, "level": 2 },
+          { "lt": 10, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_prof_services.doc.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Before work starts, what does the client sign, and where does it live?",
+        "fr": "Avant le début des travaux, que signe le client, et où est-ce conservé?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Open the signed one for the mandate you started most recently.",
+        "fr": "Ouvrez celui qui est signé pour le mandat que vous avez commencé le plus récemment."
+      },
+      "options": [
+        { "value": "nothing", "label": { "en": "Often nothing — we start on a verbal go-ahead", "fr": "Souvent rien — on démarre sur un accord verbal" }, "level": 1 },
+        { "value": "email_ok", "label": { "en": "An email saying go ahead", "fr": "Un courriel qui dit d'y aller" }, "level": 2 },
+        { "value": "signed_quote", "label": { "en": "A signed soumission, filed in someone's folder", "fr": "Une soumission signée, classée dans le dossier de quelqu'un" }, "level": 3 },
+        { "value": "engagement_letter", "label": { "en": "A lettre de mission with scope and exclusions, stored with the mandate", "fr": "Une lettre de mission avec portée et exclusions, conservée avec le mandat" }, "level": 4 },
+        { "value": "letter_measured", "label": { "en": "That, and the budget in it is what delivery gets measured against", "fr": "Cela, et le budget qui y figure est la référence pour mesurer la livraison" }, "level": 5 }
+      ]
+    }
+  ]
+}

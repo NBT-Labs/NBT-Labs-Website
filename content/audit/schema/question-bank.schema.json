@@ -1,0 +1,236 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://nbtlabs.ca/audit/schema/question-bank.schema.json",
+  "title": "NBT Labs audit question bank",
+  "description": "One bank file = one layer. Layers compose onto base. Every bank validates against this schema. Freeze a bank once it is in production and bump bank_version to change it: scores are only comparable within an instrument_version (see scoring/scoring.v1.json#versioning).",
+  "type": "object",
+  "required": ["bank_id", "bank_version", "layer", "label", "questions"],
+  "additionalProperties": false,
+  "properties": {
+    "bank_id": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]+$",
+      "description": "Unique, stable. Also the prefix of every question id in this file."
+    },
+    "bank_version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+$" },
+    "layer": {
+      "enum": ["base", "model", "industry", "size_stack", "respondent", "compliance", "ai_readiness", "growth_trigger"],
+      "description": "base is always asked. model/industry are selected by firmographic answers. The rest are conditional layers."
+    },
+    "label": { "$ref": "#/$defs/i18n" },
+    "applies_when": {
+      "type": "array",
+      "description": "ALL conditions must hold for this bank to be served. Empty/absent = always.",
+      "items": { "$ref": "#/$defs/condition" }
+    },
+    "reweight": {
+      "type": "object",
+      "description": "Multipliers applied to BASE dimension weights when this layer is active. Lets construction make quote_to_cash heavier without rewriting the base bank. Normalized after application.",
+      "propertyNames": { "$ref": "#/$defs/dimension_id" },
+      "additionalProperties": { "type": "number", "minimum": 0.25, "maximum": 3 }
+    },
+    "notes": { "type": "string", "description": "Internal. Never shown to a respondent." },
+    "questions": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/question" }
+    }
+  },
+  "$defs": {
+    "i18n": {
+      "type": "object",
+      "required": ["en", "fr"],
+      "additionalProperties": false,
+      "description": "Both languages are mandatory everywhere. An FR-missing bank fails validation by design: Charter s.52/s.57 means the French version ships at the same time, not later.",
+      "properties": {
+        "en": { "type": "string", "minLength": 1 },
+        "fr": { "type": "string", "minLength": 1 }
+      }
+    },
+    "dimension_id": {
+      "enum": [
+        "quote_to_cash",
+        "procure_inventory",
+        "scheduling_capacity",
+        "finance_close",
+        "data_reporting",
+        "systems_integration",
+        "process_documentation",
+        "people_continuity",
+        "ai_automation_readiness",
+        "performance_management",
+        "sponsorship_change",
+        "compliance_risk"
+      ]
+    },
+    "condition": {
+      "type": "object",
+      "required": ["field", "op", "value"],
+      "additionalProperties": false,
+      "properties": {
+        "field": { "type": "string", "description": "A question id, or a firmographic key such as firmo.employees." },
+        "op": { "enum": ["eq", "neq", "in", "not_in", "gte", "lte", "any_of", "all_of"] },
+        "value": {}
+      }
+    },
+    "question": {
+      "type": "object",
+      "required": ["id", "dimension", "type", "stem", "instruments"],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]+\\.[a-z0-9_]+\\.[a-z0-9_]+$",
+          "description": "bank_id.dimension_short.qNN — e.g. base.q2c.q01. Stable forever. Never reuse an id for a different question."
+        },
+        "dimension": {
+          "oneOf": [
+            { "$ref": "#/$defs/dimension_id" },
+            { "const": "firmographic", "description": "Unscored. Routes layers and feeds the cost model." }
+          ]
+        },
+        "type": {
+          "enum": ["single", "multi", "number", "text"],
+          "description": "single = one item-specific option (the default and preferred form). multi = checklist, each item scored or informational. number = open numeric, banded to a level. text = free text, NEVER in the quiz instrument (costs ~12.5pp completion; Liu & Wronski 2018)."
+        },
+        "stem": { "$ref": "#/$defs/i18n" },
+        "help": { "$ref": "#/$defs/i18n", "description": "Optional one-line clarifier. Counts against total word budget — use sparingly." },
+        "instruments": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "enum": ["quiz", "audit"] },
+          "description": "quiz = the public self-serve scorecard. audit = the live 1-2h session. A question in both must have identical wording and identical position in the shared ordered core, or quiz-vs-audit score movement is an artefact."
+        },
+        "weight": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 5,
+          "default": 1,
+          "description": "Within-dimension weight. 0 = informational only, excluded from the dimension score."
+        },
+        "options": {
+          "type": "array",
+          "description": "Required for single/multi. Item-specific, concretely described states — never agree/disagree and never a bare 1-5 (Saris et al. 2010; Tourangeau et al. 2000).",
+          "items": { "$ref": "#/$defs/option" }
+        },
+        "numeric": { "$ref": "#/$defs/numeric" },
+        "reveals": {
+          "type": "array",
+          "description": "Cost-model input keys this question populates. Must exist in scoring/scoring.v1.json#cost_model.inputs.",
+          "items": { "type": "string", "pattern": "^[a-z0-9_]+$" }
+        },
+        "routes": {
+          "type": "array",
+          "description": "Firmographic questions only: which layer bank_ids each answer activates.",
+          "items": {
+            "type": "object",
+            "required": ["when_value", "activates"],
+            "additionalProperties": false,
+            "properties": {
+              "when_value": { "type": "string" },
+              "activates": { "type": "array", "items": { "type": "string" } }
+            }
+          }
+        },
+        "show_when": {
+          "type": "array",
+          "description": "ALL must hold for this question to be served.",
+          "items": { "$ref": "#/$defs/condition" }
+        },
+        "artifact_probe": {
+          "$ref": "#/$defs/i18n",
+          "description": "Audit instrument only. The thing the consultant asks to SEE, to convert a self-reported claim into an observed fact (Shingo evidence stance). This is the structural reason the live audit beats the quiz and self-report correlates ~.29 with reality (Zell & Krizan 2014)."
+        },
+        "benchmark_ref": {
+          "type": "string",
+          "description": "Key in scoring/benchmarks.v1.json. Only set it where a defensible benchmark exists — absent means 'we make the client supply the number', which is deliberate, not an omission."
+        },
+        "notes": { "type": "string" }
+      },
+      "allOf": [
+        {
+          "if": { "properties": { "type": { "enum": ["single", "multi"] } } },
+          "then": { "required": ["options"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "number" } } },
+          "then": { "required": ["numeric"] }
+        },
+        {
+          "if": { "properties": { "type": { "const": "text" } } },
+          "then": {
+            "properties": {
+              "instruments": { "items": { "const": "audit" } }
+            }
+          }
+        }
+      ]
+    },
+    "option": {
+      "type": "object",
+      "required": ["value", "label"],
+      "additionalProperties": false,
+      "properties": {
+        "value": { "type": "string", "pattern": "^[a-z0-9_]+$" },
+        "label": { "$ref": "#/$defs/i18n" },
+        "level": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 5,
+          "description": "Maturity level this described state corresponds to. See scoring/scoring.v1.json#ladder. Levels 4-5 require MEASUREMENT and REVIEW, not more software (CMMI: only 8 of 32 practice areas reach L4)."
+        },
+        "na": {
+          "type": "boolean",
+          "default": false,
+          "description": "'We don't do this at all' — substantive information, excluded from the dimension score. NOT a don't-know escape hatch: 'nobody here knows' is level 1, written as a scored option (Krosnick et al. 2002)."
+        },
+        "informational": { "type": "boolean", "default": false, "description": "Unscored; used for routing or the cost model." },
+        "flag": { "type": "string", "description": "Raises a named finding in the report regardless of the dimension score." },
+        "reveals": {
+          "type": "object",
+          "description": "Cost-model inputs this specific answer sets.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "numeric": {
+      "type": "object",
+      "required": ["unit", "bands"],
+      "additionalProperties": false,
+      "properties": {
+        "unit": { "$ref": "#/$defs/i18n" },
+        "min": { "type": "number" },
+        "max": { "type": "number" },
+        "integer": { "type": "boolean", "default": false },
+        "direction": {
+          "enum": ["lower_is_better", "higher_is_better"],
+          "default": "lower_is_better"
+        },
+        "allow_unknown": {
+          "type": "boolean",
+          "default": true,
+          "description": "'I don't know' on a count is itself a maturity signal and scores at unknown_level, not as missing data."
+        },
+        "unknown_level": { "type": "integer", "minimum": 1, "maximum": 5, "default": 1 },
+        "bands": {
+          "type": "array",
+          "minItems": 2,
+          "description": "Ordered, non-overlapping. First matching band wins.",
+          "items": {
+            "type": "object",
+            "required": ["level"],
+            "additionalProperties": false,
+            "properties": {
+              "lt": { "type": "number" },
+              "lte": { "type": "number" },
+              "gt": { "type": "number" },
+              "gte": { "type": "number" },
+              "level": { "type": "integer", "minimum": 1, "maximum": 5 },
+              "label": { "$ref": "#/$defs/i18n" }
+            }
+          }
+        }
+      }
+    }
+  }
+}

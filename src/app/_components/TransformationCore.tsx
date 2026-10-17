@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type CSSProperties } from "react";
+import type { Locale } from "@/lib/audit/types";
 
 type Vector3 = readonly [x: number, y: number, z: number];
 
@@ -20,8 +21,44 @@ type Palette = {
 };
 
 export type TransformationCoreProps = {
+  locale: Locale;
   className?: string;
 };
+
+const COPY = {
+  fr: {
+    title: "Noyau de transformation",
+    instruction: "Bougez ou touchez pour explorer",
+    pause: "Pause",
+    resume: "Reprendre",
+    pauseLabel: "Mettre l’animation en pause",
+    resumeLabel: "Reprendre l’animation",
+    sequenceLabel: "Séquence de transformation NBT Labs",
+    stages: [
+      ["01", "Processus", "Cartographier, améliorer"],
+      ["02", "Odoo", "Faire rouler le système"],
+      ["03", "Agents", "Agir et optimiser"],
+    ],
+    description:
+      "Le visuel interactif montre NBT Labs qui améliore un processus d’affaires, établit Odoo comme système de référence et branche des agents IA qui agissent sur les données d’exploitation en temps réel.",
+  },
+  en: {
+    title: "Transformation core",
+    instruction: "Move or touch to explore",
+    pause: "Pause",
+    resume: "Resume",
+    pauseLabel: "Pause hero animation",
+    resumeLabel: "Resume hero animation",
+    sequenceLabel: "NBT Labs transformation sequence",
+    stages: [
+      ["01", "Process", "Map & improve"],
+      ["02", "Odoo", "Run the system"],
+      ["03", "Agents", "Act & optimize"],
+    ],
+    description:
+      "The interactive visual shows NBT Labs improving a business process, establishing Odoo as the system of record, and connecting AI agents that act on live operational data.",
+  },
+} as const;
 
 const TAU = Math.PI * 2;
 const STAGES: Vector3[] = [
@@ -126,7 +163,8 @@ function visuallyHiddenStyle(): CSSProperties {
  * Override --core-bg, --core-cream, --core-mint, --core-muted, and --core-line
  * from the parent to align the illustration with a page theme.
  */
-export function TransformationCore({ className }: TransformationCoreProps) {
+export function TransformationCore({ locale, className }: TransformationCoreProps) {
+  const copy = COPY[locale];
   const hostRef = useRef<HTMLElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const pausedRef = useRef(false);
@@ -708,7 +746,7 @@ export function TransformationCore({ className }: TransformationCoreProps) {
               textTransform: "uppercase",
             }}
           >
-            Transformation core
+            {copy.title}
           </p>
           <div
             style={{
@@ -729,23 +767,23 @@ export function TransformationCore({ className }: TransformationCoreProps) {
                 textAlign: "right",
               }}
             >
-              Move or touch to explore <span aria-hidden="true">↗</span>
+              {copy.instruction} <span aria-hidden="true">↗</span>
             </p>
             <button
               className="core-motion-toggle"
               type="button"
               aria-pressed={isPaused}
-              aria-label={isPaused ? "Resume hero animation" : "Pause hero animation"}
+              aria-label={isPaused ? copy.resumeLabel : copy.pauseLabel}
               onClick={toggleMotion}
             >
               <span aria-hidden="true">{isPaused ? "▶" : "Ⅱ"}</span>
-              {isPaused ? "Resume" : "Pause"}
+              {isPaused ? copy.resume : copy.pause}
             </button>
           </div>
         </div>
 
         <ol
-          aria-label="NBT Labs transformation sequence"
+          aria-label={copy.sequenceLabel}
           style={{
             display: "grid",
             gridTemplateColumns: "repeat(3, minmax(0, 1fr))",
@@ -755,11 +793,7 @@ export function TransformationCore({ className }: TransformationCoreProps) {
             listStyle: "none",
           }}
         >
-          {[
-            ["01", "Process", "Map & improve"],
-            ["02", "Odoo", "Run the system"],
-            ["03", "Agents", "Act & optimize"],
-          ].map(([number, title, detail]) => (
+          {copy.stages.map(([number, title, detail]) => (
             <li
               key={title}
               style={{
@@ -817,11 +851,7 @@ export function TransformationCore({ className }: TransformationCoreProps) {
         </ol>
       </figcaption>
 
-      <p style={visuallyHiddenStyle()}>
-        The interactive visual shows NBT Labs improving a business process,
-        establishing Odoo as the system of record, and connecting AI agents that
-        act on live operational data.
-      </p>
+      <p style={visuallyHiddenStyle()}>{copy.description}</p>
     </figure>
   );
 }

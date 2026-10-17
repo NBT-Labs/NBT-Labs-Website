@@ -1,0 +1,445 @@
+{
+  "instrument_version": "1.0.0",
+  "name": { "en": "NBT Labs Operations Barometer", "fr": "Baromètre des opérations NBT Labs" },
+
+  "versioning": {
+    "rule": "Scores are comparable ONLY within an instrument_version. Changing a question's wording, its options, its weight or its POSITION invalidates comparison with earlier responses — question-order effects are large and measured, not theoretical.",
+    "consequences": [
+      "Pool peer-benchmark data only within a version.",
+      "Never pool French and English responses into one benchmark until measurement invariance can be tested, which will require a couple of hundred responses per language. Report the benchmark separately by language, or state the combined count with the caveat. This is the specific place where a bilingual instrument quietly becomes dishonest.",
+      "If a client's quiz score is to be compared with their audit score, both must come from the same version and the shared questions must be in the same order. Otherwise 'your score moved' is an artefact."
+    ],
+    "authoritative": "This file is authoritative for which questions appear in the quiz (see instruments.quiz.order). The per-question instruments array in each bank file is advisory."
+  },
+
+  "ladder": {
+    "note": "Five levels, in business language rather than CMMI's. Level 2 is deliberately 'repeatable within a work unit' because that is where most 10-150 employee companies actually sit. Levels 4 and 5 require MEASUREMENT and REVIEW. No option anywhere in the instrument awards level 5 for owning a tool.",
+    "levels": [
+      { "level": 1, "key": "ad_hoc", "label": { "en": "Ad hoc", "fr": "Ponctuel" }, "description": { "en": "It lives in someone's head. Results are hard to predict and depend on who is working that day.", "fr": "Ça vit dans la tête de quelqu'un. Les résultats sont difficiles à prévoir et dépendent de qui travaille ce jour-là." } },
+      { "level": 2, "key": "repeatable", "label": { "en": "Repeatable", "fr": "Répétable" }, "description": { "en": "The team does it the same way most times, by hand, and it mostly works.", "fr": "L'équipe le fait de la même façon la plupart du temps, à la main, et ça fonctionne généralement." } },
+      { "level": 3, "key": "systematized", "label": { "en": "Systematized", "fr": "Systématisé" }, "description": { "en": "It's in a system, but the system doesn't talk to the next one and someone still carries information across.", "fr": "C'est dans un système, mais le système ne parle pas au suivant et quelqu'un transporte encore l'information." } },
+      { "level": 4, "key": "integrated", "label": { "en": "Integrated", "fr": "Intégré" }, "description": { "en": "Connected end to end and visible to the people who need it, without re-entry.", "fr": "Connecté de bout en bout et visible pour ceux qui en ont besoin, sans ressaisie." } },
+      { "level": 5, "key": "improving", "label": { "en": "Measured and improving", "fr": "Mesuré et en amélioration" }, "description": { "en": "It has a number, a target and an owner, and when it misses, someone finds out why.", "fr": "Il y a un indicateur, une cible et un responsable, et quand on manque la cible, quelqu'un cherche pourquoi." } }
+    ],
+    "item_score_formula": "item_score = (level - 1) / 4 * 100",
+    "item_score_table": { "1": 0, "2": 25, "3": 50, "4": 75, "5": 100 }
+  },
+
+  "dimensions": [
+    { "id": "quote_to_cash", "pillar": "operating_flow", "weight": 1.2, "label": { "en": "Quote to cash", "fr": "De la soumission à l'encaissement" } },
+    { "id": "procure_inventory", "pillar": "operating_flow", "weight": 1.0, "label": { "en": "Purchasing and inventory", "fr": "Achats et stocks" } },
+    { "id": "scheduling_capacity", "pillar": "operating_flow", "weight": 1.1, "label": { "en": "Scheduling and capacity", "fr": "Planification et capacité" } },
+    { "id": "finance_close", "pillar": "financial_control", "weight": 1.2, "label": { "en": "Finance handoffs and close", "fr": "Transferts comptables et fermeture" } },
+    { "id": "performance_management", "pillar": "financial_control", "weight": 1.1, "label": { "en": "Running on numbers", "fr": "Pilotage par les chiffres" } },
+    { "id": "data_reporting", "pillar": "data_and_systems", "weight": 1.3, "label": { "en": "One version of the truth", "fr": "Une seule version des faits" } },
+    { "id": "systems_integration", "pillar": "data_and_systems", "weight": 1.2, "label": { "en": "Systems talking to each other", "fr": "Communication entre les systèmes" } },
+    { "id": "ai_automation_readiness", "pillar": "data_and_systems", "weight": 0.9, "label": { "en": "Automation and AI readiness", "fr": "Préparation à l'automatisation et à l'IA" } },
+    { "id": "process_documentation", "pillar": "organization", "weight": 1.2, "label": { "en": "Written-down process", "fr": "Processus écrits" } },
+    { "id": "people_continuity", "pillar": "organization", "weight": 1.1, "label": { "en": "Key-person risk", "fr": "Risque de personne clé" } },
+    { "id": "sponsorship_change", "pillar": "organization", "weight": 1.1, "label": { "en": "Ownership and change readiness", "fr": "Appropriation et capacité de changement" } },
+    { "id": "compliance_risk", "pillar": "organization", "weight": 0.9, "label": { "en": "Compliance and resilience", "fr": "Conformité et résilience" } }
+  ],
+
+  "pillars": [
+    { "id": "operating_flow", "weight": 1.1, "label": { "en": "Operating flow", "fr": "Flux des opérations" } },
+    { "id": "financial_control", "weight": 1.1, "label": { "en": "Financial control", "fr": "Contrôle financier" } },
+    { "id": "data_and_systems", "weight": 1.0, "label": { "en": "Data and systems", "fr": "Données et systèmes" } },
+    { "id": "organization", "weight": 1.0, "label": { "en": "Organization", "fr": "Organisation" } }
+  ],
+
+  "aggregation": {
+    "note": "Deliberately simple and equal-weighted inside each level, after the EDIH SME digital-maturity method: items roll to questions, questions roll to dimensions, dimensions to pillars, pillars to one index. Published weights, no hidden normalization. A composite is only defensible if the weighting is visible, so the weights above are printed on the report.",
+    "steps": [
+      "1. item_score = (level - 1) / 4 * 100. Options marked na or informational are excluded, not scored zero.",
+      "2. question_score = mean of its item scores. A single-select question has one item.",
+      "3. dimension_score = sum(question_score * question_weight) / sum(question_weight), over answered, scored questions only. Weight 0 questions are excluded.",
+      "4. pillar_score = sum(dimension_score * dimension_weight * layer_reweight) / sum(dimension_weight * layer_reweight), over dimensions with at least one answered scored question. A construction client's quote_to_cash carries more of its pillar than a clinic's does; the questions are identical.",
+      "5. Layer reweight applies HERE, at the pillar rollup, on the dimension weight — never on the question weights inside a dimension. A uniform multiplier applied inside a weighted mean cancels out exactly, so putting it in step 3 makes the whole reweight mechanism a silent no-op. This was implemented wrongly once and caught by a test; the test is src/lib/audit/score.test.ts in the website repo.",
+      "6. omi_raw = sum(pillar_score * pillar_weight) / sum(pillar_weight).",
+      "7. Apply cap_rules to produce dimension_score_capped and omi.",
+      "8. Evaluate red_flags independently of every score."
+    ],
+    "minimum_coverage": {
+      "dimension_reported": 2,
+      "pillar_reported": 1,
+      "rule": "A dimension with fewer than 2 answered scored questions is shown as 'not enough signal', never as a low score. The quiz triggers this on most dimensions by design — see instruments.quiz.coverage_disclosure."
+    },
+    "compensability_warning": "Additive aggregation implies full compensability: a catastrophic score on one dimension gets hidden by good scores elsewhere, which is exactly wrong when the catastrophic dimension is the one bleeding money. The cap rules and red flags below are the non-compensatory correction. Do not remove them to make a score look tidier."
+  },
+
+  "cap_rules": {
+    "note": "Imported from EFQM's master-rule pattern, where a criterion score cannot exceed its soundness attribute. These encode what NBT actually believes — that an ERP rollout onto undocumented process and bad master data fails — into the arithmetic, so the instrument argues the case without the consultant having to.",
+    "floor_principle": {
+      "value": 50,
+      "statement": "A cap may pull a score down to the middle of the scale but NEVER below it. Every cap is written as min(raw, max(ceiling, 50)).",
+      "rationale": "A cap expresses a constraint on what the good scores MEAN, not a claim that the good things are not happening. A client who genuinely executes well with nothing written down should land at 'systematized' — you have systems, they do not talk to each other yet, and this is fragile — not at 'ad hoc'. Without the floor, a single zero on documentation crushes an otherwise strong profile to 22 and the instrument reads as rigged, which costs more than the rhetorical force of the cap is worth. The fragility message is carried by the red flags and by people_continuity, where it belongs.",
+      "exception": "ai_cannot_outrun_foundations has NO floor. It is the one rule where zero is the honest answer and the one most worth defending in the room."
+    },
+    "rules": [
+      {
+        "id": "documentation_caps_all",
+        "statement": "No dimension score may exceed max(process_documentation + 20, 50).",
+        "exempt": ["process_documentation", "sponsorship_change"],
+        "rationale": "You cannot be reliably better at running a process than you are at having written it down. The +20 allowance admits that some teams genuinely execute above their documentation; the floor of 50 admits that executing well is still worth something."
+      },
+      {
+        "id": "data_caps_index",
+        "statement": "The overall index may not exceed max(data_reporting + 15, 50).",
+        "rationale": "If nobody agrees what the numbers mean, the rest is decoration — but 'systematized' is the floor, not 'ad hoc'."
+      },
+      {
+        "id": "ai_cannot_outrun_foundations",
+        "statement": "ai_automation_readiness may not exceed min(data_reporting, process_documentation), measured on the UNCAPPED scores. No floor applies.",
+        "rationale": "Automation readiness is bounded by data quality and documented process, full stop. This is the rule that stops a client buying an AI pilot they cannot absorb — and it is the one that most often earns trust in the room. Telling a prospect their AI readiness is zero because nothing is written down is exactly the message worth delivering, so this rule keeps its teeth."
+      },
+      {
+        "id": "unverified_claims_cap",
+        "statement": "In the AUDIT instrument, any dimension where more than half the answers at level 4 or 5 failed their artifact_probe is capped at 50 and marked 'claimed, not observed'.",
+        "rationale": "Self-ratings correlate about 0.3 with measured reality and almost everyone rates themselves above average. The live audit's whole structural advantage is that the consultant can ask to see the thing. This rule makes that advantage show up in the number.",
+        "applies_to_instruments": ["audit"]
+      }
+    ],
+    "reporting_requirement": "Whenever a cap binds, the report must say which rule bound and by how much. A capped score presented silently is a number the client cannot argue with, which is the opposite of what this instrument is for."
+  },
+
+  "red_flags": {
+    "note": "Evaluated independently of any score. A red flag is named in the report regardless of how high the index is.",
+    "score_triggered": [
+      { "id": "dimension_critical", "when": "any dimension_score < 25", "label": { "en": "Critical gap", "fr": "Lacune critique" } },
+      { "id": "no_sponsor", "when": "sponsorship_change < 30", "label": { "en": "No internal owner for the outcome", "fr": "Aucun responsable interne du résultat" }, "commercial_note": "This is the flag that says do not sell an implementation yet. Sell the audit, fix the sponsorship, come back." },
+      { "id": "continuity_risk", "when": "people_continuity < 30", "label": { "en": "The business depends on one person", "fr": "L'entreprise dépend d'une seule personne" } },
+      { "id": "no_restore_tested", "when": "base.comp.q04 in [no_idea, weeks]", "label": { "en": "No tested path back from a system failure", "fr": "Aucun chemin de retour testé après une panne" } }
+    ],
+    "answer_triggered": [
+      "law25_no_officer", "law25_not_published", "law25_no_register",
+      "data_location_unknown", "no_offsite_backup", "cross_border_unassessed",
+      "casl_no_consent_record", "prior_failed_project",
+      "charter_registration_threshold", "charter_committee_threshold"
+    ],
+    "flag_handling": "A compliance flag is reported as 'a control we could not find', never as 'you are in breach'. NBT is not giving legal advice and the questionnaire is a process instrument. Every compliance flag is paired with the suggestion to confirm the obligation with counsel."
+  },
+
+  "bands": {
+    "note": "Five bands matching the five ladder levels, so the band vocabulary and the option vocabulary are the same words. A band is a LABEL ON A SCORED COMPOSITE, never a claim that maturity has been measured — the maturity-model literature's central criticism is exactly the unvalidated stage assumption, and that criticism is correct.",
+    "ranges": [
+      { "from": 0, "to": 20, "level": 1, "key": "ad_hoc", "label": { "en": "Ad hoc", "fr": "Ponctuel" }, "headline": { "en": "The business runs on the people in it, not on its systems.", "fr": "L'entreprise roule sur les gens qui la composent, pas sur ses systèmes." } },
+      { "from": 21, "to": 40, "level": 2, "key": "repeatable", "label": { "en": "Repeatable", "fr": "Répétable" }, "headline": { "en": "Things get done consistently, by hand, and the manual work is the cost.", "fr": "Les choses se font de façon constante, à la main, et le travail manuel est le coût." } },
+      { "from": 41, "to": 60, "level": 3, "key": "systematized", "label": { "en": "Systematized", "fr": "Systématisé" }, "headline": { "en": "You have systems. They don't talk to each other yet.", "fr": "Vous avez des systèmes. Ils ne se parlent pas encore." } },
+      { "from": 61, "to": 80, "level": 4, "key": "integrated", "label": { "en": "Integrated", "fr": "Intégré" }, "headline": { "en": "The flow is connected. The opportunity is now measurement and automation.", "fr": "Le flux est connecté. L'occasion maintenant : la mesure et l'automatisation." } },
+      { "from": 81, "to": 100, "level": 5, "key": "improving", "label": { "en": "Measured and improving", "fr": "Mesuré et en amélioration" }, "headline": { "en": "You run on numbers. Further gains come from narrow, deliberate bets.", "fr": "Vous pilotez par les chiffres. Les gains suivants viendront de paris étroits et délibérés." } }
+    ],
+    "rule": "Never report a band without the dimension detail underneath it."
+  },
+
+  "cost_model": {
+    "principle": "A transparent arithmetic chain from inputs the CLIENT supplied, not a model. The formula is printed on the page. Every constant resolves to scoring/benchmarks.v1.json, where it carries a source, a date and a provenance tier.",
+    "presentation_rules": [
+      "Always a RANGE, never a point estimate. Communicating uncertainty as an explicit numeric range costs a little perceived precision and essentially no trust in the source; verbal hedging ('there is some uncertainty here') damages trust MORE than a range does. So: give the range, drop the hedge.",
+      "Round hard. '$40,000 to $95,000 a year', never '$67,432'. Decimals signal a model that does not exist.",
+      "Label it 'estimated from your answers' and name what it excludes.",
+      "Show the implementation cost range alongside it. Two reasons: it is honest, and a large savings figure anchors the client's expectation of the fee as a fraction of it. Showing both sides protects NBT's pricing.",
+      "Name the assumption beside each module, not in a footnote."
+    ],
+    "scenarios": {
+      "low": { "addressable_share": 0.3, "label": { "en": "Conservative", "fr": "Prudent" } },
+      "base": { "addressable_share": 0.5, "label": { "en": "Expected", "fr": "Attendu" } },
+      "high": { "addressable_share": 0.7, "label": { "en": "Optimistic", "fr": "Optimiste" } }
+    },
+    "global_constants": {
+      "loaded_hourly_cost": "benchmarks.cost_model_constants.loaded_cost_per_productive_hour.defaults_cad_per_hour.blended_default",
+      "working_weeks_per_year": 48,
+      "productive_hours_per_year": 1900,
+      "working_capital_rate": "benchmarks.cost_model_constants.working_capital_rate.default_pct",
+      "rounding": "nearest 1000 CAD, and never present a total under 5000"
+    },
+    "exclusions_statement": {
+      "en": "This estimate covers recurring internal cost we can trace to a specific way of working. It excludes software licences, implementation effort, training, change management and our fees. It is not a forecast of profit.",
+      "fr": "Cette estimation couvre le coût interne récurrent que nous pouvons rattacher à une façon de travailler précise. Elle exclut les licences logicielles, l'effort d'implantation, la formation, la gestion du changement et nos honoraires. Ce n'est pas une prévision de profit."
+    },
+    "inputs": {
+      "note": "Keys populated by question `reveals`. consultant_entered keys are captured in the audit worksheet rather than by a question, because asking them in a self-serve quiz would cost more completion than the precision is worth.",
+      "firmographic": ["headcount_band", "headcount_mid"],
+      "consultant_entered": ["annual_revenue", "invoices_issued_per_year", "ap_invoices_per_year", "total_inventory_value", "gross_margin_pct", "actual_line_of_credit_rate", "jobs_per_year", "truck_roll_cost"],
+      "from_base": ["credit_notes_90d", "order_touches", "quote_turnaround_days", "dead_stock_value", "close_days", "close_manual_hours", "dso_days", "line_of_credit_drawn", "customer_list_copies", "manual_report_hours_per_month", "rekeying_hours_per_week", "single_point_processes"],
+      "from_model_layers": ["quoted_vs_actual_tracked", "writedown_tracked", "timesheet_lag_days", "unbilled_wip_value", "billable_utilization_pct", "last_mandate_margin_pct", "repeat_build_count", "otif_pct", "scrap_rework_pct", "wip_floor_valuation", "manual_order_line_share_pct", "vendor_rebate_programs_tracked", "vendor_rebate_claim_rate_pct", "inventory_turns", "ebitda_pct", "tech_paid_hours_week", "tech_billed_hours_week", "job_to_invoice_days", "unbilled_work_orders_value", "truck_stock_value", "first_time_fix_rate", "committed_not_invoiced_value", "unbilled_delivered_value", "project_overrun_pct", "payout_recon_hours_per_month", "shrink_adjustment_value", "return_rate_pct", "sell_through_rate", "oversell_corrections_90d"],
+      "from_industry_layers": ["progress_claim_assembly_days", "holdback_overdue_amount", "unapproved_change_work_share", "tm_tickets_signed_unbilled", "days_in_ar_construction", "ccq_report_prep_hours", "equipment_charged_out_to_jobs", "missed_escalation_exposure", "cam_true_up_lag_months", "arrears_over_30_share", "work_order_recharge_leakage", "trust_three_way_reconciled", "owner_statement_hours_per_month", "net_revenue_basis", "phase_hour_budget_coverage", "additional_services_claimed_share", "ca_hours_overrun_known", "collection_period_days_aec", "mock_recall_hours", "lot_trail_complete_pct", "expired_stock_value_quarter", "catch_weight_manual_hours_week", "deduction_rework_hours_month", "deductions_written_off_annual", "yield_variance_pct", "accessorials_uncaptured_rate", "pod_to_invoice_days", "empty_km_pct", "settlement_hours_per_cycle", "claims_cost_annual", "cost_per_km_known", "no_show_rate_pct", "recall_overdue_count", "schedule_fill_pct", "production_collection_gap_pct", "claims_rejected_last_month", "claim_rework_hours_month", "days_in_ar", "comp_calc_hours_per_cycle", "payer_channels_count"],
+      "from_conditional_layers": ["biometric_in_use", "french_localization_scope", "charter_registration_due", "outside_quebec_processors", "history_years_to_migrate", "gl_account_count", "active_product_count", "active_customer_count", "must_keep_spreadsheet_count", "custom_report_count", "export_feasible", "trigger_deadline_set"]
+    },
+    "modules": [
+      {
+        "id": "rekeying",
+        "dimension": "systems_integration",
+        "label": { "en": "Typing the same thing twice", "fr": "Ressaisir la même chose deux fois" },
+        "requires": ["rekeying_hours_per_week"],
+        "formula": "rekeying_hours_per_week * 48 * loaded_hourly_cost * addressable_share",
+        "assumption": { "en": "We assume between a third and two thirds of this re-entry can be removed. The hours are yours, not a benchmark.", "fr": "Nous présumons qu'entre le tiers et les deux tiers de cette ressaisie peut être éliminée. Les heures sont les vôtres, pas une référence." },
+        "sanity_check": "benchmarks.manual_data_transfer_hours_week gives a vendor survey figure of about 9 hours per week per professional. If the client's total is far below headcount_mid * 1 hour, the answer is probably understated — say so rather than quietly using it."
+      },
+      {
+        "id": "manual_report",
+        "dimension": "data_reporting",
+        "label": { "en": "The report nobody should be building by hand", "fr": "Le rapport que personne ne devrait bâtir à la main" },
+        "requires": ["manual_report_hours_per_month"],
+        "formula": "manual_report_hours_per_month * 12 * loaded_hourly_cost * addressable_share",
+        "assumption": { "en": "Assumes the report keeps being needed; only the hand-assembly goes away.", "fr": "Présume que le rapport reste nécessaire; seul l'assemblage manuel disparaît." }
+      },
+      {
+        "id": "close_effort",
+        "dimension": "finance_close",
+        "label": { "en": "Closing the month by hand", "fr": "Fermer le mois à la main" },
+        "requires": ["close_manual_hours"],
+        "formula": "close_manual_hours * 12 * loaded_hourly_cost_accounting_technician * addressable_share",
+        "assumption": { "en": "Uses the Quebec median accounting technician rate, fully loaded, against productive hours.", "fr": "Utilise le taux médian québécois d'un technicien comptable, pleinement chargé, sur les heures productives." },
+        "supporting_benchmark": "close_within_six_days — the 40% / 50% / 88% gradient from little-to-no automation through substantial automation is the shape of the opportunity, and it is 2019 data, which we flag."
+      },
+      {
+        "id": "ap_throughput",
+        "dimension": "finance_close",
+        "label": { "en": "Supplier invoices per person", "fr": "Factures fournisseurs par personne" },
+        "requires": ["ap_invoices_per_year"],
+        "formula": "(ap_invoices_per_year / 6082 - ap_invoices_per_year / 10853) * 1900 * loaded_hourly_cost_ap_clerk * addressable_share",
+        "assumption": { "en": "Compares your volume at a mostly-manual throughput against the all-automation-levels average, not against best in class. We are not promising you the top of the distribution.", "fr": "Compare votre volume à un rendement surtout manuel par rapport à la moyenne tous niveaux d'automatisation, et non au meilleur de la catégorie. Nous ne vous promettons pas le haut de la distribution." },
+        "supporting_benchmark": "ap_invoices_per_fte_year",
+        "additional_hook": "ap_staff_time_on_supplier_inquiries — 21.9% of accounts-payable time goes to answering 'where is my payment'. That converts directly to loaded hours and is the line item owners react to."
+      },
+      {
+        "id": "invoice_rework",
+        "dimension": "quote_to_cash",
+        "label": { "en": "Fixing invoices after they go out", "fr": "Corriger les factures après leur envoi" },
+        "requires": ["credit_notes_90d"],
+        "formula": "credit_notes_90d * 4 * minutes_per_fix / 60 * loaded_hourly_cost * addressable_share",
+        "defaults": { "minutes_per_fix": 25 },
+        "assumption": { "en": "Minutes per correction is your estimate. There is no credible published figure for the cost of fixing an order error — every number in circulation traces to a software vendor.", "fr": "Les minutes par correction sont votre estimation. Il n'existe aucun chiffre publié crédible sur le coût de correction d'une erreur de commande — tous les chiffres en circulation proviennent de fournisseurs de logiciels." },
+        "supporting_benchmark": "invoice_error_free_first_time — a 92% first-time-correct median, i.e. an 8% rework rate, cross-industry, n=2,342."
+      },
+      {
+        "id": "entry_errors",
+        "dimension": "data_reporting",
+        "label": { "en": "Errors that pass inspection", "fr": "Les erreurs qui passent l'inspection" },
+        "requires": ["rekeying_hours_per_week"],
+        "formula": "rekeying_hours_per_week * 48 * values_keyed_per_hour * 0.0095 * minutes_to_find_and_fix / 60 * loaded_hourly_cost",
+        "defaults": { "values_keyed_per_hour": 200, "minutes_to_find_and_fix": 15 },
+        "assumption": { "en": "Single manual entry produces an error on about one value in a hundred. Nearly all of those errors land inside plausible ranges, which is why checking your own work does not catch them.", "fr": "La saisie manuelle simple produit une erreur sur environ une valeur sur cent. La quasi-totalité de ces erreurs se situe dans des plages plausibles, c'est pourquoi relire son propre travail ne les attrape pas." },
+        "supporting_benchmark": "data_entry_error_rates",
+        "use_sparingly": "This module is academically solid but compounds assumptions. Present it as a secondary figure, or as a mechanism rather than a dollar amount, when the client is numerate enough to interrogate it."
+      },
+      {
+        "id": "collection_drag",
+        "dimension": "finance_close",
+        "label": { "en": "Money sitting in receivables", "fr": "L'argent immobilisé dans les comptes clients" },
+        "requires": ["dso_days", "annual_revenue", "line_of_credit_drawn"],
+        "gate": "line_of_credit_drawn must be true or 'seasonal'. If the client sits in cash, this module is OMITTED and the report says why.",
+        "formula": "(dso_days - target_dso) / 365 * annual_revenue * working_capital_rate",
+        "defaults": { "target_dso": 30 },
+        "assumption": { "en": "Target is the Canadian small-business median time from invoice to payment. Uses your own line-of-credit rate where you give it to us, otherwise prime plus a typical operating-line premium.", "fr": "La cible est la médiane canadienne du délai entre la facture et le paiement pour les petites entreprises. Utilise votre propre taux de marge de crédit si vous nous le donnez, sinon le taux préférentiel plus une prime typique." },
+        "supporting_benchmark": "canadian_smb_invoice_to_payment_days",
+        "credibility_note": "Ask for the actual line rate. Most controllers know it to the basis point and being asked is itself a credibility move."
+      },
+      {
+        "id": "dead_stock",
+        "dimension": "procure_inventory",
+        "label": { "en": "Stock that isn't going anywhere", "fr": "Du stock qui ne bouge pas" },
+        "requires": ["dead_stock_value"],
+        "formula": "dead_stock_value * carrying_cost_rate",
+        "defaults": { "carrying_cost_rate": 0.225 },
+        "assumption": { "en": "Carrying cost at 22.5% a year. That is a logistics convention traceable to a 1987 textbook, not a measurement — and we build the cost-of-money part of it from your actual borrowing rate.", "fr": "Coût de détention à 22,5 % par année. C'est une convention logistique qui remonte à un manuel de 1987, pas une mesure — et nous bâtissons la portion coût de l'argent à partir de votre taux d'emprunt réel." },
+        "supporting_benchmark": "inventory_carrying_cost_rate"
+      },
+      {
+        "id": "return_visits",
+        "dimension": "scheduling_capacity",
+        "label": { "en": "Going back a second time", "fr": "Retourner une deuxième fois" },
+        "requires": ["jobs_per_year", "first_time_fix_rate", "truck_roll_cost"],
+        "formula": "jobs_per_year * (1 - first_time_fix_rate) * truck_roll_cost * addressable_share",
+        "assumption": { "en": "Cost per truck roll is yours. We compare your first-time-fix rate to the median of a large service-telemetry dataset, and we name the publisher.", "fr": "Le coût par déplacement est le vôtre. Nous comparons votre taux de résolution au premier passage à la médiane d'un vaste jeu de données télémétriques de service, et nous nommons l'éditeur." },
+        "supporting_benchmark": "field_service_first_time_fix",
+        "strongest_variant": "Avoidable dispatch rate times truck cost. The median is 14% against 3% in the top quintile, and it is the cleanest client-verifiable calculation in the whole model."
+      },
+      {
+        "id": "unbilled_work",
+        "dimension": "quote_to_cash",
+        "label": { "en": "Work done and never invoiced", "fr": "Du travail fait et jamais facturé" },
+        "requires": ["tech_paid_hours_week", "tech_billed_hours_week"],
+        "formula": "(tech_paid_hours_week - tech_billed_hours_week) * 48 * average_billing_rate * recoverable_share",
+        "defaults": { "recoverable_share": 0.25 },
+        "assumption": { "en": "Not all unbilled time is recoverable — travel, training and genuine downtime are not. We assume a quarter of the gap is billable work that was never captured. Both hour figures come from your payroll and your job system.", "fr": "Tout le temps non facturé n'est pas récupérable — déplacements, formation et temps mort réel ne le sont pas. Nous présumons qu'un quart de l'écart correspond à du travail facturable jamais saisi. Les deux chiffres d'heures proviennent de votre paie et de votre système de travaux." },
+        "no_benchmark": "There is no primary source for technician utilization or revenue leakage. Every circulating figure comes from field-service-software marketing. The client's own ratio is the finding, and it usually shocks them — which is a better sales dynamic than quoting a statistic they can dispute."
+      },
+      {
+        "id": "sector_specific",
+        "label": { "en": "Sector-specific leakage", "fr": "Fuites propres au secteur" },
+        "note": "Industry layers populate their own inputs. The highest-dollar ones, in rough order of how often they are the single biggest finding: missed lease escalations and under-billed recoveries in commercial property management; under-claimed vendor rebates and special pricing agreements in distribution; signed-but-unbilled time-and-material tickets for a trade subcontractor; unreconciled customer deductions in food; uncaptured accessorials in transport; write-downs laundered into the invoice in professional services. Each has a module in the audit worksheet, each built the same way: the client's count times the client's rate times a stated addressable share."
+      }
+    ],
+    "total": {
+      "formula": "sum of module outputs per scenario, rounded to the nearest 1000",
+      "guardrail": "If the base-scenario total exceeds 12% of annual_revenue, do not publish it. Re-examine the inputs. A figure that large is almost always a double count across modules — most commonly rekeying and entry_errors, or close_effort and ap_throughput, counting the same person's hours twice. Deduplicate by person, not by module.",
+      "second_guardrail": "Never let a single module be more than 60% of the total without naming it explicitly in the headline. A $90,000 estimate that is 80% one module is really a finding about one process, and saying so is more persuasive than a big number."
+    }
+  },
+
+  "priority_matrix": {
+    "note": "This is the deliverable. A score is a conversation opener; the matrix is the roadmap, and it maps onto what NBT actually sells.",
+    "axes": {
+      "x": { "id": "maturity", "source": "dimension_score_capped", "label": { "en": "How developed it is today", "fr": "Degré de développement actuel" } },
+      "y": { "id": "impact", "source": "dollars attributable to that dimension's cost modules, plus any red flag on it", "label": { "en": "What it's costing", "fr": "Ce que ça coûte" } }
+    },
+    "thresholds": { "maturity_split": 50, "impact_split": "median of this client's non-zero module values, floored at 10000 CAD" },
+    "quadrants": [
+      {
+        "id": "fix_now",
+        "condition": "maturity < 50 AND impact high",
+        "label": { "en": "Fix now", "fr": "À corriger maintenant" },
+        "packages": ["Automation Sprint", "Odoo Core Launch"],
+        "guidance": { "en": "Low maturity and real money. Start here, in a scope small enough to finish.", "fr": "Faible maturité et argent réel. Commencez ici, dans une portée assez petite pour être terminée." }
+      },
+      {
+        "id": "plan",
+        "condition": "maturity < 50 AND impact low",
+        "label": { "en": "Plan", "fr": "À planifier" },
+        "packages": ["Process & Automation Audit", "Operations Transformation"],
+        "guidance": { "en": "Weak, but it isn't costing you yet. Sequence it behind the quadrant above.", "fr": "Faible, mais ça ne vous coûte pas encore. À séquencer après le quadrant ci-dessus." }
+      },
+      {
+        "id": "monitor",
+        "condition": "maturity >= 50 AND impact low",
+        "label": { "en": "Monitor", "fr": "À surveiller" },
+        "packages": ["Continuous Improvement"],
+        "guidance": { "en": "Working well enough. Leave it alone and watch it.", "fr": "Fonctionne assez bien. Laissez-le tranquille et surveillez-le." }
+      },
+      {
+        "id": "leverage",
+        "condition": "maturity >= 50 AND impact high",
+        "label": { "en": "Leverage", "fr": "À exploiter" },
+        "packages": ["AI Operations Pilot", "Automation Sprint"],
+        "guidance": { "en": "Already solid and still expensive. This is where automation and a bounded AI use case actually pay.", "fr": "Déjà solide et encore coûteux. C'est ici que l'automatisation et un cas d'usage d'IA ciblé rapportent vraiment." }
+      }
+    ],
+    "override": "If ai_automation_readiness is capped by ai_cannot_outrun_foundations, no dimension may be routed to AI Operations Pilot regardless of quadrant. Say in the report that the AI case is real but out of sequence, and name what has to come first. Selling a client a pilot they cannot absorb costs more in reputation than the pilot is worth."
+  },
+
+  "perception_gap": {
+    "note": "Only available when two or more people from the same company answer. The disagreement is the product, not noise: self-other agreement on judgements like these runs around r=.35, so expect material divergence.",
+    "statistic": {
+      "use": "average_deviation",
+      "formula": "AD = mean(|answer_level - mean_answer_level|) per question across respondents",
+      "interpretation_cutoff": "A/6 where A is the number of scale categories. With five levels, AD <= 0.83 is strong agreement.",
+      "forbidden": [
+        "Never report an intraclass correlation for a single company. ICC(1) and ICC(2) require multiple groups; with one client you have one group. This is a common and embarrassing error.",
+        "With two to five respondents every agreement index is unstable. Prefer the plain per-item range and the average deviation over any coefficient the client would have to trust you on."
+      ]
+    },
+    "presentation": {
+      "chart": "Dumbbell plot per question: the leader's answer and the team's answer, with the gap annotated. It beats any coefficient for persuasion and it is honest, because it shows the raw answers rather than a statistic.",
+      "framing": "Developmental, never evaluative. 'Here is where to look', not 'here is who is wrong'. Feedback framed developmentally produces roughly three times the improvement of feedback framed administratively, and the people who initially over-rated themselves are the ones most likely to act on it.",
+      "what_not_to_promise": "Do not promise transformation. The meta-analytic effect of multisource feedback alone is small. A report does not change an organization. The report's job is to earn the engagement — say that to yourself, not to the client."
+    },
+    "source_layer": "layer_respondent — wording is identical across roles by design, because the gap is only meaningful if both people answered the same question."
+  },
+
+  "instruments": {
+    "quiz": {
+      "label": { "en": "Operations scorecard", "fr": "Fiche d'évaluation des opérations" },
+      "promise": { "en": "12 questions, under three minutes, your score on the next screen.", "fr": "12 questions, moins de trois minutes, votre résultat à l'écran suivant." },
+      "order": [
+        "base.firmo.q01",
+        "base.firmo.q02",
+        "base.q2c.q01",
+        "base.sched.q01",
+        "base.sys.q02",
+        "base.data.q01",
+        "base.data.q02",
+        "base.fin.q01",
+        "base.doc.q01",
+        "base.ppl.q01",
+        "base.perf.q01",
+        "base.spon.q01"
+      ],
+      "composition": "4 numeric, 8 single-select, ZERO open-ended. Every pillar gets 2 or 3 items.",
+      "design_rules": [
+        "No open-ended questions. One costs roughly 12.5 percentage points of completion — about sixty closed questions' worth.",
+        "Word count matters about 2.5 times more than question count. Keep stems and option labels short and resist adding help text.",
+        "No question on the welcome screen.",
+        "First question short, easy and unambiguous — hence headcount.",
+        "Pagination is free: questions-per-page had no significant effect on completion in a 25,000-survey study, and one-question-at-a-time did not change dropout in a 50,000-session randomized test. So choose one-at-a-time for DATA QUALITY (it roughly halves item non-response) and for mobile, not for conversion.",
+        "Do NOT add a progress bar on the strength of the usual advice. Three independent studies, one with n=339,156, find the effect neutral to negative. If you want the one manipulation that does work, start the bar above zero because the first screen genuinely was a step — not by faking the rate."
+      ],
+      "gate": {
+        "policy": "partial_reveal",
+        "ungated": ["the composite index", "the four pillar bars", "the band label and its one-line headline"],
+        "gated_behind_email": ["per-dimension diagnosis", "the dollar range", "the priority matrix", "the PDF", "the peer comparison once one exists"],
+        "also_collected_at_the_gate": ["industry (base.firmo.q04)", "province (base.firmo.q05)", "role (base.firmo.q06)"],
+        "reasoning": "Stated as reasoning, not as evidence: there is NO public controlled experiment on gating a diagnostic result. The one real signal points the other way — asking for email first is associated with +18% completion in a 1,576-form vendor dataset, correlational only. We choose partial reveal anyway because (a) a specific, closeable information gap is the condition under which curiosity actually drives action, (b) it fails safe: a non-converter still received something real, which matters when the next ask is 90 minutes of their time, (c) it preserves the diagnostic data on non-converters, which is what the peer benchmark will eventually be built from, and (d) gating a score the person generated from their own answers reads as extortionate, while gating our analysis reads as fair.",
+        "do_not_a_b_test_this": "At a professional-services median landing-page conversion of around 6%, detecting a 20% relative difference between gate positions needs several thousand sessions per arm. NBT will not get there in a year. Decide on principle, instrument it properly, revisit with a year of data. Do not run an underpowered test and then believe the result."
+      },
+      "coverage_disclosure": {
+        "required": true,
+        "en": "This score comes from 12 questions and covers part of each area. The full audit asks about 40 to 70, depending on your business, and checks the answers against what's actually on your screens.",
+        "fr": "Ce résultat provient de 12 questions et ne couvre qu'une partie de chaque domaine. L'audit complet en pose de 40 à 70, selon votre entreprise, et vérifie les réponses à même vos écrans."
+      },
+      "funnel_metrics": {
+        "instrument_all_four_separately": ["see_to_start", "start_to_finish", "finish_to_email", "email_to_booking"],
+        "why": "Every published benchmark in this category conflates at least two of these, which is why vendor numbers are uninterpretable. Yours should not be.",
+        "honest_targets": "Professional-services landing pages run a median 6.1% and a 75th-percentile 14.1% conversion. A 15-25% start rate and a 50-65% start-to-finish rate would be at or above the honest ceiling of what platform data shows."
+      }
+    },
+    "audit": {
+      "label": { "en": "Process and automation audit", "fr": "Audit des processus et de l'automatisation" },
+      "duration": "60 to 120 minutes, one or two sessions",
+      "composition": "The full base bank plus every activated layer. Typically 40 to 70 questions.",
+      "structural_advantage": "The consultant scores the same instrument independently and shows both columns. This is the thing the self-serve version cannot do, and it is the honest reason the long version exists. Build the product story on that, not on length.",
+      "artifact_discipline": "Where a question carries an artifact_probe, ask to SEE it. A self-serve answer is a testable claim; the audit's value proposition is 'let's check', which is a much stronger hook than 'let's discuss'. The unverified_claims_cap rule turns this into part of the score.",
+      "sequencing": [
+        "Firmographics and routing first.",
+        "Factual and countable questions before anything that invites an opinion. Do not front-load pain questions ahead of factual ones — you will manufacture dissatisfaction by contrast, which is convenient for selling and fatal the moment a sophisticated controller notices.",
+        "Compliance last. It is the section most likely to put a client on the defensive, and by then you have earned the right to ask."
+      ],
+      "deliverable": [
+        "One page: index, band, four pillar bars, the three biggest findings with their dollar ranges.",
+        "Dimension detail, ordered worst first.",
+        "Priority matrix with the quadrant-to-package mapping.",
+        "90-day sequence, with what NBT does and what the client must do.",
+        "Methodology page: the weights, the cap rules that bound, every benchmark with its source and date, and the exclusions list from benchmarks.v1.json. Publishing what we refused to use pre-empts the 'isn't that number debunked?' objection.",
+        "The roadmap belongs to the client whether or not they hire NBT. Say so in writing."
+      ]
+    }
+  },
+
+  "reporting": {
+    "charts": {
+      "primary": "Horizontal bar or dot plot, ordered WORST FIRST, so the eye lands on the problem. Position along a common scale is the most accurately read perceptual task; a radar chart asks the reader to judge angle and area instead.",
+      "radar": "Permitted as a decorative cover graphic only, never as the measurement view. Axis order is arbitrary and changes the apparent shape; area scales as the square of the radius, so a dimension at 4 against one at 2 encloses four times the area, not twice; and the connecting lines interpolate between categories that have no space between them. With five dimensions it is a pentagon carrying almost no information and with twelve it is unreadable. There is no count at which it is the right chart.",
+      "comparison": "Dot plot with a reference line, or a dumbbell. Never two radars overlaid.",
+      "perception_gap": "Dumbbell per question, gap annotated."
+    },
+    "peer_benchmark": {
+      "status": "DISABLED until there is a real sample.",
+      "enable_when": "At least 30 completed responses within a single instrument_version and a single language.",
+      "statement_format": { "en": "Compared with the {n} Quebec and Canadian businesses who have completed this assessment, as of {date}.", "fr": "Comparé aux {n} entreprises québécoises et canadiennes qui ont rempli cette évaluation, au {date}." },
+      "hard_rules": [
+        "Never invent, interpolate or 'estimate' a benchmark. Hand-waving the sample is the fastest way to lose a controller permanently.",
+        "Pool only within an instrument_version. Changing a question invalidates your own benchmark.",
+        "Report separately by language until invariance can be tested.",
+        "Every benchmark panel must be paired with a directional judgement — this is good / this needs work — AND a concrete next action. A bare percentile is precisely the configuration that produces backsliding: in the energy-feedback literature, descriptive norms alone caused below-average households to increase consumption, and adding an injunctive signal eliminated it. The large field experiments that worked all included action steps."
+      ]
+    },
+    "language": {
+      "rule": "The French version is not an add-on. Every question, result page, email, PDF and privacy notice ships as complete in French as in English, at the same time. Default by locale, always allow switching, and keep the switch available mid-assessment without losing answers.",
+      "legal_basis": "Commercial publications and documents available to the public must be in French on any medium, with any other language accessible on terms no more favourable. Invoices and similar documents likewise. These are already in force with no grace period.",
+      "do_not_confuse": "Websites and publications require French to be at least equivalent. Public signage and trademarks require French to be markedly predominant. The predominance rule is frequently misapplied to websites in marketing advice; it does not apply to this scorecard.",
+      "translation_method": {
+        "use": "Dual independent forward translation plus reconciliation by a third translator.",
+        "do_not_use": "Back-translation as the primary method. The professional standard for adapting instruments explicitly warns that in its narrowest form no review of the target version is ever done, and that it produces a target version optimized for ease of back-translation rather than for the reader.",
+        "translator_requirement": "Knowledge of both languages, both cultures, the subject matter (accounting and ERP), and testing principles. Content knowledge is co-equal with fluency, not secondary to it.",
+        "cheapest_high_yield_step": "Cognitive interviews with about five francophone and five anglophone owners or controllers: read each item aloud, ask what they think it is asking, ask them to answer and explain why. It will find the three worst items in an afternoon.",
+        "glossary_first": "Freeze a project glossary before writing or translating any item. Otherwise each item gets translated ad hoc and equivalence is lost one item at a time.",
+        "why_the_option_style_helps_here": "Item-specific described behaviours translate far more reliably than degrees of agreement. 'Somewhat agree' versus 'plutôt d'accord' is a known non-equivalence; 'someone re-types them into a system' is not. The question-design choice and the translation problem have the same solution."
+      }
+    },
+    "honesty_clauses": {
+      "on_self_report": "Say: almost everyone rates themselves above average, and self-ratings correlate about 0.3 with measured reality. Both halves are solidly evidenced, it is a cleaner story than the overconfidence framing, it does not insult the prospect, and it justifies the live audit without claiming they are oblivious.",
+      "on_maturity_labels": "A maturity level is a communication device with weak measurement credentials. Use it as a label on a scored composite. Never claim to have measured maturity, and never imply the level sequence is a validated development path — it is not, and that is the central criticism of the whole maturity-model literature.",
+      "on_stale_benchmarks": "Flag the old ones before someone else does. The close data is 2019, the stockout study is 2002, the inventory-inaccuracy paper is 2008. The cost side of the model — Quebec wages, employer burden, borrowing rates — is 2025-2026, so say that the denominator is current even where the benchmark side is aging."
+    }
+  }
+}

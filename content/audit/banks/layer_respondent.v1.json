@@ -1,0 +1,207 @@
+{
+  "bank_id": "layer_respondent",
+  "bank_version": "1.0.0",
+  "layer": "respondent",
+  "label": {
+    "en": "The same nine questions, asked of more than one person",
+    "fr": "Les mêmes neuf questions, posées à plus d'une personne"
+  },
+  "notes": "This layer exists for the perception gap and for nothing else. Every question here is written to be asked of TWO OR MORE people at different levels in the same company and then compared side by side. The wording is IDENTICAL regardless of the respondent's role — base.firmo.q06 records who answered, and the stem never adapts to it, because a gap between two differently-worded questions is an artefact, not a finding. WHAT THE EVIDENCE LICENSES: self-other agreement on judgements of this kind runs around r=.35 (self-supervisor) and r=.36 (self-peer), against roughly .62 peer-supervisor (Harris & Schaubroeck 1988; refined by Heidemeier & Moser 2009, where agreement is moderated by dimension specificity and behaviour observability). Two people in the same fifteen-person company WILL disagree materially. That disagreement is expected, and it is the product — not noise to be averaged away. HOW TO REPORT IT: with two to five respondents every agreement coefficient is unstable, so the report presents the plain per-item range (and standard deviation where it helps) or an average-deviation index, and says 'your team's answers differed by two levels on this item' rather than quoting a coefficient the client cannot interpret. Burke & Dunlap's AD cutoff of A/6 gives AD <= 0.83 for a five-point scale if an index is wanted; rWG(J) with LeBreton & Senter's interpretive bands is available but unstable at this n. An INTRACLASS CORRELATION MUST NEVER BE REPORTED FOR A SINGLE COMPANY: ICC(1) and ICC(2) require multiple groups, one client is one group, and reporting an ICC here is a common and embarrassing error. FRAMING: developmentally, never evaluatively — 'here is where to look', not 'here is who is wrong'. Multisource feedback shows a clearly larger effect for a developmental purpose (d=.28) than an administrative one (d=.09), the effect of feedback alone is small (Smither, London & Reilly 2005), and those who initially over-rated themselves are the ones most likely to act. Present each item as a dumbbell plot of the leader's answer against the team's answer with the gap annotated: it shows the raw data instead of a statistic the client has to take on trust. Do not promise that the report changes the organisation; its job is to earn the engagement. No reweight on this layer: the gap is read item by item, and multiplying a dimension weight would bury it. No reveals: nothing here feeds a dollar figure, and turning a disagreement into a cost input would be the fastest way to lose the room. Audit instrument only — the gap needs two respondents in one session, which the self-serve quiz structurally cannot deliver.",
+  "questions": [
+    {
+      "id": "layer_respondent.gap.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "From a customer order arriving to the invoice going out, how long does that actually take?",
+        "fr": "De l'arrivée d'une commande client à l'envoi de la facture, combien de temps cela prend-il réellement?"
+      },
+      "instruments": ["audit"],
+      "notes": "Compare across respondents. The owner's answer and the answer of the person who does the typing diverge by a factor of two or three in most sessions. Do not reconcile them in the room — show both.",
+      "artifact_probe": {
+        "en": "Pick last week's biggest order and let's find the timestamp on each step.",
+        "fr": "Prenez la plus grosse commande de la semaine dernière et trouvons l'horodatage de chaque étape."
+      },
+      "options": [
+        { "value": "same_day", "label": { "en": "Same day", "fr": "La même journée" }, "level": 5 },
+        { "value": "one_two_days", "label": { "en": "One or two days", "fr": "Un ou deux jours" }, "level": 4 },
+        { "value": "about_a_week", "label": { "en": "About a week", "fr": "Environ une semaine" }, "level": 3 },
+        { "value": "two_weeks_plus", "label": { "en": "Two weeks or more", "fr": "Deux semaines ou plus" }, "level": 2 },
+        { "value": "depends_unknown", "label": { "en": "It depends so much that nobody could tell you", "fr": "Ça dépend tellement que personne ne pourrait vous le dire" }, "level": 1 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q02",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Is the written procedure for that work the way the work is actually done?",
+        "fr": "La procédure écrite pour ce travail correspond-elle à la façon dont le travail est réellement fait?"
+      },
+      "instruments": ["audit"],
+      "notes": "The classic gap item. Leadership answers from the document; the operator answers from the keyboard.",
+      "artifact_probe": {
+        "en": "Open the procedure and ask the person who does the job to walk the first three steps as written.",
+        "fr": "Ouvrez la procédure et demandez à la personne qui fait le travail de suivre les trois premières étapes telles qu'écrites."
+      },
+      "options": [
+        { "value": "no_procedure", "label": { "en": "There isn't a written procedure", "fr": "Il n'y a pas de procédure écrite" }, "level": 1 },
+        { "value": "exists_not_used", "label": { "en": "There is one, and nobody works from it", "fr": "Il y en a une, et personne ne travaille avec elle" }, "level": 2 },
+        { "value": "partly", "label": { "en": "Partly — some steps match, some don't any more", "fr": "En partie — certaines étapes correspondent, d'autres plus" }, "level": 3 },
+        { "value": "matches", "label": { "en": "Yes, it matches what people do", "fr": "Oui, elle correspond à ce que les gens font" }, "level": 4 },
+        { "value": "matches_maintained", "label": { "en": "Yes, and it gets corrected when the work changes", "fr": "Oui, et elle est corrigée quand le travail change" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q03",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "The main report this business runs on — would you make a decision on it without checking it first?",
+        "fr": "Le rapport principal sur lequel cette entreprise roule — prendriez-vous une décision sur sa base sans le vérifier d'abord?"
+      },
+      "instruments": ["audit"],
+      "notes": "Trust in the number, asked identically of the person who reads it and the person who builds it. The builder is usually the more pessimistic of the two, which is the finding.",
+      "artifact_probe": {
+        "en": "Open last month's version and ask each person which figure on it they would check by hand.",
+        "fr": "Ouvrez la version du mois dernier et demandez à chaque personne quel chiffre elle vérifierait à la main."
+      },
+      "options": [
+        { "value": "no_report", "label": { "en": "There isn't really one report like that", "fr": "Il n'y a pas vraiment un rapport comme ça" }, "level": 1 },
+        { "value": "never_trust", "label": { "en": "No — I'd rebuild the number myself", "fr": "Non — je refarais le chiffre moi-même" }, "level": 1 },
+        { "value": "check_some", "label": { "en": "I'd check two or three figures on it first", "fr": "Je vérifierais deux ou trois chiffres d'abord" }, "level": 3 },
+        { "value": "trust_it", "label": { "en": "Yes, I'd act on it as it stands", "fr": "Oui, j'agirais sur sa base telle quelle" }, "level": 4 },
+        { "value": "trust_and_checked", "label": { "en": "Yes, and somebody checks it against the source on a cadence", "fr": "Oui, et quelqu'un le vérifie contre la source à intervalles réguliers" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q04",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Is there a shortcut people use to get the work done that isn't the official way?",
+        "fr": "Y a-t-il un raccourci que les gens utilisent pour faire le travail, qui n'est pas la façon officielle?"
+      },
+      "instruments": ["audit"],
+      "notes": "The highest-value item in the layer. An owner answering 'not that I know of' beside an operator answering 'yes, every day' is the whole product in one line. Frame it as information about the system, never about the person who answered.",
+      "artifact_probe": {
+        "en": "Ask to be shown it, with no comment on whether it should exist.",
+        "fr": "Demandez à le voir, sans commenter s'il devrait exister."
+      },
+      "options": [
+        { "value": "yes_daily", "label": { "en": "Yes, and it's how the work gets done most days", "fr": "Oui, et c'est comme ça que le travail se fait la plupart des jours" }, "level": 1 },
+        { "value": "yes_sometimes", "label": { "en": "Yes, for the awkward cases", "fr": "Oui, pour les cas embêtants" }, "level": 2 },
+        { "value": "dont_know", "label": { "en": "Not that I know of", "fr": "Pas à ma connaissance" }, "level": 2 },
+        { "value": "yes_known_allowed", "label": { "en": "Yes, and it's known and accepted as the way for those cases", "fr": "Oui, et c'est connu et accepté comme la façon de faire pour ces cas" }, "level": 3 },
+        { "value": "no_official_works", "label": { "en": "No — the official way works", "fr": "Non — la façon officielle fonctionne" }, "level": 4 },
+        { "value": "no_and_reviewed", "label": { "en": "No, and when someone finds a better way it gets built in", "fr": "Non, et quand quelqu'un trouve une meilleure façon, elle est intégrée" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q05",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "In the last month, how often did a date promised to a customer get missed?",
+        "fr": "Au cours du dernier mois, combien de fois une date promise à un client a-t-elle été manquée?"
+      },
+      "instruments": ["audit"],
+      "notes": "Short reference period on purpose: a 'typically' or 'usually' frame gets estimated rather than recalled, and the estimate is anchored by the bands offered. Compare answers; the person who takes the customer's call usually counts more than the person who promised the date.",
+      "artifact_probe": {
+        "en": "Pull the last month of promised dates against actual dates on screen.",
+        "fr": "Affichez le dernier mois de dates promises contre les dates réelles à l'écran."
+      },
+      "options": [
+        { "value": "not_tracked", "label": { "en": "Nobody here would know", "fr": "Personne ici ne le saurait" }, "level": 1 },
+        { "value": "most_orders", "label": { "en": "On most orders", "fr": "Sur la plupart des commandes" }, "level": 1 },
+        { "value": "several", "label": { "en": "Four times or more", "fr": "Quatre fois ou plus" }, "level": 2 },
+        { "value": "two_three", "label": { "en": "Two or three times", "fr": "Deux ou trois fois" }, "level": 3 },
+        { "value": "once", "label": { "en": "Once", "fr": "Une fois" }, "level": 4 },
+        { "value": "none_measured", "label": { "en": "Not once, and the number is on a screen", "fr": "Pas une seule fois, et le chiffre est à l'écran" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q06",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "An order goes out wrong and the customer is upset. Who ends up carrying it?",
+        "fr": "Une commande part incorrecte et le client est mécontent. Qui finit par en porter la responsabilité?"
+      },
+      "instruments": ["audit"],
+      "notes": "Asked identically of everyone. Leadership tends to answer 'the process' or 'we all do'; the person doing the work tends to name themselves. That asymmetry predicts whether anyone will report a problem during a go-live.",
+      "options": [
+        { "value": "person_who_typed", "label": { "en": "Whoever touched it last", "fr": "La personne qui y a touché en dernier" }, "level": 1 },
+        { "value": "nobody_blame_around", "label": { "en": "It gets argued about and nothing is settled", "fr": "On en discute et rien ne se règle" }, "level": 1 },
+        { "value": "the_manager", "label": { "en": "Their manager", "fr": "Son gestionnaire" }, "level": 2 },
+        { "value": "the_owner", "label": { "en": "The owner deals with it", "fr": "Le propriétaire s'en occupe" }, "level": 3 },
+        { "value": "process_owner", "label": { "en": "The person who owns that step, and we look at why it happened", "fr": "La personne responsable de cette étape, et nous regardons pourquoi c'est arrivé" }, "level": 4 },
+        { "value": "reviewed_fixed", "label": { "en": "We log it, look at the cause, and change something", "fr": "Nous le consignons, examinons la cause, et changeons quelque chose" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q07",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "When a mistake happens in the daily work, how does it get noticed?",
+        "fr": "Quand une erreur survient dans le travail quotidien, comment est-elle remarquée?"
+      },
+      "instruments": ["audit"],
+      "notes": "Leaders answer from the control they believe exists; operators answer from how they actually find out. The gap here sizes the real detection lag.",
+      "options": [
+        { "value": "customer", "label": { "en": "The customer tells us", "fr": "Le client nous le dit" }, "level": 1 },
+        { "value": "month_end", "label": { "en": "It turns up at month end", "fr": "Ça ressort à la fin du mois" }, "level": 2 },
+        { "value": "someone_spots", "label": { "en": "Someone downstream spots it", "fr": "Quelqu'un en aval la repère" }, "level": 3 },
+        { "value": "system_blocks", "label": { "en": "The system won't let it through", "fr": "Le système ne la laisse pas passer" }, "level": 4 },
+        { "value": "system_and_reviewed", "label": { "en": "The system catches it and someone reviews how often that happens", "fr": "Le système l'attrape et quelqu'un révise la fréquence" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q08",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "The last time the way this work is done changed, who was asked first?",
+        "fr": "La dernière fois que la façon de faire ce travail a changé, qui a été consulté en premier?"
+      },
+      "instruments": ["audit"],
+      "notes": "A direct read on whether the people who will live with the new system expect to be consulted about it. The gap on this item is the best early warning of quiet resistance during a rollout.",
+      "options": [
+        { "value": "nobody_told", "label": { "en": "Nobody was asked — we found out when it happened", "fr": "Personne n'a été consulté — on l'a appris quand c'est arrivé" }, "level": 1 },
+        { "value": "cannot_recall", "label": { "en": "I can't think of a time it changed", "fr": "Je ne vois pas de moment où ça a changé" }, "level": 1 },
+        { "value": "managers_only", "label": { "en": "The managers", "fr": "Les gestionnaires" }, "level": 2 },
+        { "value": "told_then_asked", "label": { "en": "We were told, then asked what wouldn't work", "fr": "On nous l'a annoncé, puis on nous a demandé ce qui ne fonctionnerait pas" }, "level": 3 },
+        { "value": "doers_first", "label": { "en": "The people who do the work, before anything was decided", "fr": "Les gens qui font le travail, avant que quoi que ce soit soit décidé" }, "level": 4 },
+        { "value": "doers_and_followup", "label": { "en": "Them first, and somebody came back afterwards to see if it worked", "fr": "Eux d'abord, et quelqu'un est revenu ensuite voir si ça fonctionnait" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_respondent.gap.q09",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "If the person who normally does this work were away for two weeks, what would happen?",
+        "fr": "Si la personne qui fait normalement ce travail était absente deux semaines, qu'arriverait-il?"
+      },
+      "instruments": ["audit"],
+      "notes": "Deliberately phrased in the third person so it reads the same to the owner and to the person it is about. Owners routinely answer one level higher than the person who would actually have to cover.",
+      "options": [
+        { "value": "stops", "label": { "en": "It would stop until they got back", "fr": "Ça s'arrêterait jusqu'à son retour" }, "level": 1 },
+        { "value": "pile_up", "label": { "en": "It would pile up and get caught up badly", "fr": "Ça s'accumulerait et serait rattrapé de travers" }, "level": 2 },
+        { "value": "someone_struggles", "label": { "en": "Someone would muddle through it", "fr": "Quelqu'un s'en sortirait tant bien que mal" }, "level": 3 },
+        { "value": "cover_documented", "label": { "en": "Someone would cover it from what's written down", "fr": "Quelqu'un prendrait le relais avec ce qui est écrit" }, "level": 4 },
+        { "value": "two_people_do_it", "label": { "en": "Two people already do it routinely", "fr": "Deux personnes le font déjà régulièrement" }, "level": 5 }
+      ]
+    }
+  ]
+}
