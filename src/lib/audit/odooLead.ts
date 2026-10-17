@@ -1,5 +1,5 @@
 import bundleJson from "@/app/_data/quiz.bundle.json";
-import { createOdooLead, escapeHtml } from "@/lib/odoo";
+import { createOdooLead } from "@/lib/odoo";
 import type { Answer, Question, QuizBundle } from "./types";
 import type { Submission } from "./submission";
 
@@ -13,9 +13,9 @@ const bundle = bundleJson as unknown as QuizBundle;
  * to the wording from the quiz bundle, in the language the visitor used, so the
  * lead reads exactly like the quiz did.
  *
- * The report is written twice: as plain text into the Studio field
- * x_studio_audit_scorecard ("Audit answers", a text field), and as HTML into
- * the lead's Notes (description).
+ * The report goes into the Studio text field x_studio_audit_scorecard
+ * ("Audit answers") and consent into x_studio_marketing_consent; the lead's
+ * Notes (description) are left empty.
  */
 
 const DONT_KNOW = { en: "I don't know", fr: "Je ne sais pas" } as const;
@@ -23,7 +23,6 @@ const DONT_KNOW = { en: "I don't know", fr: "Je ne sais pas" } as const;
 /** A report section: a heading plus either paragraphs or a list. */
 type Section = {
   heading: string;
-  level: "title" | "group";
   lines?: string[];
   items?: { label: string; value?: string }[];
   ordered?: boolean;
@@ -52,19 +51,16 @@ function buildReport(submission: Submission): Section[] {
   const sections: Section[] = [
     {
       heading: `Report: ${Math.round(score.index)}/100${band ? ` · ${band.label[locale]}` : ""}`,
-      level: "title",
       lines: band ? [band.headline[locale]] : [],
     },
     {
       heading: "Pillars",
-      level: "group",
       items: Object.entries(score.pillars).map(([id, value]) => ({
         label: `${label(bundle.pillars, id)}: ${percent(value)}`,
       })),
     },
     {
       heading: "Dimensions (weakest first)",
-      level: "group",
       items: Object.entries(score.dimensions)
         .sort((a, b) => (a[1] ?? 0) - (b[1] ?? 0))
         .map(([id, value]) => ({ label: `${label(bundle.dimensions, id)}: ${percent(value)}` })),
@@ -72,20 +68,18 @@ function buildReport(submission: Submission): Section[] {
   ];
 
   if (score.flags.length) {
-    sections.push({ heading: `Flags: ${score.flags.join(", ")}`, level: "group" });
+    sections.push({ heading: `Flags: ${score.flags.join(", ")}` });
   }
 
   sections.push(
     {
       heading: "Company profile",
-      level: "title",
       items: bundle.gateQuestions
         .filter((q) => firmographics[q.id])
         .map((q) => ({ label: q.stem[locale], value: answerText(q, firmographics[q.id], submission) })),
     },
     {
       heading: "Questions & answers",
-      level: "title",
       ordered: true,
       items: bundle.questions.map((q) => ({
         label: q.stem[locale],
@@ -112,27 +106,6 @@ function toText(sections: Section[]): string {
     .join("\n\n");
 }
 
-function toHtml(sections: Section[]): string {
-  return sections
-    .map((section) => {
-      const heading =
-        section.level === "title"
-          ? `<h3>${escapeHtml(section.heading)}</h3>`
-          : `<p><strong>${escapeHtml(section.heading)}</strong></p>`;
-      const lines = (section.lines ?? []).map((line) => `<p>${escapeHtml(line)}</p>`).join("");
-      const items = (section.items ?? [])
-        .map((item) =>
-          item.value
-            ? `<li><strong>${escapeHtml(item.label)}</strong><br>${escapeHtml(item.value)}</li>`
-            : `<li>${escapeHtml(item.label)}</li>`,
-        )
-        .join("");
-      const tag = section.ordered ? "ol" : "ul";
-      return heading + lines + (items ? `<${tag}>${items}</${tag}>` : "");
-    })
-    .join("");
-}
-
 export async function toOdoo(submission: Submission): Promise<void> {
   const { contact, score, locale } = submission;
   const report = buildReport(submission);
@@ -146,10 +119,6 @@ export async function toOdoo(submission: Submission): Promise<void> {
     phone: contact.phone || false,
     x_studio_audit_scorecard: `Source: ${source}\n\n${toText(report)}`,
     x_studio_marketing_consent: submission.consent.marketing,
-    description:
-      `<p><strong>Source:</strong> ${escapeHtml(source)}</p>` +
-      `<p><strong>Marketing consent:</strong> ${submission.consent.marketing ? "Yes" : "No"}</p>` +
-      toHtml(report),
   }, "Site web Audit");
   if (failure) throw new Error(`Odoo lead creation failed (${failure.status})`);
 }

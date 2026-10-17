@@ -18,7 +18,7 @@ type LeadValues = {
   email_from: string;
   partner_name?: string | false;
   phone?: string | false;
-  description: string;
+  description?: string;
   /** Studio text field "Audit answers": the scorecard report as plain text. */
   x_studio_audit_scorecard?: string;
   /** Studio boolean "Marketing Consent": opted in to marketing (scorecard only). */
