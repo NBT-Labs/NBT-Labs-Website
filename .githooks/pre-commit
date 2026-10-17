@@ -1,0 +1,14 @@
+#!/bin/sh
+# Blocks commits that would leak build output or secrets.
+# Activated by `npm install` (the "prepare" script sets core.hooksPath).
+bad=$(git diff --cached --name-only --diff-filter=ACMR | grep -E '(^|/)(\.next|node_modules|out|\.vercel)/|(^|/)\.env($|\.)|\.pem$' | grep -vE '(^|/)\.env\.example$')
+if [ -n "$bad" ]; then
+  echo "pre-commit: refusing to commit build output or env/key files:" >&2
+  echo "$bad" | head -20 | sed 's/^/  /' >&2
+  echo "Check .gitignore, then: git rm -r --cached <path>" >&2
+  exit 1
+fi
+if git diff --cached -U0 -- . ':!.githooks/' | grep -E '^\+' | grep -qE 'BEGIN [A-Z ]*PRIVATE KEY|previewModeSigningKey|AKIA[0-9A-Z]{16}|ghp_[A-Za-z0-9]{36}|sk_live_[0-9a-zA-Z]{20,}'; then
+  echo "pre-commit: staged changes look like they contain a secret. Remove it (or use git commit --no-verify if you're sure)." >&2
+  exit 1
+fi
