@@ -1,0 +1,1180 @@
+{
+  "bank_id": "ind_construction",
+  "bank_version": "1.0.0",
+  "layer": "industry",
+  "label": {
+    "en": "Construction and specialty trades",
+    "fr": "Construction et métiers spécialisés"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q04", "op": "eq", "value": "construction" }
+  ],
+  "reweight": {
+    "scheduling_capacity": 1.4,
+    "finance_close": 1.5,
+    "performance_management": 1.4,
+    "procure_inventory": 1.15,
+    "process_documentation": 1.3
+  },
+  "notes": "GC and sub are different audits. ind_construction.firmo.q01 is the branch: every GC-only question carries show_when in [gc, both], every sub-only question show_when in [sub, both]. The shared questions (WIP, percent-complete method, CCQ, days in AR, daily log) are served to everyone.\n\nreveals keys introduced by this bank, all feeding the cost model: progress_claim_assembly_days, holdback_overdue_amount, unapproved_change_work_share, tm_tickets_signed_unbilled, days_in_ar_construction, ccq_report_prep_hours, equipment_charged_out_to_jobs.\n\nbenchmark_ref keys used and their source: cfma_underbillings_to_equity (CFMA 2025 Construction Financial Benchmarker, underbillings to equity 8.1% all respondents) and cfma_days_in_ar_median (same study, days in AR 55.2 median). No other benchmark on this layer is defensible: change-order revenue as a share of contract, profit fade, holdback days and crew productivity have no published Canadian median, so those questions carry a help line saying we use the client's own number and set no benchmark_ref.\n\nOdoo functional gaps raised as diagnostic questions rather than objections, so the scope conversation happens inside the audit: holdback/retainage withholding and sub-ledger (fin.q02), progress billing against a schedule of values (q2c.q03), WIP and percentage-of-completion computation (fin.q03, fin.q04), committed-cost reporting (fin.q01), the change-event to PCO to owner-CO chain (q2c.q02), equipment charge-out at an internal rate (inv.q02), crew-based field time capture by cost code (sys.q01), subcontractor compliance document expiry (comp.q01), and CCQ monthly report output, which is absent because Canadian payroll in Odoo is thin and union reporting needs an external provider (comp.q03).\n\nLegal care: no Quebec prompt-payment threshold, tier day-count or holdback percentage is asserted anywhere in this bank. The Quebec research flags those as law-firm-sourced. comp.q02 asks who watches the clock and in what tool, and leaves the rule itself for the consultant to confirm on the client's actual contracts. Quebec has no statutory private holdback regime, so fin.q02 is phrased around the release date in the contract, not a statutory date.",
+  "questions": [
+    {
+      "id": "ind_construction.firmo.q01",
+      "dimension": "firmographic",
+      "type": "single",
+      "weight": 0,
+      "stem": {
+        "en": "On most of your work, which side of the contract are you on?",
+        "fr": "Sur la majorité de vos travaux, de quel côté du contrat êtes-vous?"
+      },
+      "help": {
+        "en": "This changes the rest of the questions. A general contractor's audit and a trade contractor's audit are not the same audit.",
+        "fr": "Cela change la suite des questions. L'examen d'un entrepreneur général et celui d'un entrepreneur spécialisé ne sont pas le même examen."
+      },
+      "instruments": ["quiz", "audit"],
+      "notes": "The branch for the whole bank. 'both' serves the GC and the sub questions, which is correct for a firm that primes some work and subs the rest — a common Quebec shape.",
+      "options": [
+        {
+          "value": "gc",
+          "label": {
+            "en": "We hold the prime contract with the owner — general contractor or construction manager",
+            "fr": "Nous détenons le contrat principal avec le client — entrepreneur général ou gérant de construction"
+          },
+          "informational": true
+        },
+        {
+          "value": "sub",
+          "label": {
+            "en": "We work as a specialty trade subcontractor under a general contractor",
+            "fr": "Nous travaillons comme sous-traitant spécialisé pour un entrepreneur général"
+          },
+          "informational": true
+        },
+        {
+          "value": "both",
+          "label": {
+            "en": "Both — we prime some jobs and sub on others",
+            "fr": "Les deux — nous sommes entrepreneur principal sur certains chantiers et sous-traitant sur d'autres"
+          },
+          "informational": true
+        },
+        {
+          "value": "owner_builder",
+          "label": {
+            "en": "We build for ourselves — owner-builder, we don't contract to a third party",
+            "fr": "Nous construisons pour nous-mêmes — constructeur-propriétaire, sans contrat avec un tiers"
+          },
+          "informational": true
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.fin.q03",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Your over-billing and under-billing position by job: who prepares that, and how often?",
+        "fr": "Votre position de surfacturation et de sous-facturation par chantier : qui la prépare, et à quelle fréquence?"
+      },
+      "help": {
+        "en": "The WIP schedule. It is the first thing a surety or a banker asks for, and the first place profit fade shows up.",
+        "fr": "Le tableau des travaux en cours (WIP). C'est la première chose qu'un assureur-caution ou un banquier demande, et le premier endroit où l'érosion de la marge apparaît."
+      },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "cfma_underbillings_to_equity",
+      "artifact_probe": {
+        "en": "Open your most recent WIP schedule and show me the three largest jobs, with cost to complete and the forecast gross margin on each.",
+        "fr": "Ouvrez votre plus récent tableau des travaux en cours et montrez-moi les trois plus gros chantiers, avec le coût à terminer et la marge brute prévue sur chacun."
+      },
+      "notes": "Odoo gap: WIP and percentage-of-completion are not computed. There is no earned-revenue journal, no over/under-billing calculation and no cost-to-complete field. Raise it here, so the custom WIP model or the spreadsheet discipline is in scope before signature, not after. 'Our external accountant prepares it quarterly' is a scored level 2, not missing data — it is the single most common answer in this sector and it means management flies blind between quarters.",
+      "options": [
+        {
+          "value": "nobody",
+          "label": {
+            "en": "We don't produce one — nobody here could tell you that number",
+            "fr": "Nous n'en produisons pas — personne ici ne pourrait vous donner ce chiffre"
+          },
+          "level": 1
+        },
+        {
+          "value": "external_quarterly",
+          "label": {
+            "en": "Our external accountant prepares it quarterly, or at year end",
+            "fr": "Notre comptable externe le prépare trimestriellement, ou à la fin de l'exercice"
+          },
+          "level": 2
+        },
+        {
+          "value": "internal_spreadsheet",
+          "label": {
+            "en": "Someone here rebuilds it monthly in a spreadsheet",
+            "fr": "Quelqu'un ici le refait chaque mois dans un chiffrier"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_monthly",
+          "label": {
+            "en": "It comes out of our job cost system monthly, with cost to complete entered by the project managers",
+            "fr": "Il sort de notre système de coûts de projet chaque mois, avec le coût à terminer saisi par les chargés de projet"
+          },
+          "level": 4
+        },
+        {
+          "value": "system_reviewed",
+          "label": {
+            "en": "That, and we compare each job's forecast margin to the previous month and work through every job that moved",
+            "fr": "Cela, et nous comparons la marge prévue de chaque chantier au mois précédent et examinons chaque chantier qui a bougé"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "You win a job. What happens to the estimate — does it become the budget at the same level of detail, or does someone re-type a summary?",
+        "fr": "Vous décrochez un chantier. Qu'arrive-t-il à l'estimation — devient-elle le budget au même niveau de détail, ou quelqu'un ressaisit-il un sommaire?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "artifact_probe": {
+        "en": "Put the takeoff and estimate for your last award beside the budget in your accounting system, and let's match three lines.",
+        "fr": "Placez le métré et l'estimation de votre dernière adjudication à côté du budget dans votre système comptable, et apparions trois lignes."
+      },
+      "notes": "The estimate dying at award is the structural break in GC job costing: the bid line, the subcontract and the cost code lose their link permanently and nothing is learned from one job to the next. Odoo implication: cost codes have to be built as an analytic plan (client's own structure or MasterFormat divisions) and getting the coding structure wrong at go-live is not recoverable without a data migration.",
+      "options": [
+        {
+          "value": "no_budget",
+          "label": {
+            "en": "There's no job budget in the system — we compare costs to the contract price",
+            "fr": "Il n'y a pas de budget de chantier dans le système — nous comparons les coûts au prix du contrat"
+          },
+          "level": 1
+        },
+        {
+          "value": "summary_retyped",
+          "label": {
+            "en": "Someone re-types a few summary totals into accounting",
+            "fr": "Quelqu'un ressaisit quelques totaux sommaires dans la comptabilité"
+          },
+          "level": 2
+        },
+        {
+          "value": "spreadsheet_detail",
+          "label": {
+            "en": "The detailed budget lives in a spreadsheet beside the system",
+            "fr": "Le budget détaillé vit dans un chiffrier à côté du système"
+          },
+          "level": 3
+        },
+        {
+          "value": "cost_codes_carried",
+          "label": {
+            "en": "The estimate loads into the system against the same cost codes, line for line",
+            "fr": "L'estimation se charge dans le système sur les mêmes codes de coût, ligne par ligne"
+          },
+          "level": 4
+        },
+        {
+          "value": "feedback_loop",
+          "label": {
+            "en": "That, and at closeout we feed actual unit costs back into the estimating database",
+            "fr": "Cela, et à la fermeture du chantier nous réinjectons les coûts unitaires réels dans la base d'estimation"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "After award you buy out the job — subcontracts and purchase orders. Can you tell me, by trade, what you bought it out at versus what you estimated?",
+        "fr": "Après l'adjudication, vous faites l'achat des travaux — contrats de sous-traitance et bons de commande. Pouvez-vous me dire, par métier, à quel prix vous avez acheté par rapport à ce que vous avez estimé?"
+      },
+      "help": {
+        "en": "Buyout savings or overrun by trade. There is no published benchmark for this — it is your number and it is usually the most profitable report nobody produces.",
+        "fr": "L'économie ou le dépassement à l'achat, par métier. Il n'existe aucune référence publiée là-dessus — c'est votre chiffre, et c'est souvent le rapport le plus rentable que personne ne produit."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "artifact_probe": {
+        "en": "Show me the buyout log or the subcontract list for a job in progress, with the estimate column beside it.",
+        "fr": "Montrez-moi le registre d'achat ou la liste des contrats de sous-traitance d'un chantier en cours, avec la colonne de l'estimation à côté."
+      },
+      "options": [
+        {
+          "value": "never",
+          "label": {
+            "en": "We've never looked at it that way",
+            "fr": "Nous ne l'avons jamais regardé sous cet angle"
+          },
+          "level": 1
+        },
+        {
+          "value": "pm_knows",
+          "label": {
+            "en": "The project manager has a feel for it on his own jobs",
+            "fr": "Le chargé de projet en a une idée sur ses propres chantiers"
+          },
+          "level": 2
+        },
+        {
+          "value": "spreadsheet_per_job",
+          "label": {
+            "en": "There's a buyout spreadsheet per job, if you can find the right version",
+            "fr": "Il y a un chiffrier d'achat par chantier, si on trouve la bonne version"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_by_trade",
+          "label": {
+            "en": "The system shows estimated versus committed by cost code for every job",
+            "fr": "Le système montre l'estimé par rapport à l'engagé par code de coût, pour chaque chantier"
+          },
+          "level": 4
+        },
+        {
+          "value": "reviewed_by_trade",
+          "label": {
+            "en": "That, and we review buyout results by trade to correct how we estimate that trade",
+            "fr": "Cela, et nous révisons les résultats d'achat par métier pour corriger notre façon d'estimer ce métier"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.fin.q01",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "On a job half built, how do you work out what is still left to spend?",
+        "fr": "Sur un chantier à moitié construit, comment établissez-vous ce qu'il reste à dépenser?"
+      },
+      "help": {
+        "en": "What we're looking for is whether signed subcontract values and open purchase orders count as committed cost, or only invoices received.",
+        "fr": "Ce que nous cherchons, c'est si les contrats de sous-traitance signés et les bons de commande ouverts comptent comme coûts engagés, ou seulement les factures reçues."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "artifact_probe": {
+        "en": "Pull the job cost report for one active job and point to the committed-cost column.",
+        "fr": "Sortez le rapport de coûts d'un chantier actif et montrez-moi la colonne des coûts engagés."
+      },
+      "notes": "Odoo gap: committed cost — subcontract value and open POs against the job budget by cost code — is not reported natively. Where the client answers 'estimate minus invoices received', exposure is under-reported by the entire value of unbilled subcontract work, which is the finding.",
+      "options": [
+        {
+          "value": "estimate_minus_invoices",
+          "label": {
+            "en": "Estimate minus the invoices we've received so far",
+            "fr": "L'estimation moins les factures reçues jusqu'ici"
+          },
+          "level": 1
+        },
+        {
+          "value": "pm_judgment",
+          "label": {
+            "en": "The project manager gives a number from memory of what's still coming",
+            "fr": "Le chargé de projet donne un chiffre de mémoire sur ce qui reste à venir"
+          },
+          "level": 2
+        },
+        {
+          "value": "manual_commitments",
+          "label": {
+            "en": "We add up the signed subcontracts and open POs by hand",
+            "fr": "Nous additionnons à la main les contrats de sous-traitance signés et les bons de commande ouverts"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_committed",
+          "label": {
+            "en": "Subcontracts and POs post as commitments, so the system shows committed plus cost to complete",
+            "fr": "Les contrats de sous-traitance et les bons de commande sont comptabilisés comme engagements, donc le système montre l'engagé plus le coût à terminer"
+          },
+          "level": 4
+        },
+        {
+          "value": "committed_reviewed",
+          "label": {
+            "en": "That, and we check last month's cost to complete against what actually got spent",
+            "fr": "Cela, et nous vérifions le coût à terminer du mois dernier par rapport à ce qui a réellement été dépensé"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Walk me through a change in the field: the owner's rep points at something on Tuesday, your sub does it Wednesday. When does it become a priced change order?",
+        "fr": "Expliquez-moi un changement sur le chantier : le représentant du client pointe quelque chose le mardi, votre sous-traitant l'exécute le mercredi. À quel moment cela devient-il un avenant chiffré?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "reveals": ["unapproved_change_work_share"],
+      "artifact_probe": {
+        "en": "Show me the change log for an active job: how many change events are open and unpriced right now, and how many are priced but unapproved.",
+        "fr": "Montrez-moi le registre des changements d'un chantier actif : combien d'événements de changement sont ouverts et non chiffrés en ce moment, et combien sont chiffrés mais non approuvés."
+      },
+      "notes": "Odoo gap: there is no change-event to PCO to approved owner CO chain, with status and linkage to both the prime contract and the subcontracts. Executed-but-unapproved work is the single largest source of margin erosion and dispute in GC work, so the option-level reveals feed the cost model directly. No benchmark: change-order revenue runs 5-15% of original contract with no reliable published median.",
+      "options": [
+        {
+          "value": "priced_at_end",
+          "label": {
+            "en": "It gets priced at the end, if we remember",
+            "fr": "Ça se chiffre à la fin, si on s'en souvient"
+          },
+          "level": 1,
+          "flag": "unapproved_change_work",
+          "reveals": { "unapproved_change_work_share": 0.8 }
+        },
+        {
+          "value": "email_thread",
+          "label": {
+            "en": "It lives in an email thread until somebody chases the paperwork",
+            "fr": "Ça reste dans un fil de courriels jusqu'à ce que quelqu'un court après la paperasse"
+          },
+          "level": 2,
+          "flag": "unapproved_change_work",
+          "reveals": { "unapproved_change_work_share": 0.6 }
+        },
+        {
+          "value": "log_after_the_fact",
+          "label": {
+            "en": "It goes on a change log and gets priced within a week or two, usually after the work is done",
+            "fr": "C'est inscrit au registre des changements et chiffré en une ou deux semaines, habituellement après l'exécution"
+          },
+          "level": 3,
+          "reveals": { "unapproved_change_work_share": 0.4 }
+        },
+        {
+          "value": "logged_same_day",
+          "label": {
+            "en": "A change event is logged the same day, priced as a PCO, and the subcontract change follows the owner's approval",
+            "fr": "L'événement de changement est consigné le jour même, chiffré en avenant proposé, et l'avenant au contrat de sous-traitance suit l'approbation du client"
+          },
+          "level": 4,
+          "reveals": { "unapproved_change_work_share": 0.1 }
+        },
+        {
+          "value": "nothing_before_approval",
+          "label": {
+            "en": "A change event is logged the same day and nothing is executed before it's approved — and we track how many days that takes",
+            "fr": "L'événement de changement est consigné le jour même et rien n'est exécuté avant l'approbation — et nous suivons le nombre de jours que cela prend"
+          },
+          "level": 5,
+          "reveals": { "unapproved_change_work_share": 0.0 }
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "Each month you assemble the progress claim — schedule of values percentages, stored materials, approved change orders, holdback, statutory declaration. How many working days does that take?",
+        "fr": "Chaque mois, vous montez le décompte progressif — pourcentages de la ventilation du prix du contrat, matériaux entreposés, avenants approuvés, retenue, déclaration solennelle. Combien de jours ouvrables cela prend-il?"
+      },
+      "help": {
+        "en": "Count everyone's time, not just the person who signs it. No benchmark exists for this; your number is the one that matters.",
+        "fr": "Comptez le temps de tout le monde, pas seulement de la personne qui signe. Aucune référence n'existe là-dessus; c'est votre chiffre qui compte."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "reveals": ["progress_claim_assembly_days"],
+      "artifact_probe": {
+        "en": "Show me last month's claim package as it went to the owner, and tell me which parts were typed by hand.",
+        "fr": "Montrez-moi le dossier de décompte du mois dernier tel qu'il est parti chez le client, et dites-moi quelles parties ont été saisies à la main."
+      },
+      "notes": "Odoo gap: progress billing against a schedule of values — this period's percentage per SOV line, cumulative to date, previous billings, stored materials, holdback — is not a native document. Down payments and milestone invoicing approximate it badly. This number is the clearest hours-to-dollars conversion in the whole construction layer.",
+      "numeric": {
+        "unit": { "en": "working days per claim cycle, all staff", "fr": "jours ouvrables par cycle de décompte, tout le personnel" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0.5, "level": 5 },
+          { "lte": 1, "level": 4 },
+          { "lte": 3, "level": 3 },
+          { "lte": 5, "level": 2 },
+          { "gt": 5, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_construction.fin.q02",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "Of the holdback your customers are still sitting on, how much is past the release date in the contract?",
+        "fr": "De la retenue que vos clients détiennent encore, quel montant dépasse la date de libération prévue au contrat?"
+      },
+      "help": {
+        "en": "In Quebec a holdback exists only because your contract creates one, so the release date is the one in that contract. We're asking whether you can see the balance by job at all.",
+        "fr": "Au Québec, une retenue n'existe que parce que votre contrat la prévoit; la date de libération est donc celle de ce contrat. Nous demandons si vous pouvez simplement voir le solde par chantier."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "reveals": ["holdback_overdue_amount"],
+      "artifact_probe": {
+        "en": "Show me holdback receivable by job, with the release date on each. If it's inside the AR aging, show me how you separate it.",
+        "fr": "Montrez-moi la retenue à recevoir par chantier, avec la date de libération de chacune. Si elle est fondue dans l'âge des comptes clients, montrez-moi comment vous la séparez."
+      },
+      "notes": "Odoo gap: holdback/retainage is not native. No automatic withholding on customer invoices or supplier bills, no holdback receivable or payable sub-ledger, no release workflow. Mixed into AR/AP, as it usually is, nobody knows the holdback asset balance by job or which release dates have passed. 'I'd have to work it out' resolves to unknown_level 1 by design — that is the finding, not missing data. Note for the consultant, do not assert it as a rule in the question: GST/QST is collected on the full invoice including the holdback portion at invoice date, which surprises most small contractors.",
+      "numeric": {
+        "unit": { "en": "CAD past its release date", "fr": "$ CA dépassant la date de libération" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 25000, "level": 4 },
+          { "lte": 100000, "level": 3 },
+          { "lte": 300000, "level": 2 },
+          { "gt": 300000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_construction.comp.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Before a payment goes out to a subcontractor, what gets checked — statutory declaration, CNESST attestation, attestation de Revenu Québec, insurance, RBQ subcategory? And what tells you one has expired?",
+        "fr": "Avant qu'un paiement parte chez un sous-traitant, que vérifie-t-on — déclaration solennelle, attestation de la CNESST, attestation de Revenu Québec, assurances, sous-catégorie de licence RBQ? Et qu'est-ce qui vous avertit qu'une pièce est échue?"
+      },
+      "help": {
+        "en": "The attestation de Revenu Québec has a validity window and a cumulative-value rule, so a sub who was compliant in March may not be in June. We'll confirm the rule against your actual contracts.",
+        "fr": "L'attestation de Revenu Québec a une période de validité et une règle de valeur cumulative, donc un sous-traitant conforme en mars peut ne plus l'être en juin. Nous confirmerons la règle sur vos contrats réels."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "artifact_probe": {
+        "en": "Open wherever you keep sub compliance documents and show me which ones are expired today.",
+        "fr": "Ouvrez l'endroit où vous conservez les pièces de conformité des sous-traitants et montrez-moi lesquelles sont échues aujourd'hui."
+      },
+      "notes": "Odoo gap: compliance document expiry tracking for subs — insurance, CNESST, licence subcategory, attestation — is a custom build. Deliberately does not state the attestation threshold or the verification day-counts: the Quebec research carries them, but the consultant confirms the rule on the client's contracts rather than the instrument asserting a number. A GC must also verify its subs hold the right RBQ subcategory; holding the wrong one is treated as unlicensed work.",
+      "options": [
+        {
+          "value": "nothing",
+          "label": {
+            "en": "Nothing systematic — we pay on the invoice",
+            "fr": "Rien de systématique — nous payons sur réception de la facture"
+          },
+          "level": 1,
+          "flag": "sub_compliance_unverified"
+        },
+        {
+          "value": "collected_once",
+          "label": {
+            "en": "We collected the documents when we signed them up and they're in a file somewhere",
+            "fr": "Nous avons recueilli les pièces à la signature et elles sont dans un dossier quelque part"
+          },
+          "level": 2,
+          "flag": "sub_compliance_expiry_untracked"
+        },
+        {
+          "value": "manual_checklist",
+          "label": {
+            "en": "There's a checklist and someone goes through it before each payment run",
+            "fr": "Il y a une liste de vérification et quelqu'un la parcourt avant chaque série de paiements"
+          },
+          "level": 3
+        },
+        {
+          "value": "tracked_expiry",
+          "label": {
+            "en": "Expiry dates are tracked in a system and a payment is blocked when something lapses",
+            "fr": "Les dates d'échéance sont suivies dans un système et un paiement est bloqué quand une pièce expire"
+          },
+          "level": 4
+        },
+        {
+          "value": "tracked_reviewed",
+          "label": {
+            "en": "That, and someone reviews the expiry list before the documents lapse rather than at payment time",
+            "fr": "Cela, et quelqu'un révise la liste des échéances avant qu'elles arrivent, plutôt qu'au moment du paiement"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.comp.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "On your public work, payment requests and notices run on a calendar with deadlines. Who watches those dates, and in what tool?",
+        "fr": "Sur vos contrats publics, les demandes de paiement et les avis suivent un calendrier avec des échéances. Qui surveille ces dates, et dans quel outil?"
+      },
+      "help": {
+        "en": "Quebec's prompt-payment and adjudication regime applies to public construction contracts and phases in by contract value. We'll confirm which of your contracts are caught and on what dates — we won't guess at your thresholds.",
+        "fr": "Le régime québécois de paiements rapides et de règlement des différends s'applique aux contrats publics de construction et entre en vigueur par tranches selon la valeur. Nous confirmerons lesquels de vos contrats sont visés et à quelles dates — nous ne devinerons pas vos seuils."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["gc", "both"] }],
+      "artifact_probe": {
+        "en": "Show me where the submission and notice dates for one public contract are recorded, and who gets reminded.",
+        "fr": "Montrez-moi où sont consignées les dates de transmission et d'avis d'un contrat public, et qui reçoit le rappel."
+      },
+      "notes": "No day-count, threshold or phase-in date is stated. The Quebec research flags the tier day-counts, invoice-content list and 2026/2027 phase-in values as law-firm-sourced; only the regulation's existence and its 8 September 2025 in-force date are confirmed officially. One detail worth probing live: the mandatory payment-request content includes the portion attributable to subcontractors, which is the field no ERP carries. Odoo gap: the notice clock is a custom build.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We do no public work at all",
+            "fr": "Nous ne faisons aucun travail public"
+          },
+          "na": true
+        },
+        {
+          "value": "unaware",
+          "label": {
+            "en": "Honestly, nobody here is watching those dates",
+            "fr": "Honnêtement, personne ici ne surveille ces dates"
+          },
+          "level": 1,
+          "flag": "payment_calendar_unmanaged"
+        },
+        {
+          "value": "one_person_memory",
+          "label": {
+            "en": "One person keeps it in their head and in their inbox",
+            "fr": "Une personne garde ça dans sa tête et dans sa boîte de courriels"
+          },
+          "level": 2
+        },
+        {
+          "value": "calendar_reminders",
+          "label": {
+            "en": "Dates go in a shared calendar or a spreadsheet per contract",
+            "fr": "Les dates vont dans un calendrier partagé ou un chiffrier par contrat"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_tracked",
+          "label": {
+            "en": "The dates are fields on the contract in a system, and it reminds a named person",
+            "fr": "Les dates sont des champs du contrat dans un système, et il avertit une personne nommée"
+          },
+          "level": 4
+        },
+        {
+          "value": "system_reviewed",
+          "label": {
+            "en": "That, and we review missed or late notices as a number, not as individual incidents",
+            "fr": "Cela, et nous révisons les avis manqués ou tardifs comme un indicateur, pas comme des incidents isolés"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.sys.q01",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "How do field hours get from the site into your job cost report, and with what coding — job only, or job and cost code and phase?",
+        "fr": "Comment les heures de chantier arrivent-elles dans votre rapport de coûts de projet, et avec quel codage — le chantier seulement, ou le chantier, le code de coût et la phase?"
+      },
+      "help": {
+        "en": "Labour is 60 to 70 percent of a trade's cost. Coding decides whether you can compare it to the estimate while the job can still be fixed.",
+        "fr": "La main-d'œuvre représente 60 à 70 % du coût d'un métier. Le codage détermine si vous pouvez la comparer à l'estimation tant que le chantier est encore récupérable."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["sub", "both"] }],
+      "artifact_probe": {
+        "en": "Show me last week's field time as it arrived — the paper or the app — and then where it landed in the job cost report.",
+        "fr": "Montrez-moi les heures de chantier de la semaine dernière telles qu'elles sont arrivées — le papier ou l'application — puis où elles ont abouti dans le rapport de coûts."
+      },
+      "notes": "Odoo gap: Timesheets is per-user, not crew-based, so a foreman entering a whole crew at once against a cost code and phase needs mobile work. Also the reason the CCQ monthly report cannot be produced from field time as collected on most sites: hours are not carried by métier and sector.",
+      "options": [
+        {
+          "value": "paper_no_code",
+          "label": {
+            "en": "Paper sheets arrive weekly with the job name and a total — no cost code",
+            "fr": "Des feuilles papier arrivent chaque semaine avec le nom du chantier et un total — sans code de coût"
+          },
+          "level": 1
+        },
+        {
+          "value": "paper_rekeyed",
+          "label": {
+            "en": "Paper or texts, re-keyed in the office, coded to the job by whoever types it",
+            "fr": "Papier ou textos, ressaisis au bureau, codés au chantier par la personne qui les saisit"
+          },
+          "level": 2
+        },
+        {
+          "value": "digital_job_only",
+          "label": {
+            "en": "Entered digitally by the foreman, coded to the job but not to cost code or phase",
+            "fr": "Saisies numériquement par le contremaître, codées au chantier mais pas au code de coût ni à la phase"
+          },
+          "level": 3
+        },
+        {
+          "value": "digital_coded",
+          "label": {
+            "en": "Entered daily against job, cost code and phase, and it feeds the job cost report directly",
+            "fr": "Saisies chaque jour sur le chantier, le code de coût et la phase, et elles alimentent directement le rapport de coûts"
+          },
+          "level": 4
+        },
+        {
+          "value": "coded_and_reviewed",
+          "label": {
+            "en": "That, and a superintendent reviews coded hours against the estimate weekly while the job is running",
+            "fr": "Cela, et un surintendant révise chaque semaine les heures codées par rapport à l'estimation pendant que le chantier roule"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.perf.q01",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "For your last completed project, how do you work out actual hours per unit installed against what you estimated?",
+        "fr": "Pour votre dernier projet terminé, comment établissez-vous les heures réelles par unité installée par rapport à ce que vous avez estimé?"
+      },
+      "help": {
+        "en": "Units as your foremen count them — metres of duct, fixtures set, square feet placed. We want your method, not a number we could compare to someone else's.",
+        "fr": "Les unités telles que vos contremaîtres les comptent — mètres de conduit, appareils installés, pieds carrés posés. Nous voulons votre méthode, pas un chiffre comparable à celui d'un autre."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["sub", "both"] }],
+      "artifact_probe": {
+        "en": "Take one cost code on that job: show me the estimated unit rate, the installed quantity and the hours charged.",
+        "fr": "Prenez un code de coût sur ce chantier : montrez-moi le taux unitaire estimé, la quantité installée et les heures imputées."
+      },
+      "notes": "The only KPI a trade foreman respects, and the reason quantities-installed reporting matters as much as hours. Deliberately asks for the method: a firm that measures linear metres against hours at cost-code level is at a different maturity than one that divides total hours by total contract units at closeout. No benchmark — unit rates are trade-, product- and crew-specific and no published median is usable.",
+      "options": [
+        {
+          "value": "cannot",
+          "label": {
+            "en": "We couldn't — we don't collect installed quantities",
+            "fr": "Nous ne pourrions pas — nous ne recueillons pas les quantités installées"
+          },
+          "level": 1
+        },
+        {
+          "value": "gut_feel",
+          "label": {
+            "en": "The foreman could tell you whether it went well or badly, not in hours per unit",
+            "fr": "Le contremaître peut dire si ça a bien ou mal été, mais pas en heures par unité"
+          },
+          "level": 2
+        },
+        {
+          "value": "total_at_closeout",
+          "label": {
+            "en": "At closeout we divide total hours by total units for the whole job",
+            "fr": "À la fermeture, nous divisons les heures totales par les unités totales pour tout le chantier"
+          },
+          "level": 3
+        },
+        {
+          "value": "per_cost_code",
+          "label": {
+            "en": "Installed quantities are reported against each cost code, so we get a unit rate per code",
+            "fr": "Les quantités installées sont déclarées par code de coût, ce qui donne un taux unitaire par code"
+          },
+          "level": 4
+        },
+        {
+          "value": "per_code_and_fed_back",
+          "label": {
+            "en": "That, we look at it during the job, and the resulting unit rates go back into how we bid",
+            "fr": "Cela, nous le regardons pendant le chantier, et les taux unitaires obtenus retournent dans notre façon de soumissionner"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "Right now, how many time-and-material tickets are signed on site but not yet invoiced?",
+        "fr": "En ce moment, combien de billets de travaux en régie sont signés sur le chantier mais pas encore facturés?"
+      },
+      "help": {
+        "en": "Signed extras sitting in a truck or a binder are the easiest money in this audit. If you don't know, say so — that answer is itself the finding.",
+        "fr": "Des extras signés qui dorment dans un camion ou un cartable, c'est l'argent le plus facile de cet examen. Si vous ne le savez pas, dites-le — cette réponse est elle-même le constat."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["sub", "both"] }],
+      "reveals": ["tm_tickets_signed_unbilled"],
+      "artifact_probe": {
+        "en": "Find me the signed tickets from last month and let's match them to invoices one by one.",
+        "fr": "Trouvez-moi les billets signés du mois dernier et apparions-les aux factures un par un."
+      },
+      "numeric": {
+        "unit": { "en": "signed tickets not yet invoiced", "fr": "billets signés non encore facturés" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 2, "level": 4 },
+          { "lte": 8, "level": 3 },
+          { "lte": 20, "level": 2 },
+          { "gt": 20, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_construction.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "How do you schedule crews across jobs — and what breaks when a foreman is off?",
+        "fr": "Comment planifiez-vous les équipes entre les chantiers — et qu'est-ce qui casse quand un contremaître est absent?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["sub", "both"] }],
+      "artifact_probe": {
+        "en": "Show me next week's crew assignments as they exist right now, and tell me where the apprenti-compagnon ratio is checked.",
+        "fr": "Montrez-moi les affectations d'équipes de la semaine prochaine telles qu'elles existent, et dites-moi où le ratio apprenti-compagnon est vérifié."
+      },
+      "notes": "The real constraint is usually a specific foreman or a specific piece of equipment, and when it isn't modelled, overtime and travel absorb the variance. The CCQ apprenti-compagnon ratio has to hold both on the books and on each jobsite, with apprentices under immediate journeyperson supervision — the probe tests whether scheduling knows that at all.",
+      "options": [
+        {
+          "value": "whiteboard_one_head",
+          "label": {
+            "en": "A whiteboard, and really it's in one person's head — if he's off, the day improvises",
+            "fr": "Un tableau blanc, et en réalité c'est dans la tête d'une personne — s'il est absent, la journée s'improvise"
+          },
+          "level": 1
+        },
+        {
+          "value": "texts_morning",
+          "label": {
+            "en": "Crews find out by text each morning",
+            "fr": "Les équipes l'apprennent par texto chaque matin"
+          },
+          "level": 2
+        },
+        {
+          "value": "spreadsheet_weekly",
+          "label": {
+            "en": "A weekly spreadsheet or shared calendar the office keeps",
+            "fr": "Un chiffrier hebdomadaire ou un calendrier partagé tenu par le bureau"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_by_person",
+          "label": {
+            "en": "A system that shows who is on which job, by name, and everyone can see it",
+            "fr": "Un système qui montre qui est sur quel chantier, par nom, et que tout le monde peut voir"
+          },
+          "level": 4
+        },
+        {
+          "value": "system_constraints",
+          "label": {
+            "en": "That, and it holds certificates, trade and ratio constraints, and we measure overtime against plan",
+            "fr": "Cela, et il tient compte des certificats, des métiers et des ratios, et nous mesurons le temps supplémentaire par rapport au plan"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.q2c.q05",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "A general contractor back-charges you for cleanup, hoisting or damage. Who reviews it against the facts before it comes off your payment?",
+        "fr": "Un entrepreneur général vous rétrofacture du nettoyage, du levage ou des dommages. Qui vérifie cela par rapport aux faits avant que ce soit déduit de votre paiement?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["sub", "both"] }],
+      "artifact_probe": {
+        "en": "Show me the last three remittances with deductions, and what you did about each deduction.",
+        "fr": "Montrez-moi les trois derniers paiements avec déductions, et ce que vous avez fait pour chaque déduction."
+      },
+      "options": [
+        {
+          "value": "absorbed",
+          "label": {
+            "en": "It just comes off and we absorb it",
+            "fr": "C'est simplement déduit et nous l'absorbons"
+          },
+          "level": 1
+        },
+        {
+          "value": "noticed_late",
+          "label": {
+            "en": "Accounting notices the short payment weeks later and asks why",
+            "fr": "La comptabilité remarque le paiement incomplet des semaines plus tard et demande pourquoi"
+          },
+          "level": 2
+        },
+        {
+          "value": "pm_contests_sometimes",
+          "label": {
+            "en": "The project manager contests it when he happens to remember the facts",
+            "fr": "Le chargé de projet la contexte quand il se souvient des faits"
+          },
+          "level": 3
+        },
+        {
+          "value": "reviewed_against_log",
+          "label": {
+            "en": "Every deduction is reviewed against the daily log and the site photos before we accept it",
+            "fr": "Chaque déduction est vérifiée contre le rapport journalier et les photos de chantier avant d'être acceptée"
+          },
+          "level": 4
+        },
+        {
+          "value": "tracked_by_gc",
+          "label": {
+            "en": "That, and we track back-charges by general contractor as a number we bring to the next negotiation",
+            "fr": "Cela, et nous suivons les rétrofacturations par entrepreneur général comme un indicateur que nous amenons à la prochaine négociation"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.inv.q02",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Your own equipment — lifts, trucks, compressors. Is it charged out to the jobs that use it, or does it sit in overhead?",
+        "fr": "Vos propres équipements — nacelles, camions, compresseurs. Sont-ils imputés aux chantiers qui les utilisent, ou restent-ils dans les frais généraux?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_construction.firmo.q01", "op": "in", "value": ["sub", "both"] }],
+      "reveals": ["equipment_charged_out_to_jobs"],
+      "artifact_probe": {
+        "en": "Show me the equipment cost on one equipment-heavy job's cost report.",
+        "fr": "Montrez-moi le coût d'équipement sur le rapport de coûts d'un chantier gourmand en équipement."
+      },
+      "notes": "Odoo gap: equipment charge-out to jobs at an internal rate is not native. Where equipment sits in overhead, equipment-heavy jobs look artificially profitable and the firm bids them accordingly — a margin error that compounds every year.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We own no equipment — everything is rented and billed to the job",
+            "fr": "Nous ne possédons aucun équipement — tout est loué et facturé au chantier"
+          },
+          "na": true
+        },
+        {
+          "value": "overhead",
+          "label": {
+            "en": "It sits in overhead — no job carries it",
+            "fr": "Ça reste dans les frais généraux — aucun chantier ne le porte"
+          },
+          "level": 1,
+          "reveals": { "equipment_charged_out_to_jobs": false }
+        },
+        {
+          "value": "fuel_only",
+          "label": {
+            "en": "Only fuel and repairs land on jobs, when someone codes them",
+            "fr": "Seuls le carburant et les réparations aboutissent aux chantiers, quand quelqu'un les code"
+          },
+          "level": 2,
+          "reveals": { "equipment_charged_out_to_jobs": "partial" }
+        },
+        {
+          "value": "manual_rate",
+          "label": {
+            "en": "We have internal rates and someone journals the charges monthly",
+            "fr": "Nous avons des taux internes et quelqu'un passe les écritures chaque mois"
+          },
+          "level": 3,
+          "reveals": { "equipment_charged_out_to_jobs": true }
+        },
+        {
+          "value": "system_rate",
+          "label": {
+            "en": "Hours or days of use are captured in the field and the system charges the job at an internal rate",
+            "fr": "Les heures ou les jours d'utilisation sont saisis sur le chantier et le système impute le chantier à un taux interne"
+          },
+          "level": 4,
+          "reveals": { "equipment_charged_out_to_jobs": true }
+        },
+        {
+          "value": "rate_reviewed",
+          "label": {
+            "en": "That, and we check the recovered amount against what the equipment actually costs us each year",
+            "fr": "Cela, et nous comparons le montant récupéré à ce que l'équipement nous coûte réellement chaque année"
+          },
+          "level": 5,
+          "reveals": { "equipment_charged_out_to_jobs": true }
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.fin.q04",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "How do you calculate that a job is, say, 60 percent complete — for billing and for revenue?",
+        "fr": "Comment calculez-vous qu'un chantier est, disons, complété à 60 % — pour la facturation et pour les revenus?"
+      },
+      "help": {
+        "en": "We want your method, not your number. Cost-to-cost, units in place, the superintendent's judgment and the schedule of values all give different answers on the same job.",
+        "fr": "Nous voulons votre méthode, pas votre chiffre. Coût sur coût, quantités en place, jugement du surintendant ou ventilation du prix du contrat donnent des réponses différentes sur le même chantier."
+      },
+      "instruments": ["audit"],
+      "notes": "The bank's calculation-method question, per the cross-cutting rule: percent complete shares a name across sectors and differs by denominator. It also establishes which reporting framework the client is on — most Canadian private SMBs report under ASPE, which still contemplates both percentage-of-completion and completed-contract, and that changes the entire WIP conversation.",
+      "artifact_probe": {
+        "en": "Take one job: show me the percentage you billed last month and the arithmetic behind it.",
+        "fr": "Prenez un chantier : montrez-moi le pourcentage facturé le mois dernier et le calcul derrière."
+      },
+      "options": [
+        {
+          "value": "whatever_owner_accepts",
+          "label": {
+            "en": "Whatever percentage the owner's rep will accept that month",
+            "fr": "Le pourcentage que le représentant du client acceptera ce mois-là"
+          },
+          "level": 1
+        },
+        {
+          "value": "pm_judgment",
+          "label": {
+            "en": "The project manager's judgment, job by job",
+            "fr": "Le jugement du chargé de projet, chantier par chantier"
+          },
+          "level": 2
+        },
+        {
+          "value": "one_method_manual",
+          "label": {
+            "en": "One method we apply consistently — cost-to-cost or units in place — worked out by hand",
+            "fr": "Une méthode appliquée uniformément — coût sur coût ou quantités en place — calculée à la main"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_method",
+          "label": {
+            "en": "The system computes it from costs or quantities against the schedule of values",
+            "fr": "Le système le calcule à partir des coûts ou des quantités par rapport à la ventilation du prix du contrat"
+          },
+          "level": 4
+        },
+        {
+          "value": "method_reconciled",
+          "label": {
+            "en": "That, and we reconcile billed percentage to earned revenue every month and explain the difference",
+            "fr": "Cela, et nous rapprochons chaque mois le pourcentage facturé des revenus gagnés en expliquant l'écart"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.comp.q03",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Your CCQ monthly report — hours by employee, by trade and by sector, with apprenticeship periods. How does it get produced?",
+        "fr": "Votre rapport mensuel de la CCQ — heures par salarié, par métier et par secteur, avec les périodes d'apprentissage. Comment est-il produit?"
+      },
+      "help": {
+        "en": "Due by the 15th of the following month, and it has to be filed even for a month with no work. Paper is no longer accepted.",
+        "fr": "Dû au plus tard le 15 du mois suivant, et il doit être transmis même pour un mois sans travaux. Le papier n'est plus accepté."
+      },
+      "instruments": ["audit"],
+      "reveals": ["ccq_report_prep_hours"],
+      "artifact_probe": {
+        "en": "Open last month's report and show me where the hours by trade and sector came from.",
+        "fr": "Ouvrez le rapport du mois dernier et montrez-moi d'où venaient les heures par métier et par secteur."
+      },
+      "notes": "The single most credibility-establishing item available in a Quebec construction questionnaire, and the richest integration surface: the CCQ accepts online entry, authorized payroll software or a service bureau, or a JSON upload for automated reporting. Odoo gap: Canadian payroll is thin and union/CCQ reporting is absent, so this is an external provider (Nethris, Payworks, Employeur D, ADP) or a dedicated build — never an Odoo Payroll line item on a proposal. Sector classification (génie civil et voirie, industriel, institutionnel et commercial, résidentiel) is a real configuration dimension because it drives wage rates. Penalty percentages are deliberately not stated in the help text.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We have no employees covered by R-20 — we're not a CCQ-reporting employer",
+            "fr": "Nous n'avons aucun salarié assujetti à la loi R-20 — nous ne sommes pas un employeur déclarant à la CCQ"
+          },
+          "na": true
+        },
+        {
+          "value": "retyped_from_paper",
+          "label": {
+            "en": "Someone re-types it from paper timesheets each month, and we've been late",
+            "fr": "Quelqu'un le ressaisit à partir des feuilles de temps papier chaque mois, et nous avons déjà été en retard"
+          },
+          "level": 1,
+          "flag": "ccq_report_manual"
+        },
+        {
+          "value": "bookkeeper_spreadsheet",
+          "label": {
+            "en": "Our bookkeeper builds it from a spreadsheet of hours, and only she knows how",
+            "fr": "Notre teneuse de livres le monte à partir d'un chiffrier d'heures, et elle seule sait comment"
+          },
+          "level": 2
+        },
+        {
+          "value": "payroll_provider_manual",
+          "label": {
+            "en": "Our payroll provider files it, but we send them the hours by trade and sector by hand",
+            "fr": "Notre fournisseur de paie le transmet, mais nous lui envoyons les heures par métier et par secteur à la main"
+          },
+          "level": 3
+        },
+        {
+          "value": "payroll_integrated",
+          "label": {
+            "en": "Field hours carry trade and sector from the start and flow into payroll without re-entry",
+            "fr": "Les heures de chantier portent le métier et le secteur dès la saisie et passent à la paie sans ressaisie"
+          },
+          "level": 4
+        },
+        {
+          "value": "integrated_checked",
+          "label": {
+            "en": "That, and we check ratios and certificate validity before the report goes out, not after",
+            "fr": "Cela, et nous vérifions les ratios et la validité des certificats avant la transmission, pas après"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_construction.fin.q05",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "On average, how many days from issuing a progress claim to the money arriving, excluding holdback?",
+        "fr": "En moyenne, combien de jours entre l'émission d'un décompte progressif et l'arrivée de l'argent, en excluant la retenue?"
+      },
+      "help": {
+        "en": "Excluding holdback on purpose. Holdback days are a separate number and mixing them hides both.",
+        "fr": "En excluant la retenue, volontairement. Les jours de retenue sont un chiffre distinct et les mélanger cache les deux."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "cfma_days_in_ar_median",
+      "reveals": ["days_in_ar_construction"],
+      "artifact_probe": {
+        "en": "Show me the AR aging and tell me which lines are holdback.",
+        "fr": "Montrez-moi l'âge des comptes clients et dites-moi quelles lignes sont de la retenue."
+      },
+      "notes": "benchmark_ref keyed to the CFMA 2025 days-in-AR median of 55.2. Where the client is a sub on paid-when-paid terms, the gap between this number and the GC's own collection is the cash-squeeze finding and is worth stating explicitly in the report.",
+      "numeric": {
+        "unit": { "en": "days", "fr": "jours" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 35, "level": 5 },
+          { "lte": 45, "level": 4 },
+          { "lte": 60, "level": 3 },
+          { "lte": 90, "level": 2 },
+          { "gt": 90, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_construction.doc.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Daily logs, deficiency lists and closeout documents: what exists for a job you finished last year, and could you find it today?",
+        "fr": "Rapports journaliers, listes de déficiences et documents de fermeture : qu'existe-t-il pour un chantier terminé l'an dernier, et pourriez-vous le retrouver aujourd'hui?"
+      },
+      "help": {
+        "en": "This is what you stand on in a dispute, and what the release of holdback waits for.",
+        "fr": "C'est là-dessus que vous vous appuyez en cas de litige, et c'est ce qu'attend la libération de la retenue."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Pick a job from last year and find me its daily logs for one week and its final deficiency list.",
+        "fr": "Choisissez un chantier de l'an dernier et trouvez-moi ses rapports journaliers d'une semaine et sa liste de déficiences finale."
+      },
+      "notes": "Also the evidentiary base for contesting back-charges, for substantial performance and for any claim tied to the legal hypothec of construction, where publication and proceeding windows are short. The probe is deliberately a retrieval test, not a question about whether logs are kept.",
+      "options": [
+        {
+          "value": "nothing_kept",
+          "label": {
+            "en": "Not much survives — it was in texts and the foreman's truck",
+            "fr": "Il n'en reste pas grand-chose — c'était dans des textos et dans le camion du contremaître"
+          },
+          "level": 1
+        },
+        {
+          "value": "paper_boxes",
+          "label": {
+            "en": "Paper, in a box somewhere, and finding one week would take an afternoon",
+            "fr": "Du papier, dans une boîte quelque part, et trouver une semaine prendrait un après-midi"
+          },
+          "level": 2
+        },
+        {
+          "value": "folders_per_job",
+          "label": {
+            "en": "Scanned into a folder per job on a shared drive",
+            "fr": "Numérisés dans un dossier par chantier sur un disque partagé"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_attached",
+          "label": {
+            "en": "Logs and deficiency lists live in a system attached to the job, searchable",
+            "fr": "Les rapports journaliers et les listes de déficiences vivent dans un système rattaché au chantier, interrogeables"
+          },
+          "level": 4
+        },
+        {
+          "value": "system_closeout_reviewed",
+          "label": {
+            "en": "That, with a closeout checklist that must be complete before we ask for holdback release, and we review what was missing",
+            "fr": "Cela, avec une liste de fermeture qui doit être complète avant de demander la libération de la retenue, et nous révisons ce qui manquait"
+          },
+          "level": 5
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,857 @@
+{
+  "bank_id": "ind_real_estate",
+  "bank_version": "1.0.0",
+  "layer": "industry",
+  "label": {
+    "en": "Real estate and property management",
+    "fr": "Immobilier et gestion immobilière"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q04", "op": "eq", "value": "real_estate" }
+  ],
+  "reweight": {
+    "quote_to_cash": 1.5,
+    "compliance_risk": 1.4,
+    "procure_inventory": 0.5
+  },
+  "notes": "Three businesses clients conflate — residential rental, commercial or industrial leasing, and third-party management of other people's buildings with other people's money. ind_real_estate.firmo.q01 separates them and gates the recovery questions to commercial and the trust questions to third-party management.\n\nreveals keys introduced by this bank, all feeding the cost model: missed_escalation_exposure, cam_true_up_lag_months, arrears_over_30_share, work_order_recharge_leakage, trust_three_way_reconciled, owner_statement_hours_per_month.\n\nbenchmark_ref: none, deliberately. The only sourced benchmark sets available to this instrument are CFMA 2025 (construction) and Deltek Clarity FY2025 (A&E); neither covers property management. Canadian vacancy belongs to the CMHC rental market survey rather than the circulating US figures, collection-rate and turnover numbers vary by asset class and market to the point of uselessness, and maintenance cost per unit has no credible cross-market median at all. Every question here therefore uses the client's own history and says so in help, rather than importing an American number a careful owner can dispute.\n\nOdoo functional gaps raised as diagnostic questions rather than objections: no lease object, no lease abstract (doc.q01); no critical-date engine or escalation automation (sched.q01); no CAM or operating-cost reconciliation with gross-up, caps, base year and controllable splits (q2c.q01, q2c.q02); variable additionals that change mid-year are hard even though Subscriptions bills base rent fine (q2c.q03); no trust accounting with a segregated ledger per owner and no three-way reconciliation (comp.q01); no owner statement or distribution run with the fee calculation (data.q01); and work order to vendor bill to recoverable-or-chargeback classification is a custom flow (sys.q01). This is the most customization-heavy sector on the list and the audit is where that gets said out loud.\n\nMulti-entity note for scoping, not a question: one legal entity per building is normal in Canadian real estate, so Odoo multi-company with intercompany multiplies licence and configuration cost.",
+  "questions": [
+    {
+      "id": "ind_real_estate.firmo.q01",
+      "dimension": "firmographic",
+      "type": "single",
+      "weight": 0,
+      "stem": {
+        "en": "Which of these is your business, mostly?",
+        "fr": "Lequel de ces modèles correspond le mieux à votre entreprise?"
+      },
+      "help": {
+        "en": "These are three different back offices. Recoveries matter in one, trust money in another.",
+        "fr": "Ce sont trois arrière-guichets différents. Les récupérations comptent dans l'un, l'argent en fidéicommis dans l'autre."
+      },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        {
+          "value": "residential",
+          "label": {
+            "en": "We own and rent out residential units",
+            "fr": "Nous possédons et louons des logements résidentiels"
+          },
+          "informational": true
+        },
+        {
+          "value": "commercial",
+          "label": {
+            "en": "We own and lease commercial, retail or industrial space",
+            "fr": "Nous possédons et louons des espaces commerciaux, de détail ou industriels"
+          },
+          "informational": true
+        },
+        {
+          "value": "third_party_mgmt",
+          "label": {
+            "en": "We manage buildings for other owners, for a fee",
+            "fr": "Nous gérons des immeubles pour d'autres propriétaires, contre honoraires"
+          },
+          "informational": true
+        },
+        {
+          "value": "mixed",
+          "label": {
+            "en": "A mix — we own some and manage some for others",
+            "fr": "Un mélange — nous en possédons et en gérons pour d'autres"
+          },
+          "informational": true
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.doc.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Where do your lease terms live — and if I asked which three leases have an escalation due in the next 90 days, what would you open?",
+        "fr": "Où vivent les conditions de vos baux — et si je vous demandais quels trois baux ont une indexation à venir dans les 90 prochains jours, qu'ouvririez-vous?"
+      },
+      "instruments": ["quiz", "audit"],
+      "artifact_probe": {
+        "en": "Open the abstract for one lease and let's check it against the signed lease: escalation dates, option dates, what's included in additional rent, the cap and the gross-up clause.",
+        "fr": "Ouvrez le résumé d'un bail et comparons-le au bail signé : dates d'indexation, dates d'option, ce qui est inclus au loyer additionnel, le plafond et la clause de majoration."
+      },
+      "notes": "Odoo gap: there is no lease object at all — no abstract, no critical-date engine, no escalation automation, no option tracking. Community property modules vary in quality; a serious commercial client needs a custom lease model or a specialist system with Odoo as the general ledger. A lease that lives only as a signed PDF is the highest-dollar finding in SMB commercial property management, because escalations get missed, options lapse and recoveries are under-billed year after year.",
+      "options": [
+        {
+          "value": "pdfs_only",
+          "label": {
+            "en": "The signed leases are PDFs — I'd have to read through them",
+            "fr": "Les baux signés sont des PDF — il faudrait que je les relise"
+          },
+          "level": 1,
+          "flag": "no_lease_abstract"
+        },
+        {
+          "value": "manager_memory",
+          "label": {
+            "en": "The property manager knows her buildings and keeps the dates in her own notes",
+            "fr": "La gestionnaire connaît ses immeubles et garde les dates dans ses propres notes"
+          },
+          "level": 2
+        },
+        {
+          "value": "rent_roll_spreadsheet",
+          "label": {
+            "en": "A rent roll spreadsheet with the key dates, updated when someone remembers",
+            "fr": "Un chiffrier de rôle des loyers avec les dates clés, mis à jour quand quelqu'un y pense"
+          },
+          "level": 3
+        },
+        {
+          "value": "abstracted_in_system",
+          "label": {
+            "en": "Every lease is abstracted into a system — dates, recoveries, caps, options — as a record you can query",
+            "fr": "Chaque bail est résumé dans un système — dates, récupérations, plafonds, options — sous forme de fiche interrogeable"
+          },
+          "level": 4
+        },
+        {
+          "value": "abstract_audited",
+          "label": {
+            "en": "That, and abstracts are checked back against the signed lease on a schedule, by someone other than whoever entered them",
+            "fr": "Cela, et les résumés sont vérifiés contre le bail signé selon un calendrier, par une autre personne que celle qui les a saisis"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "An escalation date, a renewal option window, an insurance renewal. What warns you before the date passes?",
+        "fr": "Une date d'indexation, une fenêtre d'option de renouvellement, un renouvellement d'assurance. Qu'est-ce qui vous avertit avant que la date passe?"
+      },
+      "instruments": ["audit"],
+      "reveals": ["missed_escalation_exposure"],
+      "artifact_probe": {
+        "en": "Show me every critical date in the next six months, in one place. Then tell me when you last found one after it passed.",
+        "fr": "Montrez-moi toutes les dates critiques des six prochains mois, au même endroit. Puis dites-moi la dernière fois que vous en avez découvert une après coup."
+      },
+      "notes": "Odoo gap: no critical-date engine. A missed step-rent date is permanent lost revenue — the tenant pays the old rate until someone notices, and usually nobody bills retroactively. The option-level reveals feed the under-billing estimate.",
+      "options": [
+        {
+          "value": "nothing",
+          "label": {
+            "en": "Nothing — we find out when a tenant mentions it, or we don't",
+            "fr": "Rien — on l'apprend quand un locataire en parle, ou pas du tout"
+          },
+          "level": 1,
+          "flag": "no_critical_date_tracking",
+          "reveals": { "missed_escalation_exposure": "high" }
+        },
+        {
+          "value": "annual_review",
+          "label": {
+            "en": "Someone goes through the leases once a year and catches what's coming",
+            "fr": "Quelqu'un passe les baux une fois par an et repère ce qui s'en vient"
+          },
+          "level": 2,
+          "reveals": { "missed_escalation_exposure": "medium" }
+        },
+        {
+          "value": "calendar_reminders",
+          "label": {
+            "en": "Dates are in a shared calendar or a spreadsheet with reminders",
+            "fr": "Les dates sont dans un calendrier partagé ou un chiffrier avec rappels"
+          },
+          "level": 3,
+          "reveals": { "missed_escalation_exposure": "low" }
+        },
+        {
+          "value": "system_alerts",
+          "label": {
+            "en": "The system holds the dates on the lease and alerts a named person ahead of each one",
+            "fr": "Le système porte les dates sur le bail et avertit une personne nommée avant chacune"
+          },
+          "level": 4,
+          "reveals": { "missed_escalation_exposure": "low" }
+        },
+        {
+          "value": "system_and_billing",
+          "label": {
+            "en": "That, and the escalation flows into the billing automatically — and we track how many dates we missed last year",
+            "fr": "Cela, et l'indexation passe automatiquement dans la facturation — et nous suivons combien de dates nous avons manquées l'an dernier"
+          },
+          "level": 5,
+          "reveals": { "missed_escalation_exposure": "none" }
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Your last annual reconciliation of additional rent — CAM, or TMI if that's your word for it: when did the statements go out relative to year end, who built them, and in what tool?",
+        "fr": "Votre dernière régularisation annuelle du loyer additionnel — frais communs, ou TMI si c'est votre terme : quand les relevés sont-ils partis par rapport à la fin de l'exercice, qui les a montés, et dans quel outil?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_real_estate.firmo.q01", "op": "in", "value": ["commercial", "third_party_mgmt", "mixed"] }],
+      "reveals": ["cam_true_up_lag_months"],
+      "artifact_probe": {
+        "en": "Open last year's reconciliation workbook and walk me from total operating costs down to one tenant's true-up invoice.",
+        "fr": "Ouvrez le classeur de régularisation de l'an dernier et menez-moi du total des frais d'exploitation jusqu'à la facture de régularisation d'un locataire."
+      },
+      "notes": "Odoo gap: no CAM or operating-cost reconciliation. Pro-rata allocation, gross-up, caps, controllable versus non-controllable splits, base-year arithmetic and the annual true-up invoice are entirely absent — this is a build, and the client should hear that during the audit. A reconciliation produces credits as well as invoices, and often lands after a tenant has vacated, which is its own collection process.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "Our leases are gross — there is no additional rent to reconcile",
+            "fr": "Nos baux sont bruts — il n'y a pas de loyer additionnel à régulariser"
+          },
+          "na": true
+        },
+        {
+          "value": "never",
+          "label": {
+            "en": "We've never done one — tenants pay the estimate and that's that",
+            "fr": "Nous n'en avons jamais fait — les locataires paient l'estimation et c'est tout"
+          },
+          "level": 1,
+          "flag": "cam_never_reconciled",
+          "reveals": { "cam_true_up_lag_months": null }
+        },
+        {
+          "value": "late_accountant",
+          "label": {
+            "en": "Late — six months or more after year end, usually once the external accountant is done",
+            "fr": "En retard — six mois ou plus après la fin de l'exercice, habituellement quand le comptable externe a terminé"
+          },
+          "level": 2,
+          "reveals": { "cam_true_up_lag_months": 7 }
+        },
+        {
+          "value": "spreadsheet_months",
+          "label": {
+            "en": "Within a few months, built by hand in a spreadsheet by one person",
+            "fr": "En quelques mois, monté à la main dans un chiffrier par une seule personne"
+          },
+          "level": 3,
+          "reveals": { "cam_true_up_lag_months": 3 }
+        },
+        {
+          "value": "system_structured",
+          "label": {
+            "en": "Within about 90 days, from recovery rules held per lease in a system",
+            "fr": "En environ 90 jours, à partir des règles de récupération portées par bail dans un système"
+          },
+          "level": 4,
+          "reveals": { "cam_true_up_lag_months": 2 }
+        },
+        {
+          "value": "system_reviewed",
+          "label": {
+            "en": "That, and we review recovered against recoverable by property and explain the shortfall",
+            "fr": "Cela, et nous comparons le récupéré au récupérable par immeuble et expliquons le manque"
+          },
+          "level": 5,
+          "reveals": { "cam_true_up_lag_months": 2 }
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Walk me through how you calculate a tenant's share: what occupancy do you gross up to, which expense categories do you leave out of the gross-up, and does the cap apply before or after it?",
+        "fr": "Expliquez-moi comment vous calculez la part d'un locataire : à quel taux d'occupation faites-vous la majoration, quelles catégories de dépenses excluez-vous de la majoration, et le plafond s'applique-t-il avant ou après?"
+      },
+      "help": {
+        "en": "We're asking for your method, not your number. The order of operations here is where the money is.",
+        "fr": "Nous demandons votre méthode, pas votre chiffre. C'est l'ordre des opérations qui fait la différence en dollars."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_real_estate.firmo.q01", "op": "in", "value": ["commercial", "third_party_mgmt", "mixed"] }],
+      "artifact_probe": {
+        "en": "Take one tenant's statement and one lease: show me the pro-rata share you used, the denominator behind it, and where the lease language actually says rentable or occupied.",
+        "fr": "Prenez le relevé d'un locataire et son bail : montrez-moi la quote-part utilisée, le dénominateur derrière, et où le texte du bail dit réellement locable ou occupé."
+      },
+      "notes": "The bank's calculation-method question, and the sharpest credibility test in the sector. The three recurring errors each move real money: grossing up fixed costs such as realty taxes and insurance, which should not be grossed up; applying the cap before the gross-up instead of after; and using occupied square feet as the pro-rata denominator instead of rentable. Worked examples in the research show a single tenant's charge swinging by tens of thousands and recovery overstated by more than 79 percent in one scenario. A respondent who answers in this vocabulary is at level 4 or 5 before anything else is asked.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We don't gross up or cap anything — tenants pay a fixed share",
+            "fr": "Nous ne faisons ni majoration ni plafond — les locataires paient une part fixe"
+          },
+          "na": true
+        },
+        {
+          "value": "unknown",
+          "label": {
+            "en": "I couldn't tell you — whoever does the reconciliation handles that",
+            "fr": "Je ne pourrais pas vous le dire — la personne qui fait la régularisation s'en occupe"
+          },
+          "level": 1,
+          "flag": "recovery_method_unknown"
+        },
+        {
+          "value": "no_grossup",
+          "label": {
+            "en": "We divide total costs by occupied area and bill it — no gross-up, caps checked if a tenant complains",
+            "fr": "Nous divisons les coûts totaux par la superficie occupée et facturons — sans majoration, les plafonds vérifiés si un locataire se plaint"
+          },
+          "level": 2,
+          "flag": "recovery_denominator_risk"
+        },
+        {
+          "value": "grossup_all_costs",
+          "label": {
+            "en": "We gross up to a stated occupancy, but on all costs, and the cap goes on wherever the spreadsheet puts it",
+            "fr": "Nous majorons à un taux d'occupation donné, mais sur tous les coûts, et le plafond s'applique là où le chiffrier le met"
+          },
+          "level": 3
+        },
+        {
+          "value": "variable_only_rentable",
+          "label": {
+            "en": "Gross-up on variable costs only, taxes and insurance excluded, rentable area as the denominator, cap applied after",
+            "fr": "Majoration sur les coûts variables seulement, taxes et assurances exclues, superficie locable comme dénominateur, plafond appliqué après"
+          },
+          "level": 4
+        },
+        {
+          "value": "per_lease_rules",
+          "label": {
+            "en": "That, and the rules come from each lease rather than one house method — and we can show which leases differ",
+            "fr": "Cela, et les règles viennent de chaque bail plutôt que d'une méthode maison unique — et nous pouvons montrer quels baux diffèrent"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "The new year's estimated additional rent and a tax reassessment both change what tenants owe monthly. How does that change reach the billing?",
+        "fr": "La nouvelle estimation du loyer additionnel et une réévaluation foncière changent tous deux ce que les locataires doivent chaque mois. Comment ce changement arrive-t-il dans la facturation?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me this month's rent billing run and tell me which lines someone edited by hand.",
+        "fr": "Montrez-moi la facturation des loyers de ce mois-ci et dites-moi quelles lignes ont été modifiées à la main."
+      },
+      "notes": "Odoo gap: Subscriptions bills base rent cleanly, but variable additionals that change mid-year — a new CAM estimate effective 1 January, a reassessment landing in May — need deliberate design. Two revenue streams with different timing and different accounting treatment on one invoice is the shape to scope for.",
+      "options": [
+        {
+          "value": "manual_invoices",
+          "label": {
+            "en": "Someone retypes the invoices, or edits last month's",
+            "fr": "Quelqu'un ressaisit les factures, ou modifie celles du mois dernier"
+          },
+          "level": 1
+        },
+        {
+          "value": "spreadsheet_then_accounting",
+          "label": {
+            "en": "A spreadsheet works out the new amounts and they get keyed into accounting",
+            "fr": "Un chiffrier calcule les nouveaux montants et on les saisit dans la comptabilité"
+          },
+          "level": 2
+        },
+        {
+          "value": "recurring_edited",
+          "label": {
+            "en": "Recurring invoices exist in the system and someone edits each one when rates change",
+            "fr": "Des factures récurrentes existent dans le système et quelqu'un modifie chacune quand les taux changent"
+          },
+          "level": 3
+        },
+        {
+          "value": "rates_on_lease",
+          "label": {
+            "en": "Base rent and each additional rent component sit on the lease record and the billing picks up the new rate on its effective date",
+            "fr": "Le loyer de base et chaque composante du loyer additionnel sont sur la fiche du bail et la facturation prend le nouveau taux à sa date d'entrée en vigueur"
+          },
+          "level": 4
+        },
+        {
+          "value": "billed_and_checked",
+          "label": {
+            "en": "That, and someone reconciles what was billed to what the leases say should have been billed, every month",
+            "fr": "Cela, et quelqu'un rapproche chaque mois ce qui a été facturé de ce que les baux prévoyaient"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "Of the rent you billed, what share is more than 30 days past due right now?",
+        "fr": "Du loyer que vous avez facturé, quelle proportion est en souffrance depuis plus de 30 jours en ce moment?"
+      },
+      "help": {
+        "en": "There is no credible Canadian cross-market benchmark for this, so we compare you to your own last twelve months, not to somebody else's portfolio.",
+        "fr": "Il n'existe aucune référence canadienne crédible pour tous les marchés, alors nous vous comparons à vos douze derniers mois, pas au portefeuille d'un autre."
+      },
+      "instruments": ["audit"],
+      "reveals": ["arrears_over_30_share"],
+      "artifact_probe": {
+        "en": "Pull the arrears aging by tenant and show me where the notice stage sits on each line.",
+        "fr": "Sortez l'âge des arrérages par locataire et montrez-moi où se trouve l'étape de l'avis sur chaque ligne."
+      },
+      "notes": "The probe matters more than the number: aging without the notice stage attached — TAL in Quebec, LTB in Ontario — means the arrears process is reactive, which is the actual finding.",
+      "numeric": {
+        "unit": { "en": "percent of billed rent", "fr": "pourcentage du loyer facturé" },
+        "min": 0,
+        "max": 100,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 3, "level": 4 },
+          { "lte": 7, "level": 3 },
+          { "lte": 15, "level": 2 },
+          { "gt": 15, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_real_estate.sys.q01",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "A tenant calls about a leak at 4pm Friday. What gets created — and how does the contractor's invoice find its way back to that request?",
+        "fr": "Un locataire appelle pour une fuite un vendredi à 16 h. Qu'est-ce qui est créé — et comment la facture de l'entrepreneur retrouve-t-elle cette demande?"
+      },
+      "instruments": ["audit"],
+      "reveals": ["work_order_recharge_leakage"],
+      "artifact_probe": {
+        "en": "Pick a vendor invoice from last month and trace it back to the work order and the tenant request.",
+        "fr": "Choisissez une facture de fournisseur du mois dernier et remontez jusqu'au bon de travail et à la demande du locataire."
+      },
+      "notes": "Odoo gap: Field Service can carry the work order, but the chain work order to vendor bill to recoverable, capital, tenant chargeback or landlord cost is a custom flow. Without the loop, nobody can say afterwards which bucket a cost belonged in, so recoverable costs quietly become the landlord's.",
+      "options": [
+        {
+          "value": "phone_call",
+          "label": {
+            "en": "A phone call to a contractor — nothing is created",
+            "fr": "Un appel à un entrepreneur — rien n'est créé"
+          },
+          "level": 1,
+          "reveals": { "work_order_recharge_leakage": "high" }
+        },
+        {
+          "value": "email_log",
+          "label": {
+            "en": "An email or a note in a log, and the invoice arrives a month later with no reference",
+            "fr": "Un courriel ou une note dans un registre, et la facture arrive un mois plus tard sans référence"
+          },
+          "level": 2,
+          "reveals": { "work_order_recharge_leakage": "high" }
+        },
+        {
+          "value": "work_order_manual_match",
+          "label": {
+            "en": "A work order is created and someone matches the invoice to it by hand",
+            "fr": "Un bon de travail est créé et quelqu'un apparie la facture à la main"
+          },
+          "level": 3,
+          "reveals": { "work_order_recharge_leakage": "medium" }
+        },
+        {
+          "value": "wo_linked_classified",
+          "label": {
+            "en": "The work order carries the property and unit, the vendor bill posts against it, and it's classified recoverable, capital or chargeback on the spot",
+            "fr": "Le bon de travail porte l'immeuble et le logement, la facture du fournisseur s'y rattache, et elle est classée récupérable, capitalisable ou refacturable sur le coup"
+          },
+          "level": 4,
+          "reveals": { "work_order_recharge_leakage": "low" }
+        },
+        {
+          "value": "wo_measured",
+          "label": {
+            "en": "That, and we measure cycle time and how much of what we classified recoverable actually got recovered",
+            "fr": "Cela, et nous mesurons le délai de traitement et la part de ce que nous avons classé récupérable qui a réellement été récupéré"
+          },
+          "level": 5,
+          "reveals": { "work_order_recharge_leakage": "none" }
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.fin.q01",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "A roof repair comes in at $40,000. Who decides whether that's an operating cost, a capital item or a tenant chargeback — and what do they decide it from?",
+        "fr": "Une réparation de toiture arrive à 40 000 $. Qui décide s'il s'agit d'une dépense d'exploitation, d'une immobilisation ou d'une refacturation au locataire — et sur quelle base?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me how last year's three largest repairs were classified, and the lease clause behind one of them.",
+        "fr": "Montrez-moi comment les trois plus grosses réparations de l'an dernier ont été classées, et la clause de bail derrière l'une d'elles."
+      },
+      "notes": "Classification directly determines recoverability, so a bookkeeper deciding it on materiality rather than on the lease is a revenue decision made by the wrong person with the wrong document. In a third-party management mandate it is also an owner-relationship exposure.",
+      "options": [
+        {
+          "value": "bookkeeper_alone",
+          "label": {
+            "en": "The bookkeeper decides when the invoice is entered",
+            "fr": "La teneuse de livres décide au moment de la saisie de la facture"
+          },
+          "level": 1
+        },
+        {
+          "value": "accountant_year_end",
+          "label": {
+            "en": "It gets sorted out at year end by our external accountant",
+            "fr": "Ça se règle à la fin de l'exercice avec notre comptable externe"
+          },
+          "level": 2
+        },
+        {
+          "value": "manager_judgment",
+          "label": {
+            "en": "The property manager decides, case by case, from experience",
+            "fr": "Le gestionnaire d'immeuble décide, cas par cas, selon son expérience"
+          },
+          "level": 3
+        },
+        {
+          "value": "written_policy",
+          "label": {
+            "en": "A written policy plus the lease language decides it, and the classification is recorded with the cost",
+            "fr": "Une politique écrite et le texte du bail en décident, et la classification est consignée avec le coût"
+          },
+          "level": 4
+        },
+        {
+          "value": "policy_reviewed",
+          "label": {
+            "en": "That, and classifications are reviewed before the annual reconciliation rather than argued about after it",
+            "fr": "Cela, et les classifications sont révisées avant la régularisation annuelle plutôt que contestées après"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.comp.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Do you hold owner or tenant money — deposits, rents collected for others? Could you produce a three-way reconciliation for last month?",
+        "fr": "Détenez-vous de l'argent appartenant à des propriétaires ou à des locataires — dépôts, loyers perçus pour autrui? Pourriez-vous produire une conciliation à trois voies pour le mois dernier?"
+      },
+      "help": {
+        "en": "Three-way means the bank balance, the book balance and the sum of the individual owner and tenant ledgers all agree.",
+        "fr": "À trois voies signifie que le solde bancaire, le solde comptable et la somme des grands livres par propriétaire et par locataire concordent tous."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Produce it for last month: bank statement, trust ledger balance, and the per-owner ledger totals side by side.",
+        "fr": "Produisez-la pour le mois dernier : relevé bancaire, solde du grand livre en fidéicommis et totaux par propriétaire, côte à côte."
+      },
+      "notes": "Odoo gap: no trust accounting. No segregated trust ledger per owner or tenant, no three-way reconciliation report, and no control preventing owner A's money from funding owner B's building. Approximating it with journals and liability accounts is possible but will not satisfy a regulator or a careful auditor. In the provinces that licence property management this is a licensing exposure, not untidiness — and Quebec residential practice differs from Ontario on deposits, which is worth confirming against the client's own leases rather than asserting here.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We hold no money for anyone else — we own everything we manage and take no deposits",
+            "fr": "Nous ne détenons l'argent de personne d'autre — nous possédons tout ce que nous gérons et ne prenons aucun dépôt"
+          },
+          "na": true
+        },
+        {
+          "value": "commingled",
+          "label": {
+            "en": "It's in our operating account and we know roughly whose is whose",
+            "fr": "C'est dans notre compte d'exploitation et nous savons à peu près à qui appartient quoi"
+          },
+          "level": 1,
+          "flag": "trust_funds_commingled",
+          "reveals": { "trust_three_way_reconciled": false }
+        },
+        {
+          "value": "separate_account_spreadsheet",
+          "label": {
+            "en": "A separate bank account, with a spreadsheet of who owns what inside it",
+            "fr": "Un compte bancaire distinct, avec un chiffrier de qui possède quoi à l'intérieur"
+          },
+          "level": 2,
+          "reveals": { "trust_three_way_reconciled": false }
+        },
+        {
+          "value": "trust_account_manual_recon",
+          "label": {
+            "en": "A trust account with per-owner ledgers, reconciled by hand each month",
+            "fr": "Un compte en fidéicommis avec des grands livres par propriétaire, concilié à la main chaque mois"
+          },
+          "level": 3,
+          "reveals": { "trust_three_way_reconciled": true }
+        },
+        {
+          "value": "system_three_way",
+          "label": {
+            "en": "The system produces the three-way reconciliation and won't let trust money cross between owners",
+            "fr": "Le système produit la conciliation à trois voies et empêche l'argent en fidéicommis de passer d'un propriétaire à l'autre"
+          },
+          "level": 4,
+          "reveals": { "trust_three_way_reconciled": true }
+        },
+        {
+          "value": "three_way_reviewed",
+          "label": {
+            "en": "That, and someone other than the preparer signs it off every month",
+            "fr": "Cela, et une personne autre que celle qui la prépare l'approuve chaque mois"
+          },
+          "level": 5,
+          "reveals": { "trust_three_way_reconciled": true }
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.data.q01",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "A month of owner statements and distributions: how many hours does the whole run take, start to finish?",
+        "fr": "Un mois de relevés aux propriétaires et de distributions : combien d'heures prend l'ensemble du cycle, du début à la fin?"
+      },
+      "help": {
+        "en": "Include the management fee calculation and the copy-paste. Count everyone who touches it.",
+        "fr": "Incluez le calcul des honoraires de gestion et le copier-coller. Comptez tout le monde qui y touche."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "ind_real_estate.firmo.q01", "op": "in", "value": ["third_party_mgmt", "mixed"] }],
+      "reveals": ["owner_statement_hours_per_month"],
+      "artifact_probe": {
+        "en": "Open last month's statement for one owner and show me where each number came from, including the fee line.",
+        "fr": "Ouvrez le relevé du mois dernier d'un propriétaire et montrez-moi d'où vient chaque chiffre, y compris la ligne d'honoraires."
+      },
+      "notes": "Odoo gap: no owner statement or distribution run — per-owner profit and loss, the management fee calculation, the distribution with reserve retention. Fees computed as a percentage of collected rather than billed revenue, plus leasing and project-management fees on capital work, all come off the same ledger the owner can see, so accuracy here is relationship-critical and a manual process is a standing risk, not just a cost.",
+      "numeric": {
+        "unit": { "en": "hours per monthly run, all staff", "fr": "heures par cycle mensuel, tout le personnel" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 2, "level": 5 },
+          { "lte": 8, "level": 4 },
+          { "lte": 20, "level": 3 },
+          { "lte": 40, "level": 2 },
+          { "gt": 40, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_real_estate.perf.q01",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "A unit comes empty. What do you know about the last ten turns — days vacant and make-ready cost each?",
+        "fr": "Un logement se libère. Que savez-vous des dix dernières remises en état — jours d'inoccupation et coût de remise en état de chacune?"
+      },
+      "help": {
+        "en": "Published turn-cost benchmarks don't survive contact with a Canadian portfolio, so we use your own last ten and look at the outliers.",
+        "fr": "Les références publiées sur le coût des remises en état ne tiennent pas face à un portefeuille canadien; nous utilisons donc vos dix dernières et examinons les écarts."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the make-ready costs for the last ten turns, by unit, with the days each sat empty.",
+        "fr": "Montrez-moi les coûts de remise en état des dix dernières libérations, par logement, avec les jours d'inoccupation de chacune."
+      },
+      "options": [
+        {
+          "value": "nobody_knows",
+          "label": {
+            "en": "Nobody knows — the costs are mixed in with general repairs",
+            "fr": "Personne ne le sait — les coûts sont mêlés aux réparations générales"
+          },
+          "level": 1
+        },
+        {
+          "value": "invoices_findable",
+          "label": {
+            "en": "We could dig the invoices out if we had to",
+            "fr": "Nous pourrions retrouver les factures s'il le fallait"
+          },
+          "level": 2
+        },
+        {
+          "value": "tracked_per_unit",
+          "label": {
+            "en": "Turn costs are coded per unit and we can list them",
+            "fr": "Les coûts de remise en état sont codés par logement et nous pouvons les lister"
+          },
+          "level": 3
+        },
+        {
+          "value": "tracked_with_days",
+          "label": {
+            "en": "Cost per turn and days vacant are both tracked and reported",
+            "fr": "Le coût par remise en état et les jours d'inoccupation sont tous deux suivis et rapportés"
+          },
+          "level": 4
+        },
+        {
+          "value": "reviewed_outliers",
+          "label": {
+            "en": "That, and we go through the outliers against our own average and change something because of it",
+            "fr": "Cela, et nous examinons les écarts par rapport à notre propre moyenne et changeons quelque chose en conséquence"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.comp.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Your RL-31 slips for residential tenants: who produces them, and from what data?",
+        "fr": "Vos relevés 31 pour les locataires résidentiels : qui les produit, et à partir de quelles données?"
+      },
+      "help": {
+        "en": "One slip per leased dwelling, per tenant, with the right occupants on it. We'll confirm the current filing deadline and format with you rather than quote it at you.",
+        "fr": "Un relevé par logement loué, par locataire, avec les bonnes personnes dessus. Nous confirmerons avec vous l'échéance et le format en vigueur plutôt que de vous les citer."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me last year's RL-31 run and where the occupant data came from.",
+        "fr": "Montrez-moi la production des relevés 31 de l'an dernier et d'où venaient les données sur les occupants."
+      },
+      "notes": "A small obligation that reveals the state of the tenant master data: a landlord who can run RL-31 slips from the lease records has a tenant list worth building on; one whose bookkeeper rebuilds occupant lists each February does not. Deliberately does not assert the deadline date.",
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We have no residential tenants",
+            "fr": "Nous n'avons aucun locataire résidentiel"
+          },
+          "na": true
+        },
+        {
+          "value": "scramble",
+          "label": {
+            "en": "It's a scramble every year, rebuilt from leases and memory",
+            "fr": "C'est la course chaque année, reconstruit à partir des baux et de la mémoire"
+          },
+          "level": 1
+        },
+        {
+          "value": "external_bookkeeper",
+          "label": {
+            "en": "Our bookkeeper or external accountant does it from a list we send",
+            "fr": "Notre teneuse de livres ou notre comptable externe les produit à partir d'une liste que nous envoyons"
+          },
+          "level": 2
+        },
+        {
+          "value": "spreadsheet_maintained",
+          "label": {
+            "en": "From a tenant spreadsheet we keep up to date through the year",
+            "fr": "À partir d'un chiffrier de locataires que nous tenons à jour durant l'année"
+          },
+          "level": 3
+        },
+        {
+          "value": "from_lease_records",
+          "label": {
+            "en": "Generated from the lease and occupant records in our system",
+            "fr": "Générés à partir des fiches de baux et d'occupants de notre système"
+          },
+          "level": 4
+        },
+        {
+          "value": "generated_checked",
+          "label": {
+            "en": "That, and someone checks the count against units leased before they go out",
+            "fr": "Cela, et quelqu'un vérifie le nombre par rapport aux logements loués avant l'envoi"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_real_estate.ppl.q01",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your property manager leaves with two weeks' notice. What does the next person have to work from?",
+        "fr": "Votre gestionnaire d'immeubles part avec deux semaines de préavis. Sur quoi la personne suivante peut-elle s'appuyer?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Open whatever one of your managers keeps for her own buildings — the spreadsheet or the notes — and tell me who else can read it.",
+        "fr": "Ouvrez ce qu'une de vos gestionnaires garde pour ses propres immeubles — le chiffrier ou les notes — et dites-moi qui d'autre peut s'en servir."
+      },
+      "notes": "In this sector the single-point-of-failure is specific and expensive: the manager holds the tenant relationships, the verbal arrangements, the vendor history and the critical dates. Pairs with base.ppl.q01, but asked against the portfolio rather than the business.",
+      "options": [
+        {
+          "value": "nothing",
+          "label": {
+            "en": "Her own files and her own head — we'd be rebuilding it",
+            "fr": "Ses propres dossiers et sa tête — nous devrions tout reconstruire"
+          },
+          "level": 1
+        },
+        {
+          "value": "handover_notes",
+          "label": {
+            "en": "Whatever handover notes she has time to write",
+            "fr": "Les notes de transition qu'elle aura le temps d'écrire"
+          },
+          "level": 2
+        },
+        {
+          "value": "shared_files",
+          "label": {
+            "en": "Shared files per building, of uneven quality",
+            "fr": "Des dossiers partagés par immeuble, de qualité inégale"
+          },
+          "level": 3
+        },
+        {
+          "value": "system_of_record",
+          "label": {
+            "en": "Leases, dates, work orders and vendor history are all in a system anyone authorized can read",
+            "fr": "Baux, dates, bons de travail et historique des fournisseurs sont dans un système que toute personne autorisée peut consulter"
+          },
+          "level": 4
+        },
+        {
+          "value": "system_and_coverage",
+          "label": {
+            "en": "That, and someone else already covers her buildings during vacations, routinely",
+            "fr": "Cela, et quelqu'un d'autre couvre déjà ses immeubles pendant les vacances, de façon régulière"
+          },
+          "level": 5
+        }
+      ]
+    }
+  ]
+}

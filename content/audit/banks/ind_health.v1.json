@@ -1,0 +1,1011 @@
+{
+  "bank_id": "ind_health",
+  "bank_version": "1.0.0",
+  "layer": "industry",
+  "label": {
+    "en": "Health and allied-health clinics — back office",
+    "fr": "Cliniques de santé et de santé connexe — administration"
+  },
+  "applies_when": [
+    {
+      "field": "base.firmo.q04",
+      "op": "eq",
+      "value": "health"
+    }
+  ],
+  "reweight": {
+    "scheduling_capacity": 1.75,
+    "quote_to_cash": 1.6,
+    "compliance_risk": 1.4,
+    "procure_inventory": 0.4
+  },
+  "notes": "SAY THIS OUT LOUD IN THE FIRST MEETING. Our ERP IS NOT A CLINICAL SYSTEM. It cannot chart. It cannot keep a clinical record. It cannot bill a provincial plan. It cannot submit a claim to an insurer clearing house. There is no electronic medical record, no treatment-plan charting, no consent management and no protected-health-information audit trail. Clinics in this market have been burned by consultants who implied otherwise, and the fastest way to lose this room is to let a practice owner believe for twenty minutes that we are replacing their practice-management software. THE REALISTIC ENGAGEMENT IS INTEGRATION PLUS OPERATIONAL REPORTING: their clinical and practice-management system stays and is integrated to our ERP as finance and back office — never replaced. Every question in this bank is aimed at the BACK OFFICE, deliberately: scheduling capacity, recall lists, production versus collection, claim rejection rework, practitioner compensation calculation, consumables and purchasing, multi-site analytics.\n\nind_health.sys.q01 establishes which clinical and practice-management systems exist and therefore must be integrated. Ask it early; it is the boundary of the whole engagement, which is why it is unscored. ind_health.comp.q01 establishes the payer mix and the submission channel per payer — also unscored, also a boundary: each channel is somebody else's software and our job stops at the remittance.\n\nWHERE WE DO FIT: appointment and resource scheduling alongside the clinical calendar, invoicing for self-pay and third-party work, subscriptions for membership and treatment plans as deferred revenue, inventory for consumables and implants, purchasing, expenses, accounting, human resources, multi-site reporting, and a reporting layer above the practice-management system.\n\nREVEALS KEYS INTRODUCED BY THIS BANK (cost-model inputs; must exist in scoring/scoring.v1.json#cost_model.inputs before this bank goes live):\n- no_show_rate_pct — percentage of booked appointments that did not happen last month. Feeds the lost-capacity module, which is the largest single dollar figure available in this sector.\n- recall_overdue_count — patients overdue for a rappel de patient right now. Feeds the recovered-revenue estimate; must be multiplied by the client's own average revenue per visit, never by a published figure.\n- schedule_fill_pct — percentage of available practitioner hours that were booked last month. Feeds the capacity module alongside no_show_rate_pct.\n- production_collection_gap_pct — gap between production and collection last quarter. Feeds the revenue-cycle module.\n- claims_rejected_last_month — count of réclamations rejected or returned last month. Feeds the rework module.\n- claim_rework_hours_month — hours per month spent reworking and resubmitting rejected claims. Feeds the labour saving.\n- days_in_ar — days in accounts receivable across all payers. Feeds the working-capital module, which is gated on base.fin.q07 (line of credit drawn).\n- comp_calc_hours_per_cycle — hours per compensation cycle spent calculating practitioner splits, chair or room rent and honoraires. Feeds the labour saving.\n- payer_channels_count — how many distinct submission and remittance channels the clinic operates. Drives the integration estimate directly.\n\nBENCHMARK_REF KEYS USED, WITH SOURCE AND LIMITS. Only five are set, and every one of them must be presented with its limits stated out loud, because a practice owner who recognizes a dental figure being applied to a physiotherapy clinic will stop trusting the whole report:\n- dental_no_show_rate (on ind_health.sched.q01) — no-show and cancellation rate: under 5 percent good, 8 percent average. Source: dentx.ca dental KPI compilation, with Canadian figures. DENTAL-SPECIFIC. Physiotherapy, chiropractic and massage run differently.\n- dental_recall_rate (on ind_health.sched.q02) — recall and recare rate: 70 percent or better good, 60 percent average. Source: dentx.ca. DENTAL-SPECIFIC.\n- dental_collection_rate (on ind_health.q2c.q01) — collection rate: 98 percent or better good, 95 percent average. Source: dentx.ca. DENTAL-SPECIFIC.\n- mgma_days_in_ar (on ind_health.fin.q01) — days in accounts receivable: 30 to 40 optimal, best practice under 30. Source: MGMA/Conifer practice revenue-cycle KPI whitepaper. US-CENTRED; the ratio transfers better than the absolute figure, and Canadian public-plan remittance cycles differ.\n- mgma_initial_denial_rate (on ind_health.q2c.q02) — initial denial rate: 5 to 10 percent industry, best practice under 5 percent. Source: MGMA/Conifer, same whitepaper. US-CENTRED, same caveat.\nNO benchmark_ref is set on schedule fill, room or chair utilization, production per clinical hour, overhead rate or revenue per visit. The research gives those as dental figures too, but they are denominated in ways that do not survive the move to another discipline. We use the client's own number and say so in the help text.",
+  "questions": [
+    {
+      "id": "ind_health.sys.q01",
+      "dimension": "systems_integration",
+      "type": "multi",
+      "weight": 0,
+      "stem": {
+        "en": "What runs the clinic today? Check everything in real use, including the things that are really just spreadsheets.",
+        "fr": "Qu'est-ce qui fait rouler la clinique aujourd'hui? Cochez tout ce qui est réellement utilisé, y compris ce qui n'est en réalité qu'un chiffrier."
+      },
+      "help": {
+        "en": "We are not replacing your clinical system and we could not: we cannot chart, cannot bill a public plan and cannot submit to an insurer. What you have is what we integrate to.",
+        "fr": "Nous ne remplaçons pas votre système clinique et nous ne pourrions pas : nous ne pouvons pas tenir de dossier clinique, ni facturer un régime public, ni transmettre à un assureur. Ce que vous avez est ce à quoi nous nous intégrons."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "notes": "THE BOUNDARY QUESTION. Unscored on purpose — it is not a maturity reading, it is the scope of the integration. Write down the actual product names in the report. Whatever is checked here STAYS: our engagement is the finance and reporting layer above it. If the owner is expecting a single system to replace all of this, correct that belief in this meeting, not in the proposal.",
+      "artifact_probe": {
+        "en": "Open each one. I want to see the screen a receptionist and a practitioner each use on a normal morning.",
+        "fr": "Ouvrez chacun d'eux. Je veux voir l'écran qu'une réceptionniste et un praticien utilisent lors d'une matinée normale."
+      },
+      "options": [
+        {
+          "value": "pms_clinical",
+          "label": {
+            "en": "A practice-management or clinical system that holds the patient record and the charting",
+            "fr": "Un système de gestion de clinique ou clinique qui contient le dossier du patient et les notes"
+          },
+          "informational": true
+        },
+        {
+          "value": "separate_scheduler",
+          "label": {
+            "en": "A separate scheduling or online-booking tool, not the same system as the record",
+            "fr": "Un outil de prise de rendez-vous ou de réservation en ligne distinct du dossier"
+          },
+          "informational": true
+        },
+        {
+          "value": "insurer_portal",
+          "label": {
+            "en": "An insurer claim portal or clearing house we log into",
+            "fr": "Un portail de réclamations d'assureur ou une chambre de compensation où nous nous connectons"
+          },
+          "informational": true
+        },
+        {
+          "value": "public_plan_billing",
+          "label": {
+            "en": "A public-plan billing channel or a billing agent who submits for us",
+            "fr": "Un canal de facturation au régime public ou un agent de facturation qui transmet pour nous"
+          },
+          "informational": true
+        },
+        {
+          "value": "accounting_only",
+          "label": {
+            "en": "An accounting system that only ever sees deposits and bills",
+            "fr": "Un système comptable qui ne voit que les dépôts et les factures"
+          },
+          "informational": true
+        },
+        {
+          "value": "comp_spreadsheet",
+          "label": {
+            "en": "A spreadsheet that calculates practitioner pay",
+            "fr": "Un chiffrier qui calcule la rémunération des praticiens"
+          },
+          "informational": true
+        },
+        {
+          "value": "recall_spreadsheet",
+          "label": {
+            "en": "A spreadsheet or a paper list for patient recalls",
+            "fr": "Un chiffrier ou une liste papier pour les rappels de patients"
+          },
+          "informational": true
+        },
+        {
+          "value": "payment_terminal",
+          "label": {
+            "en": "A standalone payment terminal nothing reconciles against automatically",
+            "fr": "Un terminal de paiement autonome qu'aucun système ne concilie automatiquement"
+          },
+          "informational": true
+        },
+        {
+          "value": "paper_charts",
+          "label": {
+            "en": "Paper charts, still, for some of it",
+            "fr": "Des dossiers papier, encore, pour une partie"
+          },
+          "informational": true,
+          "flag": "paper_clinical_record"
+        }
+      ]
+    },
+    {
+      "id": "ind_health.sys.q02",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.75,
+      "stem": {
+        "en": "Yesterday's completed visits — how do they become revenue in the accounting system?",
+        "fr": "Les rendez-vous complétés hier — comment deviennent-ils des produits dans le système comptable?"
+      },
+      "instruments": [
+        "audit"
+      ],
+      "notes": "This is the integration we would actually build, so the answer is the specification. Listen for whether the bridge is a person, an export, or nothing at all — in many clinics the accounting system only ever sees the bank deposit, which is why production versus collection cannot be answered (ind_health.q2c.q01).",
+      "artifact_probe": {
+        "en": "Show me yesterday's day sheet from the clinical system and yesterday's entries in the accounting system, side by side.",
+        "fr": "Montrez-moi la feuille de journée d'hier du système clinique et les écritures d'hier dans le système comptable, côte à côte."
+      },
+      "options": [
+        {
+          "value": "deposit_only",
+          "label": {
+            "en": "They don't — the accounting system only ever sees the bank deposit",
+            "fr": "Ils ne le deviennent pas — le système comptable ne voit que le dépôt bancaire"
+          },
+          "level": 1,
+          "flag": "no_production_visibility"
+        },
+        {
+          "value": "monthly_summary",
+          "label": {
+            "en": "Someone keys a monthly total from a report into one journal entry",
+            "fr": "Quelqu'un saisit un total mensuel tiré d'un rapport dans une seule écriture de journal"
+          },
+          "level": 2
+        },
+        {
+          "value": "export_import",
+          "label": {
+            "en": "We export from the clinical system and import into accounting",
+            "fr": "Nous exportons du système clinique et importons dans la comptabilité"
+          },
+          "level": 3
+        },
+        {
+          "value": "nightly_integration",
+          "label": {
+            "en": "They flow across automatically each day and someone reviews the exceptions",
+            "fr": "Ils circulent automatiquement chaque jour et quelqu'un révise les exceptions"
+          },
+          "level": 4
+        },
+        {
+          "value": "integrated_reconciled",
+          "label": {
+            "en": "That, and production, collections and the deposit are reconciled to each other daily",
+            "fr": "Cela, et la production, les perceptions et le dépôt sont conciliés entre eux chaque jour"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_health.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 2,
+      "stem": {
+        "en": "What percentage of booked appointments didn't happen last month, and what does the system do about it automatically?",
+        "fr": "Quel pourcentage des rendez-vous pris n'ont pas eu lieu le mois dernier, et que fait le système automatiquement à ce sujet?"
+      },
+      "help": {
+        "en": "Missed appointments and short-notice cancellations together. Our reference figure here is dental-specific — if you are a physiotherapy, chiropractic or massage clinic we will compare you to yourself instead.",
+        "fr": "Les rendez-vous manqués et les annulations de dernière minute ensemble. Notre chiffre de référence ici est propre à la dentisterie — si vous êtes une clinique de physiothérapie, de chiropratique ou de massothérapie, nous vous comparerons plutôt à vous-même."
+      },
+      "instruments": [
+        "quiz",
+        "audit"
+      ],
+      "benchmark_ref": "dental_no_show_rate",
+      "reveals": [
+        "no_show_rate_pct"
+      ],
+      "artifact_probe": {
+        "en": "Pull last month's schedule and show me the cancelled and missed slots. Then show me what was booked into them.",
+        "fr": "Sortez l'horaire du mois dernier et montrez-moi les plages annulées et manquées. Puis montrez-moi ce qui y a été replacé."
+      },
+      "options": [
+        {
+          "value": "nobody_knows",
+          "label": {
+            "en": "Nobody knows — we feel it, but the number isn't anywhere",
+            "fr": "Personne ne le sait — on le ressent, mais le chiffre n'est nulle part"
+          },
+          "level": 1,
+          "flag": "no_show_unmeasured",
+          "reveals": {
+            "no_show_rate_pct": null
+          }
+        },
+        {
+          "value": "counted_by_hand",
+          "label": {
+            "en": "We could count them by hand off last month's schedule, and the front desk phones people when there's time",
+            "fr": "On pourrait les compter à la main sur l'horaire du mois dernier, et la réception téléphone aux gens quand il y a du temps"
+          },
+          "level": 2
+        },
+        {
+          "value": "report_exists_no_action",
+          "label": {
+            "en": "The system reports the rate, and reminders go out, but nothing fills the empty slot",
+            "fr": "Le système rapporte le taux, et des rappels sont envoyés, mais rien ne remplit la plage libérée"
+          },
+          "level": 3
+        },
+        {
+          "value": "reminders_and_waitlist",
+          "label": {
+            "en": "Automated rappels go out and a waiting list gets offered the slot",
+            "fr": "Des rappels automatisés sont envoyés et une liste d'attente se fait offrir la plage"
+          },
+          "level": 4
+        },
+        {
+          "value": "measured_and_managed",
+          "label": {
+            "en": "All of that, and the rate is reviewed monthly by practitioner with something actually done about the outliers",
+            "fr": "Tout cela, et le taux est révisé mensuellement par praticien, avec une action réelle sur les cas extrêmes"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_health.sched.q02",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.75,
+      "stem": {
+        "en": "How many patients are overdue for a recall right now, and what triggers the outreach?",
+        "fr": "Combien de patients sont en retard pour un rappel de patient en ce moment, et qu'est-ce qui déclenche la relance?"
+      },
+      "help": {
+        "en": "This list is usually the cheapest revenue in the building. Our reference rate is dental-specific; we will use your own average revenue per visit to value it.",
+        "fr": "Cette liste est habituellement le revenu le moins coûteux de la clinique. Notre taux de référence est propre à la dentisterie; nous utiliserons votre revenu moyen par visite pour la valoriser."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "benchmark_ref": "dental_recall_rate",
+      "reveals": [
+        "recall_overdue_count"
+      ],
+      "artifact_probe": {
+        "en": "Produce the overdue recall list on screen right now, and tell me the date of the last outreach that went out from it.",
+        "fr": "Produisez la liste des rappels en retard à l'écran maintenant, et dites-moi la date de la dernière relance qui en est partie."
+      },
+      "options": [
+        {
+          "value": "in_head",
+          "label": {
+            "en": "There is no list — the practitioners remember who they haven't seen",
+            "fr": "Il n'y a pas de liste — les praticiens se souviennent de qui ils n'ont pas revu"
+          },
+          "level": 1,
+          "flag": "no_recall_list"
+        },
+        {
+          "value": "spreadsheet_when_quiet",
+          "label": {
+            "en": "A spreadsheet or a card file, worked when the schedule is quiet",
+            "fr": "Un chiffrier ou un fichier de cartes, travaillé quand l'horaire est tranquille"
+          },
+          "level": 2
+        },
+        {
+          "value": "system_list_manual",
+          "label": {
+            "en": "The system can produce the list, and someone calls through it when they get to it",
+            "fr": "Le système peut produire la liste, et quelqu'un la rappelle quand il y arrive"
+          },
+          "level": 3
+        },
+        {
+          "value": "automated_outreach",
+          "label": {
+            "en": "Outreach goes out automatically on a schedule and bookings come back in",
+            "fr": "La relance part automatiquement selon un calendrier et des rendez-vous rentrent"
+          },
+          "level": 4
+        },
+        {
+          "value": "measured_conversion",
+          "label": {
+            "en": "That, and we measure what share of the recall list actually rebooked",
+            "fr": "Cela, et nous mesurons quelle proportion de la liste de rappels a réellement repris rendez-vous"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_health.sched.q03",
+      "dimension": "scheduling_capacity",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "Out of 100 available practitioner hours last month, how many were actually booked?",
+        "fr": "Sur 100 heures de praticien disponibles le mois dernier, combien ont réellement été réservées?"
+      },
+      "help": {
+        "en": "We don't apply a published utilization figure here — the ones that exist are dental and denominated differently. We use your number and we track it against itself.",
+        "fr": "Nous n'appliquons pas de taux d'utilisation publié ici — ceux qui existent sont dentaires et calculés autrement. Nous utilisons votre chiffre et nous le suivons par rapport à lui-même."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "reveals": [
+        "schedule_fill_pct"
+      ],
+      "artifact_probe": {
+        "en": "Show me one practitioner's posted availability for last month next to what was booked into it.",
+        "fr": "Montrez-moi les disponibilités affichées d'un praticien pour le mois dernier à côté de ce qui y a été réservé."
+      },
+      "numeric": {
+        "unit": {
+          "en": "hours booked out of 100 available",
+          "fr": "heures réservées sur 100 disponibles"
+        },
+        "min": 0,
+        "max": 100,
+        "integer": true,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          {
+            "lt": 50,
+            "level": 1,
+            "label": {
+              "en": "Half the capacity is unsold",
+              "fr": "La moitié de la capacité est invendue"
+            }
+          },
+          {
+            "lt": 65,
+            "level": 2,
+            "label": {
+              "en": "Materially underbooked",
+              "fr": "Nettement sous-réservé"
+            }
+          },
+          {
+            "lt": 80,
+            "level": 3,
+            "label": {
+              "en": "Ordinary",
+              "fr": "Ordinaire"
+            }
+          },
+          {
+            "lt": 92,
+            "level": 4,
+            "label": {
+              "en": "Well booked",
+              "fr": "Bien réservé"
+            }
+          },
+          {
+            "gte": 92,
+            "level": 5,
+            "label": {
+              "en": "Full, and measured",
+              "fr": "Plein, et mesuré"
+            }
+          }
+        ]
+      }
+    },
+    {
+      "id": "ind_health.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 2,
+      "stem": {
+        "en": "What was the gap between what you produced and what you collected last quarter, and can you explain the difference line by line?",
+        "fr": "Quel était l'écart entre votre production et ce que vous avez perçu le dernier trimestre, et pouvez-vous expliquer la différence ligne par ligne?"
+      },
+      "help": {
+        "en": "Production versus collection. Write-offs, adjustments, insurer shortfalls, unbilled patient balances — each one is a different problem with a different fix.",
+        "fr": "Production contre perception. Radiations, ajustements, manques des assureurs, soldes de patients non facturés — chacun est un problème différent avec une solution différente."
+      },
+      "instruments": [
+        "quiz",
+        "audit"
+      ],
+      "benchmark_ref": "dental_collection_rate",
+      "reveals": [
+        "production_collection_gap_pct"
+      ],
+      "artifact_probe": {
+        "en": "Produce the production-versus-collection report for last quarter and let's walk the variance together.",
+        "fr": "Produisez le rapport de production contre perception du dernier trimestre et parcourons l'écart ensemble."
+      },
+      "options": [
+        {
+          "value": "cannot_produce",
+          "label": {
+            "en": "We couldn't produce those two numbers to compare",
+            "fr": "Nous ne pourrions pas produire ces deux chiffres pour les comparer"
+          },
+          "level": 1,
+          "flag": "production_vs_collection_blind"
+        },
+        {
+          "value": "know_gap_not_why",
+          "label": {
+            "en": "We know roughly what the gap is, but not what makes it up",
+            "fr": "Nous connaissons l'écart approximatif, mais pas ce qui le compose"
+          },
+          "level": 2
+        },
+        {
+          "value": "manual_reconstruction",
+          "label": {
+            "en": "Someone can reconstruct it over a day or two of digging",
+            "fr": "Quelqu'un peut le reconstituer après une journée ou deux de fouille"
+          },
+          "level": 3
+        },
+        {
+          "value": "report_exists",
+          "label": {
+            "en": "A report shows both and breaks the difference into reasons",
+            "fr": "Un rapport montre les deux et décompose la différence par motif"
+          },
+          "level": 4
+        },
+        {
+          "value": "reviewed_monthly",
+          "label": {
+            "en": "That, and it's reviewed monthly with a target and a named owner",
+            "fr": "Cela, et il est révisé mensuellement avec une cible et un responsable nommé"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_health.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.75,
+      "stem": {
+        "en": "How many claims were rejected or returned last month?",
+        "fr": "Combien de réclamations ont été rejetées ou retournées le mois dernier?"
+      },
+      "help": {
+        "en": "A count, across every payer. Our reference denial rates come from a US practice-management study — the ratio transfers better than the number, and we will say so in the report.",
+        "fr": "Un nombre, pour tous les payeurs. Nos taux de refus de référence proviennent d'une étude américaine de gestion de cliniques — le ratio se transpose mieux que le chiffre, et nous le dirons dans le rapport."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "benchmark_ref": "mgma_initial_denial_rate",
+      "reveals": [
+        "claims_rejected_last_month"
+      ],
+      "artifact_probe": {
+        "en": "Open last month's rejection or denial list in whichever system holds it.",
+        "fr": "Ouvrez la liste des refus ou des rejets du mois dernier dans le système qui la contient."
+      },
+      "numeric": {
+        "unit": {
+          "en": "claims rejected last month",
+          "fr": "réclamations rejetées le mois dernier"
+        },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          {
+            "lte": 0,
+            "level": 5
+          },
+          {
+            "lte": 5,
+            "level": 4
+          },
+          {
+            "lte": 20,
+            "level": 3
+          },
+          {
+            "lte": 60,
+            "level": 2
+          },
+          {
+            "gt": 60,
+            "level": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "ind_health.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "Per month, how many hours does someone spend reworking and resubmitting those rejected claims?",
+        "fr": "Par mois, combien d'heures quelqu'un consacre-t-il à retravailler et à retransmettre ces réclamations rejetées?"
+      },
+      "help": {
+        "en": "There is no published figure for this and we won't invent one. Your best estimate, and a conservative one is more useful than a generous one.",
+        "fr": "Il n'existe aucun chiffre publié pour cela et nous n'en inventerons pas. Votre meilleure estimation, et une estimation prudente est plus utile qu'une généreuse."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "reveals": [
+        "claim_rework_hours_month"
+      ],
+      "artifact_probe": {
+        "en": "Ask the person who does it to walk me through one rejection from notice to resubmission.",
+        "fr": "Demandez à la personne qui le fait de me montrer un refus, de l'avis jusqu'à la retransmission."
+      },
+      "numeric": {
+        "unit": {
+          "en": "hours per month",
+          "fr": "heures par mois"
+        },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          {
+            "lte": 1,
+            "level": 5
+          },
+          {
+            "lte": 4,
+            "level": 4
+          },
+          {
+            "lte": 12,
+            "level": 3
+          },
+          {
+            "lte": 30,
+            "level": 2
+          },
+          {
+            "gt": 30,
+            "level": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "ind_health.fin.q01",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "Across all payers, how many days of billings are sitting in your receivables?",
+        "fr": "Pour tous les payeurs confondus, combien de jours de facturation dorment dans vos comptes clients?"
+      },
+      "help": {
+        "en": "Our reference range comes from a US practice-management study and Canadian public-plan remittance cycles differ — we will state that where we use it.",
+        "fr": "Notre fourchette de référence provient d'une étude américaine de gestion de cliniques et les cycles de remboursement des régimes publics canadiens diffèrent — nous le préciserons là où nous l'utilisons."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "benchmark_ref": "mgma_days_in_ar",
+      "reveals": [
+        "days_in_ar"
+      ],
+      "artifact_probe": {
+        "en": "Pull the aged receivables by payer — public plan, insurers, third parties, patients — on one screen.",
+        "fr": "Sortez le vieillissement des comptes clients par payeur — régime public, assureurs, tiers payeurs, patients — sur un seul écran."
+      },
+      "numeric": {
+        "unit": {
+          "en": "days",
+          "fr": "jours"
+        },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          {
+            "lte": 30,
+            "level": 5
+          },
+          {
+            "lte": 40,
+            "level": 4
+          },
+          {
+            "lte": 60,
+            "level": 3
+          },
+          {
+            "lte": 90,
+            "level": 2
+          },
+          {
+            "gt": 90,
+            "level": 1
+          }
+        ]
+      }
+    },
+    {
+      "id": "ind_health.ppl.q01",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1.75,
+      "stem": {
+        "en": "How is each practitioner's compensation calculated, and in what tool?",
+        "fr": "Comment la rémunération de chaque praticien est-elle calculée, et dans quel outil?"
+      },
+      "help": {
+        "en": "Percentage splits, associate fee splits, room or chair rent, honoraires on collections rather than production — and who can reproduce the calculation if that person is away.",
+        "fr": "Pourcentages de partage, partage d'honoraires avec les associés, loyer de salle ou de fauteuil, honoraires sur les perceptions plutôt que sur la production — et qui peut reproduire le calcul si cette personne est absente."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "notes": "Almost always a monthly spreadsheet maintained by one person, and almost always the clinic's biggest single point of failure. It is also the one piece of this sector's back office we can genuinely take over, provided the collections data reaches us (ind_health.sys.q02). Note whether the split is computed on collections or on production — clients often cannot say, and the two give different answers.",
+      "reveals": [
+        "comp_calc_hours_per_cycle"
+      ],
+      "artifact_probe": {
+        "en": "Open last month's calculation for one practitioner and walk me through every input.",
+        "fr": "Ouvrez le calcul du mois dernier pour un praticien et expliquez-moi chaque donnée d'entrée."
+      },
+      "options": [
+        {
+          "value": "owner_head",
+          "label": {
+            "en": "The owner works it out, largely from memory and judgment",
+            "fr": "Le propriétaire le détermine, en grande partie de mémoire et au jugement"
+          },
+          "level": 1,
+          "flag": "comp_calc_single_point",
+          "reveals": {
+            "comp_calc_hours_per_cycle": 8
+          }
+        },
+        {
+          "value": "one_spreadsheet",
+          "label": {
+            "en": "One person's spreadsheet that nobody else can explain",
+            "fr": "Le chiffrier d'une seule personne que personne d'autre ne peut expliquer"
+          },
+          "level": 2,
+          "flag": "comp_calc_single_point",
+          "reveals": {
+            "comp_calc_hours_per_cycle": 10
+          }
+        },
+        {
+          "value": "documented_spreadsheet",
+          "label": {
+            "en": "A spreadsheet, plus the agreements written down so a second person could redo it",
+            "fr": "Un chiffrier, plus les ententes écrites pour qu'une deuxième personne puisse le refaire"
+          },
+          "level": 3,
+          "reveals": {
+            "comp_calc_hours_per_cycle": 6
+          }
+        },
+        {
+          "value": "system_calculated",
+          "label": {
+            "en": "A system calculates it from the agreement and the collections, and produces a statement each practitioner can read",
+            "fr": "Un système le calcule à partir de l'entente et des perceptions, et produit un état que chaque praticien peut lire"
+          },
+          "level": 4,
+          "reveals": {
+            "comp_calc_hours_per_cycle": 2
+          }
+        },
+        {
+          "value": "system_and_disputes",
+          "label": {
+            "en": "That, and we track how often a practitioner queries their statement and why",
+            "fr": "Cela, et nous suivons la fréquence des questions d'un praticien sur son état et leurs motifs"
+          },
+          "level": 5,
+          "reveals": {
+            "comp_calc_hours_per_cycle": 1
+          }
+        }
+      ]
+    },
+    {
+      "id": "ind_health.data.q01",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "If I asked for production per clinical hour by practitioner for last month, how long until I had it?",
+        "fr": "Si je demandais la production par heure clinique et par praticien pour le mois dernier, combien de temps avant de l'avoir?"
+      },
+      "help": {
+        "en": "We are asking about the retrieval time, not the figure. The published dollar figures for this are dental and we would not apply them to another discipline.",
+        "fr": "Nous demandons le temps de récupération, pas le montant. Les montants publiés pour cet indicateur sont dentaires et nous ne les appliquerions pas à une autre discipline."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "notes": "The reporting layer above the practice-management system is the most sellable piece of work in this sector, and this question sizes it. Multi-site clinics are almost always at level 1 or 2 because each site's system reports separately.",
+      "artifact_probe": {
+        "en": "Try it now. I'll wait.",
+        "fr": "Essayez maintenant. J'attends."
+      },
+      "options": [
+        {
+          "value": "cannot",
+          "label": {
+            "en": "We couldn't produce it at all",
+            "fr": "Nous ne pourrions pas la produire du tout"
+          },
+          "level": 1
+        },
+        {
+          "value": "days",
+          "label": {
+            "en": "A few days, pulling it together from each system by hand",
+            "fr": "Quelques jours, en l'assemblant à la main à partir de chaque système"
+          },
+          "level": 2
+        },
+        {
+          "value": "hours",
+          "label": {
+            "en": "A few hours of work in a spreadsheet",
+            "fr": "Quelques heures de travail dans un chiffrier"
+          },
+          "level": 3
+        },
+        {
+          "value": "minutes",
+          "label": {
+            "en": "Minutes, from a report that already exists",
+            "fr": "Quelques minutes, à partir d'un rapport qui existe déjà"
+          },
+          "level": 4
+        },
+        {
+          "value": "reviewed",
+          "label": {
+            "en": "It's already on a screen, and the practitioners and the owner review it together on a cadence",
+            "fr": "C'est déjà à l'écran, et les praticiens et le propriétaire le révisent ensemble à intervalles réguliers"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_health.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Consumables, materials and anything implanted or dispensed — how do you know what's on hand and what a procedure consumed?",
+        "fr": "Les consommables, les matériaux et tout ce qui est implanté ou délivré — comment savez-vous ce qui est en main et ce qu'une intervention a consommé?"
+      },
+      "instruments": [
+        "audit"
+      ],
+      "artifact_probe": {
+        "en": "Show me the supply order you placed most recently and what decided its quantities.",
+        "fr": "Montrez-moi la dernière commande de fournitures que vous avez passée et ce qui a déterminé ses quantités."
+      },
+      "options": [
+        {
+          "value": "na",
+          "label": {
+            "en": "We consume essentially nothing — no materials, no products dispensed",
+            "fr": "Nous ne consommons pratiquement rien — aucun matériau, aucun produit délivré"
+          },
+          "na": true
+        },
+        {
+          "value": "when_out",
+          "label": {
+            "en": "Someone notices a cupboard is empty and orders",
+            "fr": "Quelqu'un remarque qu'une armoire est vide et commande"
+          },
+          "level": 1
+        },
+        {
+          "value": "assistant_knows",
+          "label": {
+            "en": "An assistant knows what to reorder and when",
+            "fr": "Un assistant sait quoi recommander et quand"
+          },
+          "level": 2
+        },
+        {
+          "value": "counted_tracked",
+          "label": {
+            "en": "Stock is counted and tracked, but consumption isn't tied to the procedure",
+            "fr": "Le stock est compté et suivi, mais la consommation n'est pas rattachée à l'intervention"
+          },
+          "level": 3
+        },
+        {
+          "value": "tied_to_procedure",
+          "label": {
+            "en": "Consumption is recorded against the procedure, so we know material cost per case",
+            "fr": "La consommation est consignée contre l'intervention, donc nous connaissons le coût des matériaux par cas"
+          },
+          "level": 4
+        },
+        {
+          "value": "cost_reviewed",
+          "label": {
+            "en": "That, and material cost per case is reviewed against the fee we charge for it",
+            "fr": "Cela, et le coût des matériaux par cas est révisé contre les honoraires que nous facturons"
+          },
+          "level": 5
+        }
+      ]
+    },
+    {
+      "id": "ind_health.comp.q01",
+      "dimension": "compliance_risk",
+      "type": "multi",
+      "weight": 0,
+      "stem": {
+        "en": "Who pays you, and through what channel does each one get billed? Check every one that applies.",
+        "fr": "Qui vous paie, et par quel canal chacun est-il facturé? Cochez tous ceux qui s'appliquent."
+      },
+      "help": {
+        "en": "Each channel has its own fee schedule and its own remittance format. We cannot submit to any of them — we need to know how many there are to know what reaches our side and when.",
+        "fr": "Chaque canal a sa propre grille d'honoraires et son propre format de remboursement. Nous ne pouvons transmettre à aucun d'eux — nous devons savoir combien il y en a pour savoir ce qui nous parvient et quand."
+      },
+      "instruments": [
+        "audit"
+      ],
+      "notes": "SECOND BOUNDARY QUESTION. Unscored: it is the integration estimate, not a maturity reading. We cannot submit to a provincial plan, to an insurer clearing house or to a third-party board, full stop — each box checked here is somebody else's software and our scope begins at the remittance coming back. Four payers on one encounter, each with its own fee schedule and remittance format, is normal in this market and is the single biggest driver of back-office labour.",
+      "reveals": [
+        "payer_channels_count"
+      ],
+      "artifact_probe": {
+        "en": "Show me one remittance from each payer you checked, as it actually arrives.",
+        "fr": "Montrez-moi un remboursement de chaque payeur que vous avez coché, tel qu'il arrive réellement."
+      },
+      "options": [
+        {
+          "value": "public_plan",
+          "label": {
+            "en": "A provincial public plan",
+            "fr": "Un régime public provincial"
+          },
+          "informational": true
+        },
+        {
+          "value": "private_insurer_assigned",
+          "label": {
+            "en": "Private insurers, billed directly by us — assignation",
+            "fr": "Des assureurs privés, facturés directement par nous — assignation"
+          },
+          "informational": true
+        },
+        {
+          "value": "private_insurer_patient_claims",
+          "label": {
+            "en": "Private insurers, where the patient pays us and claims it back themselves",
+            "fr": "Des assureurs privés, où le patient nous paie et réclame lui-même"
+          },
+          "informational": true
+        },
+        {
+          "value": "third_party_board",
+          "label": {
+            "en": "A workplace-injury or auto-insurance board",
+            "fr": "Un organisme d'accidents du travail ou d'assurance automobile"
+          },
+          "informational": true
+        },
+        {
+          "value": "self_pay",
+          "label": {
+            "en": "Patients paying for themselves",
+            "fr": "Des patients qui paient eux-mêmes"
+          },
+          "informational": true
+        },
+        {
+          "value": "memberships",
+          "label": {
+            "en": "Memberships or treatment plans paid in instalments",
+            "fr": "Des adhésions ou des plans de traitement payés en versements"
+          },
+          "informational": true
+        },
+        {
+          "value": "employer_contracts",
+          "label": {
+            "en": "Employers or institutions under contract",
+            "fr": "Des employeurs ou des institutions sous contrat"
+          },
+          "informational": true
+        },
+        {
+          "value": "retail_taxable",
+          "label": {
+            "en": "Retail products or services that are taxable even though your care isn't",
+            "fr": "Des produits ou services de détail taxables même si vos soins ne le sont pas"
+          },
+          "informational": true,
+          "flag": "mixed_supply_tax_tracking"
+        }
+      ]
+    },
+    {
+      "id": "ind_health.comp.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "If a patient asked who in your clinic has opened their file in the last year, could you answer?",
+        "fr": "Si un patient demandait qui, dans votre clinique, a ouvert son dossier au cours de la dernière année, pourriez-vous répondre?"
+      },
+      "instruments": [
+        "audit"
+      ],
+      "notes": "Patient files are the most sensitive personal information a business of this size holds, and the clinical system — not ours — is where the access trail has to live. We have no protected-health-information audit trail and must not be scoped as if we did. This question also tells you whether the base compliance layer's findings are going to be serious.",
+      "artifact_probe": {
+        "en": "Open the access log in the clinical system for any one patient file.",
+        "fr": "Ouvrez le journal d'accès du système clinique pour un dossier de patient quelconque."
+      },
+      "options": [
+        {
+          "value": "no_log",
+          "label": {
+            "en": "No — there's no record of who looked at what",
+            "fr": "Non — il n'y a aucune trace de qui a consulté quoi"
+          },
+          "level": 1,
+          "flag": "no_access_trail"
+        },
+        {
+          "value": "shared_logins",
+          "label": {
+            "en": "No — the front desk shares a login, so the log wouldn't mean anything",
+            "fr": "Non — la réception partage un identifiant, donc le journal ne voudrait rien dire"
+          },
+          "level": 1,
+          "flag": "shared_credentials"
+        },
+        {
+          "value": "log_exists_unused",
+          "label": {
+            "en": "The system keeps a log, but nobody has ever opened it",
+            "fr": "Le système tient un journal, mais personne ne l'a jamais ouvert"
+          },
+          "level": 3
+        },
+        {
+          "value": "individual_logins_log",
+          "label": {
+            "en": "Everyone has their own login and the log is there if we need it",
+            "fr": "Chacun a son propre identifiant et le journal est là si nous en avons besoin"
+          },
+          "level": 4
+        },
+        {
+          "value": "reviewed_and_policy",
+          "label": {
+            "en": "That, and access rights are reviewed periodically against a written policy",
+            "fr": "Cela, et les droits d'accès sont révisés périodiquement selon une politique écrite"
+          },
+          "level": 5
+        }
+      ]
+    }
+  ]
+}

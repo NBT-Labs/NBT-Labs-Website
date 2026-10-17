@@ -1,0 +1,365 @@
+{
+  "bank_id": "layer_size_stack",
+  "bank_version": "1.0.0",
+  "layer": "size_stack",
+  "label": {
+    "en": "What has to move — current systems and data",
+    "fr": "Ce qui doit être déplacé — systèmes et données actuels"
+  },
+  "notes": "This layer sizes the MIGRATION, not the process. Served in every audit; the router activates it from base.firmo.q07, which names what the business runs on today. Nothing here is a judgement about the current system — these are inventory questions, and the honest answer to several of them is 'nobody knows', which is a scored level 1 and usually the most useful answer in the bank. No reweight: the migration estimate is a cost-model output, not a maturity score, and inflating a dimension because the data is messy would double-count it. The five numeric counts are the direct inputs to the implementation estimate: a chart of accounts with hundreds of accounts, a product file nobody has pruned, a customer file with known duplicates and a shelf of must-keep spreadsheets are each a separate line of work, and they are the lines that get underquoted. REVEALS KEYS INTRODUCED: history_years_to_migrate (years of transaction history that must come forward, versus staying readable in the old system), gl_account_count (accounts in the current chart of accounts), active_product_count (products or services active in the last 12 months), active_customer_count (customers invoiced in the last 12 months), must_keep_spreadsheet_count (spreadsheets the business could not operate without), custom_report_count (custom or hand-built reports someone would miss), export_feasible (whether a full export of the current data is actually obtainable, and who holds the credentials to produce it). No benchmark_ref anywhere in this bank: there is no defensible published figure for any of these counts, and inventing a peer comparison for 'how many accounts should you have' would be the kind of number a controller correctly refuses.",
+  "questions": [
+    {
+      "id": "layer_size_stack.hist.q01",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "How far back does your transaction history go, and does it have to come with you?",
+        "fr": "Jusqu'où remonte votre historique de transactions, et doit-il vous suivre?"
+      },
+      "help": {
+        "en": "History that only needs to stay readable costs far less than history that has to be live in the new system.",
+        "fr": "Un historique qui doit seulement rester consultable coûte bien moins cher qu'un historique qui doit être vivant dans le nouveau système."
+      },
+      "instruments": ["audit"],
+      "reveals": ["history_years_to_migrate"],
+      "options": [
+        { "value": "unknown", "label": { "en": "I don't know how far back it goes", "fr": "Je ne sais pas jusqu'où ça remonte" }, "level": 1, "reveals": { "history_years_to_migrate": null } },
+        { "value": "all_must_move", "label": { "en": "Years of it, and all of it has to be in the new system", "fr": "Des années, et tout doit être dans le nouveau système" }, "level": 2, "flag": "full_history_migration_demanded", "reveals": { "history_years_to_migrate": 10 } },
+        { "value": "some_must_move", "label": { "en": "Years of it, and a couple of years have to come forward", "fr": "Des années, et deux ou trois ans doivent être reportés" }, "level": 3, "reveals": { "history_years_to_migrate": 2 } },
+        { "value": "balances_only", "label": { "en": "Opening balances and open items are enough; the rest stays readable where it is", "fr": "Les soldes d'ouverture et les postes ouverts suffisent; le reste reste consultable où il est" }, "level": 4, "reveals": { "history_years_to_migrate": 0 } },
+        { "value": "balances_only_agreed", "label": { "en": "That, and it's already agreed in writing with whoever signs off the books", "fr": "Cela, et c'est déjà convenu par écrit avec la personne qui approuve les livres" }, "level": 5, "reveals": { "history_years_to_migrate": 0 } }
+      ]
+    },
+    {
+      "id": "layer_size_stack.hist.q02",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Who holds the administrator password to each system you run on today?",
+        "fr": "Qui détient le mot de passe administrateur de chacun des systèmes sur lesquels vous roulez aujourd'hui?"
+      },
+      "instruments": ["audit"],
+      "reveals": ["export_feasible"],
+      "notes": "The question that stops a migration dead. A former bookkeeper, a departed IT contractor or a dissolved vendor holding the only admin account turns a two-week extract into a legal errand.",
+      "artifact_probe": {
+        "en": "Log in as administrator on the main system, right now, and run an export of the customer list.",
+        "fr": "Connectez-vous comme administrateur au système principal, maintenant, et lancez une extraction de la liste de clients."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I'd have to ask our IT person, and I'm not sure they have it either", "fr": "Il faudrait que je demande à notre personne en TI, et je ne suis pas sûr qu'elle l'ait non plus" }, "level": 1, "flag": "admin_credentials_unknown", "reveals": { "export_feasible": null } },
+        { "value": "outside_party", "label": { "en": "An outside bookkeeper or a former contractor holds it", "fr": "Un teneur de livres externe ou un ancien contractuel le détient" }, "level": 2, "flag": "admin_credentials_external", "reveals": { "export_feasible": "at_risk" } },
+        { "value": "one_person", "label": { "en": "One person here has it, and nobody else", "fr": "Une seule personne ici l'a, et personne d'autre" }, "level": 2, "reveals": { "export_feasible": true } },
+        { "value": "two_people", "label": { "en": "Two people here have it", "fr": "Deux personnes ici l'ont" }, "level": 3, "reveals": { "export_feasible": true } },
+        { "value": "inventoried", "label": { "en": "There's a written list of systems and who holds each account", "fr": "Il y a une liste écrite des systèmes et de qui détient chaque compte" }, "level": 4, "reveals": { "export_feasible": true } },
+        { "value": "inventoried_tested", "label": { "en": "That, and we've actually pulled a full export from each one", "fr": "Cela, et nous avons réellement sorti une extraction complète de chacun" }, "level": 5, "reveals": { "export_feasible": true } }
+      ]
+    },
+    {
+      "id": "layer_size_stack.fin.q01",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Has anyone reworked your chart of accounts in the last five years?",
+        "fr": "Quelqu'un a-t-il revu votre plan comptable au cours des cinq dernières années?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Print the chart of accounts and let's look at how many accounts have had no activity in two years.",
+        "fr": "Imprimez le plan comptable et regardons combien de comptes n'ont eu aucune activité depuis deux ans."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I'd have to ask our accountant", "fr": "Il faudrait que je demande à notre comptable" }, "level": 1 },
+        { "value": "never", "label": { "en": "No — it's whatever the software came with, plus whatever got added", "fr": "Non — c'est ce qui venait avec le logiciel, plus ce qui s'est ajouté" }, "level": 1 },
+        { "value": "accounts_added", "label": { "en": "Accounts get added when someone needs one; nothing is ever retired", "fr": "Des comptes s'ajoutent quand quelqu'un en a besoin; rien n'est jamais retiré" }, "level": 2 },
+        { "value": "tidied_once", "label": { "en": "It was tidied up once, by our accountant", "fr": "Il a été nettoyé une fois, par notre comptable" }, "level": 3 },
+        { "value": "structured", "label": { "en": "It was rebuilt deliberately, to match how we report", "fr": "Il a été refait délibérément, pour correspondre à notre façon de rapporter" }, "level": 4 },
+        { "value": "structured_reviewed", "label": { "en": "That, and new accounts need approval against a written structure", "fr": "Cela, et les nouveaux comptes exigent une approbation selon une structure écrite" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_size_stack.fin.q02",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "How many accounts are in your chart of accounts?",
+        "fr": "Combien de comptes compte votre plan comptable?"
+      },
+      "help": {
+        "en": "A count from the system, not an estimate. Every account has to be mapped, so this one drives real hours.",
+        "fr": "Un nombre tiré du système, pas une estimation. Chaque compte doit être mappé, donc celui-ci génère de vraies heures."
+      },
+      "instruments": ["audit"],
+      "reveals": ["gl_account_count"],
+      "artifact_probe": {
+        "en": "Open the account list and read me the record count at the bottom.",
+        "fr": "Ouvrez la liste des comptes et lisez-moi le nombre d'enregistrements au bas."
+      },
+      "numeric": {
+        "unit": { "en": "accounts", "fr": "comptes" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 150, "level": 5, "label": { "en": "Tight", "fr": "Serré" } },
+          { "lte": 300, "level": 4, "label": { "en": "Normal", "fr": "Normal" } },
+          { "lte": 600, "level": 3, "label": { "en": "Heavy", "fr": "Lourd" } },
+          { "lte": 1200, "level": 2, "label": { "en": "Needs rework", "fr": "À refaire" } },
+          { "gt": 1200, "level": 1, "label": { "en": "Rebuild, not migrate", "fr": "À reconstruire, pas à migrer" } }
+        ]
+      }
+    },
+    {
+      "id": "layer_size_stack.data.q01",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "How are your customer, product and supplier records identified, and do you know there are duplicates?",
+        "fr": "Comment vos fiches clients, produits et fournisseurs sont-elles identifiées, et savez-vous s'il y a des doublons?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Search the customer list for one company name you deal with a lot and let's count how many records come back.",
+        "fr": "Cherchez dans la liste de clients le nom d'une entreprise avec qui vous faites beaucoup affaire et comptons combien de fiches ressortent."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I don't know how they're identified", "fr": "Je ne sais pas comment elles sont identifiées" }, "level": 1 },
+        { "value": "name_only_dupes", "label": { "en": "By name, typed in freely, and yes there are duplicates", "fr": "Par le nom, saisi librement, et oui il y a des doublons" }, "level": 1, "flag": "known_duplicates" },
+        { "value": "codes_inconsistent", "label": { "en": "There are codes, but people don't follow the same rule", "fr": "Il y a des codes, mais les gens ne suivent pas la même règle" }, "level": 2, "flag": "known_duplicates" },
+        { "value": "codes_consistent", "label": { "en": "A consistent code per record, set by whoever creates it", "fr": "Un code uniforme par fiche, attribué par la personne qui la crée" }, "level": 3 },
+        { "value": "system_assigned", "label": { "en": "The system assigns the code and blocks obvious duplicates", "fr": "Le système attribue le code et bloque les doublons évidents" }, "level": 4 },
+        { "value": "owned_and_checked", "label": { "en": "That, and someone reviews the file for duplicates on a cadence", "fr": "Cela, et quelqu'un révise le fichier pour les doublons à intervalles réguliers" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_size_stack.data.q02",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "How many products or services have been sold at least once in the last 12 months?",
+        "fr": "Combien de produits ou de services ont été vendus au moins une fois au cours des 12 derniers mois?"
+      },
+      "help": {
+        "en": "Active ones, not everything that's ever existed in the file. The gap between those two numbers is usually the finding.",
+        "fr": "Les actifs, pas tout ce qui a existé dans le fichier. L'écart entre ces deux chiffres est souvent la découverte."
+      },
+      "instruments": ["audit"],
+      "reveals": ["active_product_count"],
+      "numeric": {
+        "unit": { "en": "products or services", "fr": "produits ou services" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 200, "level": 5 },
+          { "lte": 1000, "level": 4 },
+          { "lte": 5000, "level": 3 },
+          { "lte": 20000, "level": 2 },
+          { "gt": 20000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "layer_size_stack.data.q03",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "How many customers did you invoice at least once in the last 12 months?",
+        "fr": "Combien de clients avez-vous facturés au moins une fois au cours des 12 derniers mois?"
+      },
+      "instruments": ["audit"],
+      "reveals": ["active_customer_count"],
+      "artifact_probe": {
+        "en": "Run the sales-by-customer report for the last 12 months and read me the row count.",
+        "fr": "Lancez le rapport des ventes par client des 12 derniers mois et lisez-moi le nombre de lignes."
+      },
+      "numeric": {
+        "unit": { "en": "customers", "fr": "clients" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 100, "level": 5 },
+          { "lte": 500, "level": 4 },
+          { "lte": 2500, "level": 3 },
+          { "lte": 10000, "level": 2 },
+          { "gt": 10000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "layer_size_stack.sys.q01",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Is your current main system still supported by whoever sold it, and when was it last updated?",
+        "fr": "Votre système principal actuel est-il encore soutenu par celui qui l'a vendu, et quand a-t-il été mis à jour pour la dernière fois?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the version number on the About screen, and the last invoice from the vendor.",
+        "fr": "Montrez-moi le numéro de version dans l'écran À propos, et la dernière facture du fournisseur."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I'd have to ask our IT person", "fr": "Il faudrait que je demande à notre personne en TI" }, "level": 1 },
+        { "value": "unsupported", "label": { "en": "No — nobody supports it any more", "fr": "Non — personne ne le soutient plus" }, "level": 1, "flag": "unsupported_system" },
+        { "value": "supported_old_version", "label": { "en": "Supported in principle, but we're several versions behind", "fr": "Soutenu en principe, mais nous avons plusieurs versions de retard" }, "level": 2 },
+        { "value": "supported_updated", "label": { "en": "Supported, and updated within the last year", "fr": "Soutenu, et mis à jour au cours de la dernière année" }, "level": 3 },
+        { "value": "current", "label": { "en": "On a current version, with a support contract in force", "fr": "Sur une version à jour, avec un contrat de soutien en vigueur" }, "level": 4 },
+        { "value": "current_planned", "label": { "en": "That, and upgrades are scheduled rather than reactive", "fr": "Cela, et les mises à niveau sont planifiées plutôt que réactives" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_size_stack.sys.q02",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "What is living in a spreadsheet that the business could not run without?",
+        "fr": "Qu'est-ce qui vit dans un chiffrier sans lequel l'entreprise ne pourrait pas rouler?"
+      },
+      "instruments": ["audit"],
+      "notes": "The highest-yield question in this bank. The spreadsheet the business cannot operate without is the real specification for the new system, and it is almost never in the RFP.",
+      "artifact_probe": {
+        "en": "Open it. Let's see who else has a copy and when it was last changed.",
+        "fr": "Ouvrez-le. Voyons qui d'autre en a une copie et quand il a été modifié pour la dernière fois."
+      },
+      "options": [
+        { "value": "everything", "label": { "en": "Honestly, most of how we run is in spreadsheets", "fr": "Honnêtement, la plupart de notre fonctionnement est dans des chiffriers" }, "level": 1 },
+        { "value": "few_critical_one_person", "label": { "en": "A few critical ones, and one person maintains them", "fr": "Quelques-uns critiques, et une seule personne les maintient" }, "level": 2, "flag": "spreadsheet_single_owner" },
+        { "value": "few_shared", "label": { "en": "A few, shared and understood by more than one person", "fr": "Quelques-uns, partagés et compris par plus d'une personne" }, "level": 3 },
+        { "value": "few_documented", "label": { "en": "A few, and what each one does is written down", "fr": "Quelques-uns, et ce que chacun fait est consigné" }, "level": 4 },
+        { "value": "none_critical", "label": { "en": "None the business depends on — spreadsheets are for one-off analysis", "fr": "Aucun dont l'entreprise dépend — les chiffriers servent à des analyses ponctuelles" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_size_stack.sys.q03",
+      "dimension": "systems_integration",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "How many of those spreadsheets have to keep working after a change of system?",
+        "fr": "Combien de ces chiffriers doivent continuer à fonctionner après un changement de système?"
+      },
+      "help": {
+        "en": "Count the ones somebody would chase you about on day two.",
+        "fr": "Comptez ceux pour lesquels quelqu'un viendrait vous voir dès le deuxième jour."
+      },
+      "instruments": ["audit"],
+      "reveals": ["must_keep_spreadsheet_count"],
+      "numeric": {
+        "unit": { "en": "spreadsheets", "fr": "chiffriers" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 2, "level": 4 },
+          { "lte": 6, "level": 3 },
+          { "lte": 15, "level": 2 },
+          { "gt": 15, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "layer_size_stack.data.q04",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "How many reports would someone come looking for if they stopped existing tomorrow?",
+        "fr": "Combien de rapports quelqu'un viendrait-il réclamer s'ils cessaient d'exister demain?"
+      },
+      "help": {
+        "en": "Custom reports, hand-built reports, the ones somebody set up years ago. Each one has to be rebuilt or retired, on purpose.",
+        "fr": "Rapports personnalisés, rapports faits à la main, ceux que quelqu'un a configurés il y a des années. Chacun doit être refait ou retiré, délibérément."
+      },
+      "instruments": ["audit"],
+      "reveals": ["custom_report_count"],
+      "artifact_probe": {
+        "en": "Open the report menu and let's walk the custom list together.",
+        "fr": "Ouvrez le menu des rapports et parcourons la liste des rapports personnalisés ensemble."
+      },
+      "numeric": {
+        "unit": { "en": "reports", "fr": "rapports" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 3, "level": 5 },
+          { "lte": 8, "level": 4 },
+          { "lte": 20, "level": 3 },
+          { "lte": 50, "level": 2 },
+          { "gt": 50, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "layer_size_stack.doc.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your item codes, job numbers and account codes — does anyone have the key to what they mean?",
+        "fr": "Vos codes d'articles, numéros de projet et codes de comptes — quelqu'un a-t-il la clé de ce qu'ils veulent dire?"
+      },
+      "help": {
+        "en": "The third character meaning the plant, the prefix meaning the old division. That kind of key.",
+        "fr": "Le troisième caractère qui désigne l'usine, le préfixe qui désigne l'ancienne division. Ce genre de clé."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Pick a code at random off the screen and tell me what each part of it means.",
+        "fr": "Choisissez un code au hasard à l'écran et dites-moi ce que signifie chaque partie."
+      },
+      "options": [
+        { "value": "nobody", "label": { "en": "No — the person who set it up is gone", "fr": "Non — la personne qui l'a mis en place n'est plus là" }, "level": 1, "flag": "code_mapping_lost" },
+        { "value": "one_person_head", "label": { "en": "One person knows, and it's in their head", "fr": "Une personne le sait, et c'est dans sa tête" }, "level": 2, "flag": "code_mapping_single_owner" },
+        { "value": "partial_notes", "label": { "en": "There are partial notes somewhere", "fr": "Il y a des notes partielles quelque part" }, "level": 3 },
+        { "value": "documented", "label": { "en": "It's written down and more than one person can read it", "fr": "C'est consigné et plus d'une personne peut le lire" }, "level": 4 },
+        { "value": "documented_enforced", "label": { "en": "Written down, and the system enforces the structure on new codes", "fr": "Consigné, et le système applique la structure aux nouveaux codes" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_size_stack.data.q05",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Did an earlier system change leave data in there that your team doesn't trust?",
+        "fr": "Un changement de système antérieur a-t-il laissé là-dedans des données auxquelles votre équipe ne fait pas confiance?"
+      },
+      "instruments": ["audit"],
+      "notes": "Pairs with base.spon.q02. A prior migration that left untrusted data is the single best predictor of a team that will quietly keep a parallel spreadsheet through the new go-live.",
+      "artifact_probe": {
+        "en": "Show me a record from before that change and tell me whether you'd quote off it today.",
+        "fr": "Montrez-moi une fiche d'avant ce changement et dites-moi si vous soumissionneriez à partir d'elle aujourd'hui."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I don't know what came over in that move", "fr": "Je ne sais pas ce qui a été transféré lors de ce déplacement" }, "level": 1 },
+        { "value": "yes_avoided", "label": { "en": "Yes, and people work around it rather than fix it", "fr": "Oui, et les gens le contournent plutôt que de le corriger" }, "level": 1, "flag": "distrusted_legacy_data" },
+        { "value": "yes_known", "label": { "en": "Yes, and we know roughly which part is bad", "fr": "Oui, et nous savons à peu près quelle partie est mauvaise" }, "level": 2 },
+        { "value": "yes_cleaned", "label": { "en": "Yes, and it was cleaned up afterwards", "fr": "Oui, et ça a été nettoyé par la suite" }, "level": 3 },
+        { "value": "no_prior_move", "label": { "en": "There's never been a move", "fr": "Il n'y a jamais eu de déplacement" }, "level": 3 },
+        { "value": "verified", "label": { "en": "It was moved, reconciled against the old system, and signed off", "fr": "Ça a été déplacé, concilié avec l'ancien système, et approuvé" }, "level": 5 }
+      ]
+    }
+  ]
+}

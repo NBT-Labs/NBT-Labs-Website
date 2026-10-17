@@ -1,0 +1,464 @@
+{
+  "bank_id": "ind_food",
+  "bank_version": "1.0.0",
+  "layer": "industry",
+  "label": {
+    "en": "Food and beverage — processing, repack or distribution",
+    "fr": "Alimentation et boissons — transformation, reconditionnement ou distribution"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q04", "op": "eq", "value": "food" }
+  ],
+  "reweight": {
+    "procure_inventory": 1.6,
+    "compliance_risk": 1.5,
+    "scheduling_capacity": 1.25
+  },
+  "notes": "SCOPE HONESTY. Odoo covers a lot of this sector well — lots and serials, expiration dates with removal/best-before/alert dates, the FEFO removal strategy, the traceability report, Quality checks and alerts, MRP bills of materials for recipes and by-products. Five things it does NOT do, and each one has a question in this bank so the scope conversation happens in the audit and not after signature: (1) NO CATCH WEIGHT / DUAL UNIT OF MEASURE — one stockable UoM per product, so selling by kg while stocking by case and invoicing on captured actual weight is custom development or an industry vertical; this is the decisive gap and for a protein, cheese or seafood operator it is the first thing to surface (ind_food.inv.q03); (2) NO SCALE INTEGRATION and no pick-to-weight out of the box (ind_food.inv.q04); (3) RECIPE MANAGEMENT IS ONLY A BILL OF MATERIALS — no versioned formula, no allergen or nutritional roll-up, no scaling by yield percentage, no substitute-ingredient rules (ind_food.prod.q02); (4) NO LABEL OR SPEC MANAGEMENT — GS1-128 lot/date barcodes, bilingual Nutrition Facts / Valeurs nutritives, allergen statements all need a labelling tool (ind_food.comp.q01); (5) CUSTOMER DEDUCTIONS AND TRADE-PROMOTION MANAGEMENT ARE ENTIRELY ABSENT — billbacks, OI/OA allowances, spoilage allowances, retailer compliance chargebacks (ind_food.q2c.q01, ind_food.q2c.q02). Also: the Quality module covers checks, not a full QMS with document control and audit trails for a GFSI scheme; and the traceability report exists but a defensible recall pack produced within hours usually needs a saved report design.\n\nQUEBEC MANDATORY BILLING. If the client operates a restaurant, a bar, a catering business or a food truck, Revenu Quebec's facturation obligatoire regime applies and requires a SEPARATELY CERTIFIED sales-recording system (SEV) transmitting to WEB-SRM. Our ERP is not a certified SEV and its point of sale cannot satisfy that obligation on its own — this is a hard blocker, not a configuration gap, and the client needs a certified SEV alongside or in front of the ERP. ind_food.comp.q04 asks the diagnostic question only. DO NOT assert dates, deadlines or thresholds to the client from this bank: the transition dates in our research come from CFIB and from a government impact analysis, not from a primary Revenu Quebec page, and the QST-registration exemption needs checking per client. The consultant confirms the rule against Revenu Quebec before anything goes in writing.\n\nREVEALS KEYS INTRODUCED BY THIS BANK (cost-model inputs; must exist in scoring/scoring.v1.json#cost_model.inputs before this bank goes live):\n- mock_recall_hours — hours to produce a full forward trace for one lot. Feeds the recall-exposure module and the compliance finding.\n- lot_trail_complete_pct — percentage of shipped lines carrying a complete lot trail. Gates the recall-exposure module: below 100% the forward trace is broken whatever the retrieval time says.\n- expired_stock_value_quarter — CAD at cost of product expired or dumped last quarter. Feeds the FEFO / shrink saving.\n- catch_weight_manual_hours_week — hours per week reconciling scale weights against the ERP by hand. Feeds the catch-weight custom-development business case.\n- deduction_rework_hours_month — hours per month spent working out why a customer's remittance was short. Feeds the deductions module.\n- deductions_written_off_annual — CAD of unexplained deductions written off in the last 12 months. The headline dollar figure for the deductions module.\n- yield_variance_pct — actual versus standard yield on the top recipes. Feeds recipe-cost accuracy.\n\nBENCHMARK_REF KEYS USED, WITH SOURCE:\n- sfcr_traceability_24h (on ind_food.trace.q01) — Safe Food for Canadians Regulations traceability expectation: produce traceability documents WITHIN 24 HOURS of a CFIA request. Source: CFIA, inspection.canada.ca traceability requirements. This is the only hard sourced figure in this bank. Our internal working target is under four hours so the 24-hour window is met comfortably; that four hours is OUR convention, not a published rule, and must be presented as such.\nNO benchmark_ref is set on shrink, yield, OTIF, turns or shelf-life questions. The research gives those only as wide ranges (produce shrink 4-10%, centre-store 0.5-2%) or as contractual specs that vary per customer. We use the client's own number and say so in help text.",
+  "questions": [
+    {
+      "id": "ind_food.trace.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 2,
+      "stem": {
+        "en": "If the food inspection agency called this afternoon about a lot shipped six weeks ago, how long would it take you to produce the full list of customers who got it — and has anyone timed that?",
+        "fr": "Si l'agence d'inspection des aliments appelait cet après-midi au sujet d'un lot expédié il y a six semaines, combien de temps vous faudrait-il pour produire la liste complète des clients qui l'ont reçu — et est-ce que quelqu'un a déjà chronométré l'exercice?"
+      },
+      "help": {
+        "en": "The requirement is to produce traceability documents within 24 hours of a request. The question is whether you have ever proven you can.",
+        "fr": "L'exigence est de produire les documents de traçabilité dans les 24 heures suivant une demande. La question est de savoir si vous avez déjà prouvé que vous en êtes capable."
+      },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "sfcr_traceability_24h",
+      "reveals": ["mock_recall_hours"],
+      "artifact_probe": {
+        "en": "Pick a lot code off a pallet with me right now and let's produce the customer list. I'll watch the clock.",
+        "fr": "Choisissons ensemble un code de lot sur une palette maintenant et produisons la liste des clients. Je vais regarder l'heure."
+      },
+      "options": [
+        { "value": "guessing", "label": { "en": "Honestly, we'd be guessing — the records sit in several places and nobody has ever tried", "fr": "Honnêtement, on devinerait — les registres sont à plusieurs endroits et personne n'a jamais essayé" }, "level": 1, "flag": "traceability_untested", "reveals": { "mock_recall_hours": null } },
+        { "value": "days_paper", "label": { "en": "A few days, pulling paper receiving and shipping files by hand", "fr": "Quelques jours, en sortant à la main les dossiers papier de réception et d'expédition" }, "level": 2, "flag": "traceability_outside_24h", "reveals": { "mock_recall_hours": 24 } },
+        { "value": "within_day_manual", "label": { "en": "Within a day, from one system, but somebody has to assemble it by hand", "fr": "En moins d'une journée, à partir d'un seul système, mais quelqu'un doit l'assembler à la main" }, "level": 3, "reveals": { "mock_recall_hours": 8 } },
+        { "value": "report_untimed", "label": { "en": "A report produces it in minutes, but we have never timed a real exercise", "fr": "Un rapport la produit en quelques minutes, mais nous n'avons jamais chronométré un exercice réel" }, "level": 4, "reveals": { "mock_recall_hours": 1 } },
+        { "value": "mock_recall_timed", "label": { "en": "We have run a mock recall and it took under two hours", "fr": "Nous avons fait un rappel simulé et cela a pris moins de deux heures" }, "level": 5, "reveals": { "mock_recall_hours": 2 } }
+      ]
+    },
+    {
+      "id": "ind_food.trace.q02",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When a picker goes for a pallet, does the system tell them which lot to take, or do they choose?",
+        "fr": "Quand un préparateur va chercher une palette, est-ce que le système lui dit quel code de lot prendre, ou est-ce lui qui choisit?"
+      },
+      "instruments": ["quiz", "audit"],
+      "notes": "This is the question that decides whether the forward trace exists at all. Lots recorded on receiving and production but not on picking is the single most common break: the mock recall fails even though the client believes they are traceable. It is also where FEFO stops being theoretical.",
+      "artifact_probe": {
+        "en": "Let's follow one picker for one order and see what the paperwork or the screen tells them.",
+        "fr": "Suivons un préparateur pour une commande et voyons ce que le papier ou l'écran lui indique."
+      },
+      "options": [
+        { "value": "picker_chooses", "label": { "en": "They take whatever pallet is at the front — nothing records which lot left", "fr": "Il prend la palette à l'avant — rien ne consigne quel lot est parti" }, "level": 1, "flag": "no_forward_trace" },
+        { "value": "writes_after", "label": { "en": "They choose, then write the lot code on the delivery slip afterwards", "fr": "Il choisit, puis inscrit le code de lot sur le bon de livraison après coup" }, "level": 2 },
+        { "value": "system_records_not_directs", "label": { "en": "The system records the lot they picked, but it does not tell them which one to take", "fr": "Le système consigne le lot préparé, mais ne lui dit pas lequel prendre" }, "level": 3 },
+        { "value": "system_directs_fefo", "label": { "en": "The system directs them to a specific lot on a first-expired-first-out basis", "fr": "Le système le dirige vers un lot précis, selon le principe premier expiré, premier sorti" }, "level": 4 },
+        { "value": "fefo_measured", "label": { "en": "That, and we measure how often the directed lot was overridden", "fr": "Cela, et nous mesurons la fréquence des dérogations au lot imposé" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.trace.q03",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "Out of 100 shipped lines last month, how many carry a complete lot trail from supplier to customer?",
+        "fr": "Sur 100 lignes expédiées le mois dernier, combien portent une piste de lot complète, du fournisseur jusqu'au client?"
+      },
+      "help": {
+        "en": "Anything below 100 means the trace has a hole in it, whatever the retrieval time. 'I don't know' is an answer and we score it.",
+        "fr": "Tout résultat sous 100 signifie que la piste a un trou, peu importe le temps de récupération. « Je ne sais pas » est une réponse, et nous la notons."
+      },
+      "instruments": ["audit"],
+      "reveals": ["lot_trail_complete_pct"],
+      "artifact_probe": {
+        "en": "Take any twenty shipped lines from last month and let's check each one for a lot code on both ends.",
+        "fr": "Prenons vingt lignes expédiées du mois dernier au hasard et vérifions le code de lot aux deux extrémités."
+      },
+      "numeric": {
+        "unit": { "en": "lines out of 100", "fr": "lignes sur 100" },
+        "min": 0,
+        "max": 100,
+        "integer": true,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lt": 50, "level": 1, "label": { "en": "The trace is mostly absent", "fr": "La piste est surtout absente" } },
+          { "lt": 85, "level": 2, "label": { "en": "Large holes", "fr": "Grands trous" } },
+          { "lt": 99, "level": 3, "label": { "en": "Holes we would find during a recall", "fr": "Des trous que nous trouverions pendant un rappel" } },
+          { "lt": 100, "level": 4, "label": { "en": "Nearly complete", "fr": "Presque complète" } },
+          { "gte": 100, "level": 5, "label": { "en": "Complete, and verified", "fr": "Complète, et vérifiée" } }
+        ]
+      }
+    },
+    {
+      "id": "ind_food.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "At cost, how much product expired, went short-dated or got dumped out of your cooler and freezer last quarter?",
+        "fr": "Au coût, quelle valeur de produit est arrivée à sa date meilleur avant, est devenue courte-datée ou a été jetée de votre chambre froide et de votre congélateur le dernier trimestre?"
+      },
+      "help": {
+        "en": "Published shrink ranges in this sector run from under 1 percent of cost of goods on centre-store to 10 percent on produce — too wide to use. We use your number.",
+        "fr": "Les taux de perte publiés dans ce secteur vont de moins de 1 % du coût des marchandises pour l'épicerie sèche à 10 % pour les fruits et légumes — une fourchette trop large pour être utile. Nous utilisons votre chiffre."
+      },
+      "instruments": ["audit"],
+      "reveals": ["expired_stock_value_quarter"],
+      "artifact_probe": {
+        "en": "Show me the write-off or disposal entries for the last three months in the accounting system.",
+        "fr": "Montrez-moi les écritures de radiation ou de disposition des trois derniers mois dans le système comptable."
+      },
+      "numeric": {
+        "unit": { "en": "CAD at cost, last quarter", "fr": "$ CA au coût, dernier trimestre" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 5000, "level": 4 },
+          { "lte": 25000, "level": 3 },
+          { "lte": 100000, "level": 2 },
+          { "gt": 100000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_food.inv.q02",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Something is on quality hold. What physically and systemically stops it from being shipped?",
+        "fr": "Un produit est en retenue qualité. Qu'est-ce qui l'empêche, physiquement et dans le système, d'être expédié?"
+      },
+      "instruments": ["audit"],
+      "notes": "Held stock getting shipped is the finding that ends a GFSI audit badly. Tape on a pallet is level 1 even in a clean, well-run plant.",
+      "artifact_probe": {
+        "en": "Show me something on hold right now, and show me what the system says about it.",
+        "fr": "Montrez-moi un produit en retenue en ce moment, et montrez-moi ce que le système en dit."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We don't put product on hold — we don't do that kind of QA", "fr": "Nous ne mettons pas de produit en retenue — nous ne faisons pas ce type de contrôle qualité" }, "na": true },
+        { "value": "tape_only", "label": { "en": "Tape, a sign or a pallet moved to a corner — the system doesn't know", "fr": "Du ruban, une affiche ou une palette déplacée dans un coin — le système ne le sait pas" }, "level": 1, "flag": "hold_not_systemic" },
+        { "value": "paper_log", "label": { "en": "A paper hold log that the shipping team is supposed to check", "fr": "Un registre de retenue papier que l'équipe d'expédition est censée consulter" }, "level": 2 },
+        { "value": "system_flag", "label": { "en": "A status in the system, but someone could still ship it", "fr": "Un statut dans le système, mais quelqu'un pourrait quand même l'expédier" }, "level": 3 },
+        { "value": "system_blocks", "label": { "en": "The system blocks the pick and only a named person can release it", "fr": "Le système bloque la préparation et seule une personne nommée peut faire la libération" }, "level": 4 },
+        { "value": "blocks_and_measured", "label": { "en": "That, and we track hold-and-release cycle time as a number", "fr": "Cela, et nous suivons le délai de retenue et de libération comme un indicateur" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.inv.q03",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 2,
+      "stem": {
+        "en": "You price by weight. Where does the actual shipped weight get captured, and does the invoice come from that weight or from a standard case weight?",
+        "fr": "Vous facturez au poids. Où le poids réel expédié est-il saisi, et la facture provient-elle de ce poids ou d'un poids de caisse standard?"
+      },
+      "help": {
+        "en": "Catch weight: the product is ordered and stocked by case but priced by kilogram, so the order, the shipment and the invoice legitimately carry three different quantities.",
+        "fr": "Poids variable : le produit est commandé et stocké à la caisse mais facturé au kilogramme, de sorte que la commande, l'expédition et la facture portent légitimement trois quantités différentes."
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP — DECISIVE. One stockable unit of measure per product. There is no dual unit of measure and no catch weight. Selling by kilogram while stocking by case, and invoicing on the weight captured at pick, is custom development or an industry vertical, full stop. For a protein, cheese or seafood operator this is the first thing to surface in the audit; discovering it after signature is how this sector's projects die. Ask the question, record the answer, and price the gap in the proposal.",
+      "reveals": ["catch_weight_manual_hours_week"],
+      "artifact_probe": {
+        "en": "Show me one invoice next to the scale ticket it came from, and show me where the two numbers were reconciled.",
+        "fr": "Montrez-moi une facture à côté du ticket de balance dont elle provient, et montrez-moi où les deux chiffres ont été conciliés."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "Everything we sell is priced per case or per unit, never by weight", "fr": "Tout ce que nous vendons est facturé à la caisse ou à l'unité, jamais au poids" }, "na": true },
+        { "value": "standard_weight", "label": { "en": "We invoice a standard case weight and absorb the difference", "fr": "Nous facturons un poids de caisse standard et absorbons l'écart" }, "level": 1, "flag": "catch_weight_gap", "reveals": { "catch_weight_manual_hours_week": null } },
+        { "value": "handwritten_sheet", "label": { "en": "The weight is written on a sheet at the dock and keyed into the invoice later", "fr": "Le poids est inscrit sur une feuille au quai puis saisi sur la facture plus tard" }, "level": 2, "flag": "catch_weight_gap", "reveals": { "catch_weight_manual_hours_week": 8 } },
+        { "value": "two_systems_manual", "label": { "en": "The scales keep one set of numbers, the business system another, and someone reconciles them by hand in a spreadsheet", "fr": "Les balances tiennent une série de chiffres, le système de gestion une autre, et quelqu'un les concilie dans un chiffrier" }, "level": 2, "flag": "catch_weight_gap", "reveals": { "catch_weight_manual_hours_week": 6 } },
+        { "value": "one_system_dual_uom", "label": { "en": "One system carries both the case and the weight, and the invoice comes from the captured weight", "fr": "Un seul système porte la caisse et le poids, et la facture provient du poids saisi" }, "level": 4, "reveals": { "catch_weight_manual_hours_week": 0 } },
+        { "value": "dual_uom_variance_reviewed", "label": { "en": "That, and we review billed-versus-shipped weight variance and average weight by lot", "fr": "Cela, et nous révisons l'écart entre le poids facturé et expédié ainsi que le poids moyen par lot" }, "level": 5, "reveals": { "catch_weight_manual_hours_week": 0 } }
+      ]
+    },
+    {
+      "id": "ind_food.inv.q04",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your scales — the receiving scale, the production scale, the shipping scale. What happens to the numbers they produce?",
+        "fr": "Vos balances — celle de la réception, celle de la production, celle de l'expédition. Qu'arrive-t-il aux chiffres qu'elles produisent?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. No scale integration out of the box and no pick-to-weight. Any answer above level 3 here implies a hardware-integration work package, not a configuration setting. Pair with ind_food.inv.q03 — the two gaps are usually scoped together or not at all.",
+      "artifact_probe": {
+        "en": "Walk me to a scale and show me what the operator does with the reading.",
+        "fr": "Amenez-moi à une balance et montrez-moi ce que l'opérateur fait avec la lecture."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We don't weigh anything — nothing we handle is sold or costed by weight", "fr": "Nous ne pesons rien — rien de ce que nous manipulons n'est vendu ou coûté au poids" }, "na": true },
+        { "value": "read_aloud", "label": { "en": "Someone reads the display and writes it down", "fr": "Quelqu'un lit l'afficheur et l'inscrit à la main" }, "level": 1 },
+        { "value": "printed_label", "label": { "en": "The scale prints a label or a ticket that travels with the product on paper", "fr": "La balance imprime une étiquette ou un ticket qui voyage sur papier avec le produit" }, "level": 2 },
+        { "value": "keyed_in", "label": { "en": "The weights get keyed into a system at the end of the shift or the day", "fr": "Les poids sont saisis dans un système à la fin du quart ou de la journée" }, "level": 3 },
+        { "value": "scale_connected", "label": { "en": "The scale is connected and the weight lands on the transaction directly", "fr": "La balance est reliée et le poids se rend directement sur la transaction" }, "level": 4 },
+        { "value": "pick_to_weight", "label": { "en": "The picker weighs against the order on the floor and the system accepts or rejects it on the spot", "fr": "Le préparateur pèse contre la commande au plancher et le système l'accepte ou la refuse sur le champ" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.prod.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "What is the yield standard on your top three recipes, and do you compare actual against it batch by batch?",
+        "fr": "Quel est le rendement standard de vos trois principales recettes, et comparez-vous le rendement réel à ce standard, lot par lot?"
+      },
+      "instruments": ["audit"],
+      "notes": "If yield and shrink are not measured per batch, the recipe cost is wrong, and every margin number built on it is wrong too. Clients routinely discover here that the standard was set years ago by someone who has left.",
+      "reveals": ["yield_variance_pct"],
+      "artifact_probe": {
+        "en": "Open the production record for last week's biggest batch and let's compute the yield together.",
+        "fr": "Ouvrez la fiche de production du plus gros lot de la semaine dernière et calculons le rendement ensemble."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We don't produce or repack anything — we buy and resell as is", "fr": "Nous ne transformons ni ne reconditionnons rien — nous achetons et revendons tel quel" }, "na": true },
+        { "value": "no_standard", "label": { "en": "There is no standard — nobody could tell you what the yield should be", "fr": "Il n'y a pas de standard — personne ne pourrait vous dire quel devrait être le rendement" }, "level": 1 },
+        { "value": "in_head", "label": { "en": "The production lead knows roughly what to expect and notices when it looks wrong", "fr": "Le responsable de production sait à peu près à quoi s'attendre et remarque quand ça semble anormal" }, "level": 2 },
+        { "value": "standard_exists_unmeasured", "label": { "en": "A standard exists on paper or in the recipe, but actual is not measured against it", "fr": "Un standard existe sur papier ou dans la recette, mais le réel n'est pas mesuré contre lui" }, "level": 3 },
+        { "value": "measured_per_batch", "label": { "en": "Actual yield is recorded per batch and compared to the standard", "fr": "Le rendement réel est consigné par lot et comparé au standard" }, "level": 4 },
+        { "value": "measured_and_recosted", "label": { "en": "That, and a persistent variance gets the recipe cost and the standard reviewed", "fr": "Cela, et un écart persistant déclenche la révision du coût de la recette et du standard" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.prod.q02",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "An ingredient is substituted on a recipe. What has to change downstream, and what makes sure it does?",
+        "fr": "Un ingrédient est substitué dans une recette. Qu'est-ce qui doit changer en aval, et qu'est-ce qui garantit que ça se fasse?"
+      },
+      "help": {
+        "en": "We are asking about allergens, the spec sheet, the label and the cost — and whether one change forces the other three.",
+        "fr": "Nous parlons des allergènes, de la fiche technique, de l'étiquette et du coût — et de savoir si un changement force les trois autres."
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Recipe management in Odoo is a bill of materials and nothing more: no versioned formula, no allergen or nutritional roll-up, no scaling by yield percentage, no substitute-ingredient rules. A client at level 4 or 5 here is describing capability we would have to build, and a client at level 1 or 2 has an allergen exposure that is a finding in its own right.",
+      "artifact_probe": {
+        "en": "Show me the last recipe change you made and everything it touched.",
+        "fr": "Montrez-moi le dernier changement de recette que vous avez fait et tout ce qu'il a touché."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We don't formulate anything — no recipes here", "fr": "Nous ne formulons rien — aucune recette ici" }, "na": true },
+        { "value": "nothing_formal", "label": { "en": "Production just uses the substitute — nothing formal happens", "fr": "La production utilise simplement le substitut — rien de formel ne se passe" }, "level": 1, "flag": "allergen_change_uncontrolled" },
+        { "value": "email_chain", "label": { "en": "Someone emails whoever needs to know, and we hope the label gets caught", "fr": "Quelqu'un écrit un courriel aux personnes concernées, et on espère que l'étiquette sera rattrapée" }, "level": 2, "flag": "allergen_change_uncontrolled" },
+        { "value": "spreadsheet_versions", "label": { "en": "Recipes live in a spreadsheet with version numbers someone maintains", "fr": "Les recettes vivent dans un chiffrier avec des numéros de version que quelqu'un entretient" }, "level": 3 },
+        { "value": "system_versioned", "label": { "en": "The recipe is versioned in a system and the allergen list is derived from the ingredients", "fr": "La recette est versionnée dans un système et la liste d'allergènes est dérivée des ingrédients" }, "level": 4 },
+        { "value": "versioned_forces_label", "label": { "en": "That, and a version change cannot be released until the label and the spec sheet are re-approved", "fr": "Cela, et un changement de version ne peut être libéré avant la réapprobation de l'étiquette et de la fiche technique" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.75,
+      "stem": {
+        "en": "A customer's remittance comes in short. Who works out why, and how long does it take?",
+        "fr": "Le paiement d'un client arrive incomplet. Qui détermine pourquoi, et combien de temps cela prend-il?"
+      },
+      "help": {
+        "en": "Deductions: spoilage allowances, freight, promotional billbacks, off-invoice allowances, retailer compliance chargebacks.",
+        "fr": "Les déductions : allocations pour pertes, transport, ristournes promotionnelles, allocations hors facture, pénalités de conformité des détaillants."
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Customer deductions and trade-promotion management are entirely absent — no billback, allowance, chargeback or promotion-accrual model. This is one of the biggest profit-and-loss leaks in food distribution and the client usually cannot name its size, which is why ind_food.q2c.q02 asks for the number separately.",
+      "reveals": ["deduction_rework_hours_month"],
+      "artifact_probe": {
+        "en": "Pull the last short-paid remittance and show me how each deduction was matched back to an invoice.",
+        "fr": "Sortez le dernier paiement incomplet et montrez-moi comment chaque déduction a été appariée à une facture."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "Our customers don't deduct — we sell direct to consumers or get paid in full", "fr": "Nos clients ne font pas de déductions — nous vendons directement au consommateur ou sommes payés en totalité" }, "na": true },
+        { "value": "written_off", "label": { "en": "Nobody does — small shortfalls get written off and we move on", "fr": "Personne — les petits écarts sont radiés et on passe à autre chose" }, "level": 1, "flag": "deductions_unmanaged", "reveals": { "deduction_rework_hours_month": 0 } },
+        { "value": "ar_clerk_digs", "label": { "en": "The receivables clerk digs through emails and the customer's portal, for days", "fr": "La personne aux comptes clients fouille les courriels et le portail du client, pendant des jours" }, "level": 2, "reveals": { "deduction_rework_hours_month": 20 } },
+        { "value": "spreadsheet_log", "label": { "en": "We keep a spreadsheet of deductions and dispute the ones we catch", "fr": "Nous tenons un chiffrier des déductions et contestons celles que nous attrapons" }, "level": 3, "reveals": { "deduction_rework_hours_month": 12 } },
+        { "value": "matched_in_system", "label": { "en": "Each deduction is coded to a reason and matched to the invoice in a system", "fr": "Chaque déduction est codée à un motif et appariée à la facture dans un système" }, "level": 4, "reveals": { "deduction_rework_hours_month": 4 } },
+        { "value": "accrued_and_reviewed", "label": { "en": "That, and promotions and allowances are accrued when earned and reviewed by customer", "fr": "Cela, et les promotions et allocations sont provisionnées quand elles sont gagnées et révisées par client" }, "level": 5, "reveals": { "deduction_rework_hours_month": 2 } }
+      ]
+    },
+    {
+      "id": "ind_food.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "In the last 12 months, how many dollars of customer deductions did you write off without ever establishing what they were for?",
+        "fr": "Au cours des 12 derniers mois, combien de dollars de déductions clients avez-vous radiés sans jamais établir à quoi elles correspondaient?"
+      },
+      "help": {
+        "en": "There is no credible published benchmark for this. We use your number — and if nobody can produce it, that is itself the finding.",
+        "fr": "Il n'existe aucune référence publiée crédible pour cela. Nous utilisons votre chiffre — et si personne ne peut le produire, c'est précisément la découverte."
+      },
+      "instruments": ["audit"],
+      "reveals": ["deductions_written_off_annual"],
+      "artifact_probe": {
+        "en": "Open the deduction, allowance or customer-discount expense accounts for the last fiscal year.",
+        "fr": "Ouvrez les comptes de dépenses de déductions, d'allocations ou d'escomptes clients du dernier exercice."
+      },
+      "numeric": {
+        "unit": { "en": "CAD, last 12 months", "fr": "$ CA, 12 derniers mois" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 5000, "level": 4 },
+          { "lte": 25000, "level": 3 },
+          { "lte": 100000, "level": 2 },
+          { "gt": 100000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_food.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "On market-priced items, the price can move between the order and the shipment. Which price ends up on the invoice, and how?",
+        "fr": "Sur les produits à prix du marché, le prix peut bouger entre la commande et l'expédition. Quel prix se retrouve sur la facture, et comment?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me this week's price list and one invoice where the shipped price differed from the ordered price.",
+        "fr": "Montrez-moi la liste de prix de cette semaine et une facture où le prix expédié différait du prix commandé."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "Our prices are fixed by contract or by list — nothing moves weekly", "fr": "Nos prix sont fixés par contrat ou par liste — rien ne bouge chaque semaine" }, "na": true },
+        { "value": "argued_after", "label": { "en": "Whatever got typed, and we argue about it afterwards with a credit note", "fr": "Celui qui a été saisi, et on en discute après coup avec une note de crédit" }, "level": 1 },
+        { "value": "sales_remembers", "label": { "en": "Whoever sold it remembers what was agreed and corrects the invoice", "fr": "La personne qui a vendu se rappelle l'entente et corrige la facture" }, "level": 2 },
+        { "value": "weekly_sheet", "label": { "en": "A weekly price sheet is circulated and billing applies it by hand", "fr": "Une liste de prix hebdomadaire est diffusée et la facturation l'applique à la main" }, "level": 3 },
+        { "value": "system_dated_price", "label": { "en": "The system holds dated price lists and prices at the ship date automatically", "fr": "Le système tient des listes de prix datées et applique le prix à la date d'expédition automatiquement" }, "level": 4 },
+        { "value": "margin_reviewed", "label": { "en": "That, and we review realized margin against the market price we paid", "fr": "Cela, et nous révisons la marge réalisée contre le prix du marché que nous avons payé" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your customers specify a minimum shelf life remaining on delivery. How do you know, before a truck leaves, that the load meets it?",
+        "fr": "Vos clients exigent une durée de conservation minimale restante à la livraison. Comment savez-vous, avant qu'un camion parte, que le chargement la respecte?"
+      },
+      "instruments": ["audit"],
+      "notes": "Grocery distribution centres run on-time-in-full scorecards and charge back misses. Shelf-life-remaining is a contractual spec that varies per customer — we do not quote a benchmark, we ask for their customers' specs.",
+      "artifact_probe": {
+        "en": "Show me the shelf-life clause in one customer's supply agreement, and show me where the system knows it.",
+        "fr": "Montrez-moi la clause de durée de conservation dans l'entente d'approvisionnement d'un client, et montrez-moi où le système la connaît."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "Nothing we ship has a best-before date", "fr": "Rien de ce que nous expédions n'a de date meilleur avant" }, "na": true },
+        { "value": "find_out_rejected", "label": { "en": "We find out when a load gets rejected at their dock", "fr": "Nous l'apprenons quand un chargement est refusé à leur quai" }, "level": 1, "flag": "shelf_life_uncontrolled" },
+        { "value": "shipper_judgment", "label": { "en": "The shipper eyeballs the dates and uses judgment", "fr": "L'expéditeur regarde les dates et se fie à son jugement" }, "level": 2 },
+        { "value": "spec_on_paper", "label": { "en": "The customer's minimum is written down somewhere the shipper can check", "fr": "Le minimum du client est écrit quelque part que l'expéditeur peut consulter" }, "level": 3 },
+        { "value": "system_checks", "label": { "en": "The system knows each customer's minimum and won't allocate a lot that fails it", "fr": "Le système connaît le minimum de chaque client et n'allouera pas un lot qui ne le respecte pas" }, "level": 4 },
+        { "value": "system_and_otif", "label": { "en": "That, and we track rejections and on-time-in-full by customer", "fr": "Cela, et nous suivons les refus et la livraison complète à temps par client" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.comp.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Where do your labels and spec sheets live, and who can change one?",
+        "fr": "Où vivent vos étiquettes et vos fiches techniques, et qui peut en modifier une?"
+      },
+      "help": {
+        "en": "Lot code, best-before date, allergen statement, Nutrition Facts, both languages.",
+        "fr": "Code de lot, meilleur avant, déclaration des allergènes, Valeurs nutritives, dans les deux langues."
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. There is no label or spec management: no GS1-128 lot and date barcode generation, no bilingual Nutrition Facts composition, no allergen statement management. A labelling tool is a separate line item in any proposal for this sector, and if the client's labels live in a graphic designer's files, say so in the report.",
+      "artifact_probe": {
+        "en": "Open the artwork file for your highest-volume product and tell me its revision date and who approved it.",
+        "fr": "Ouvrez le fichier d'étiquette de votre produit le plus vendu et dites-moi sa date de révision et qui l'a approuvée."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We ship unlabelled bulk or ingredient product only", "fr": "Nous expédions uniquement du vrac ou des ingrédients non étiquetés" }, "na": true },
+        { "value": "designer_files", "label": { "en": "In a graphic designer's files, outside the business entirely", "fr": "Dans les fichiers d'un graphiste, complètement à l'extérieur de l'entreprise" }, "level": 1, "flag": "label_control_external" },
+        { "value": "shared_drive", "label": { "en": "On a shared drive, newest file wins, no approval record", "fr": "Sur un disque partagé, le fichier le plus récent gagne, sans trace d'approbation" }, "level": 2 },
+        { "value": "controlled_folder", "label": { "en": "In a controlled folder with revision numbers and a sign-off someone keeps", "fr": "Dans un dossier contrôlé avec des numéros de révision et une approbation que quelqu'un consigne" }, "level": 3 },
+        { "value": "label_system", "label": { "en": "In a labelling system that prints the lot code and best-before date from the production record", "fr": "Dans un système d'étiquetage qui imprime le code de lot et le meilleur avant à partir de la fiche de production" }, "level": 4 },
+        { "value": "label_system_linked", "label": { "en": "That, and the specification and the label are linked so neither can drift from the other", "fr": "Cela, et la spécification et l'étiquette sont liées de sorte qu'aucune ne peut dériver de l'autre" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.comp.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "A cooler runs warm overnight. What exists tomorrow morning to show what happened and what was decided?",
+        "fr": "Une chambre froide se réchauffe pendant la nuit. Qu'existe-t-il demain matin pour montrer ce qui est arrivé et ce qui a été décidé?"
+      },
+      "help": {
+        "en": "Your cold chain records and your written preventive control plan have to agree with each other.",
+        "fr": "La chaîne de froid et le plan de contrôle préventif écrit doivent concorder."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the temperature records for the last two weeks and the last excursion you documented.",
+        "fr": "Montrez-moi les relevés de température des deux dernières semaines et le dernier écart que vous avez documenté."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We handle nothing temperature-controlled", "fr": "Nous ne manipulons rien à température contrôlée" }, "na": true },
+        { "value": "nothing", "label": { "en": "Nothing — we would notice the product, not the temperature", "fr": "Rien — on remarquerait le produit, pas la température" }, "level": 1, "flag": "cold_chain_undocumented" },
+        { "value": "paper_log", "label": { "en": "A clipboard log somebody fills in twice a day", "fr": "Une feuille de relevé que quelqu'un remplit deux fois par jour" }, "level": 2 },
+        { "value": "logger_downloaded", "label": { "en": "A data logger we download when there is a reason to", "fr": "Un enregistreur de données que nous téléchargeons quand il y a une raison" }, "level": 3 },
+        { "value": "alerting", "label": { "en": "Continuous monitoring that alerts a named person, with the record kept", "fr": "Une surveillance continue qui alerte une personne nommée, avec le relevé conservé" }, "level": 4 },
+        { "value": "alert_to_disposition", "label": { "en": "That, and an excursion automatically puts the affected lots on hold pending a documented disposition", "fr": "Cela, et un écart met automatiquement les lots touchés en retenue en attente d'une disposition documentée" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_food.comp.q03",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Does any part of your business sell prepared food or drink to people on site — a restaurant, a bar, a counter, a catering operation or a food truck?",
+        "fr": "Une partie de votre entreprise vend-elle des aliments ou des boissons préparés à des personnes sur place — un restaurant, un bar, un comptoir, un service de traiteur ou un camion de cuisine de rue?"
+      },
+      "help": {
+        "en": "Quebec's facturation obligatoire regime applies to specific sectors and requires a separately certified sales-recording system. We need to know whether you are in scope before we design anything.",
+        "fr": "Le régime québécois de facturation obligatoire s'applique à des secteurs précis et exige un système d'enregistrement des ventes certifié distinct. Nous devons savoir si vous y êtes assujetti avant de concevoir quoi que ce soit."
+      },
+      "instruments": ["audit"],
+      "notes": "HARD BLOCKER, NOT A CONFIGURATION GAP. Revenu Quebec certifies sales-recording systems individually and publishes the list. Our ERP is not a certified system and its point of sale cannot satisfy the restaurant or catering obligation on its own: a client in scope needs a certified system alongside or in front of it, transmitting per transaction and producing the customer's invoice without delay. DO NOT state dates, deadlines, thresholds or the QST-registration exemption to the client from this bank — our research for those comes from CFIB and a government impact analysis, not a primary Revenu Quebec page. The consultant verifies the client's position against Revenu Quebec and the published certified-product list, then puts it in writing.",
+      "artifact_probe": {
+        "en": "Show me what rings up a customer sale today, and whether it carries a certification number.",
+        "fr": "Montrez-moi ce qui enregistre une vente à un client aujourd'hui, et s'il porte un numéro de certification."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "No — we only sell to other businesses, never prepared food to a person on site", "fr": "Non — nous vendons uniquement à d'autres entreprises, jamais d'aliments préparés à une personne sur place" }, "na": true },
+        { "value": "yes_unaware", "label": { "en": "Yes, and I don't know whether that regime applies to us", "fr": "Oui, et je ne sais pas si ce régime s'applique à nous" }, "level": 1, "flag": "srm_scope_unverified" },
+        { "value": "yes_cash_register", "label": { "en": "Yes, and we use an ordinary cash register or a tablet app", "fr": "Oui, et nous utilisons une caisse ordinaire ou une application sur tablette" }, "level": 1, "flag": "srm_scope_unverified" },
+        { "value": "yes_certified_standalone", "label": { "en": "Yes, and we have a certified system — it stands completely apart from our accounting", "fr": "Oui, et nous avons un système certifié — il est complètement séparé de notre comptabilité" }, "level": 3, "flag": "srm_integration_scope" },
+        { "value": "yes_certified_exported", "label": { "en": "Yes, certified, and its sales get exported into the accounting system periodically", "fr": "Oui, certifié, et ses ventes sont exportées périodiquement dans le système comptable" }, "level": 4, "flag": "srm_integration_scope" },
+        { "value": "yes_certified_reconciled", "label": { "en": "Yes, certified, feeding accounting daily, and someone reconciles the two and keeps the required backups", "fr": "Oui, certifié, alimentant la comptabilité quotidiennement, et quelqu'un concilie les deux et conserve les sauvegardes requises" }, "level": 5, "flag": "srm_integration_scope" }
+      ]
+    }
+  ]
+}

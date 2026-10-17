@@ -1,0 +1,425 @@
+{
+  "bank_id": "layer_compliance_qc",
+  "bank_version": "1.0.0",
+  "layer": "compliance",
+  "label": {
+    "en": "Quebec regulatory exposure — privacy and language",
+    "fr": "Exposition réglementaire québécoise — vie privée et langue"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q05", "op": "in", "value": ["qc", "qc_and_other"] }
+  ],
+  "reweight": {
+    "compliance_risk": 1.5
+  },
+  "notes": "Every question in this bank is a process question about whether a control exists, not an opinion about whether the client is compliant. Nothing here is legal advice and nothing here should be read back to a client as a legal conclusion: the consultant confirms the applicable rule in the room. Every question was written against the official-source items only (LegisQuebec, the Commission d'acces a l'information, the Office quebecois de la langue francaise, Revenu Quebec, the CRA). Where the research flagged a figure, threshold, penalty amount or date as law-firm-sourced, vendor-sourced or otherwise unverified, that number does NOT appear in any stem, option or help line here — the question is asked without the number and the consultant confirms it live. Deliberately asked without numbers: the employee-count registration and francisation steps (headcount already comes from base.firmo.q01, and the thresholds are confirmed in the room rather than asserted by the instrument); retention and destruction periods; the anonymization regulation's in-force date; GST/QST reporting-frequency thresholds; all penalty and fine amounts. No duplication of base: base.comp.q01 already asks who is NAMED as responsible for personal information, base.comp.q02 where data is stored, base.comp.q03 the incident register, base.comp.q04 restore capability, base.comp.q05 accounting-record retention, base.comp.q06 commercial-email consent. This bank asks the next question in each case, never the same one. REVEALS KEYS INTRODUCED: biometric_in_use (biometric capture in service or planned — drives consent, disclosure and fallback work), french_localization_scope (how much of the interface, custom fields and third-party modules needs translating — drives the localization line of the implementation estimate), charter_registration_due (whether Office registration and francisation work is outstanding — drives an advisory line), outside_quebec_processors (the named list of outside-Quebec systems and providers holding personal information — drives one assessment and one written agreement per destination). BENCHMARK_REF KEYS AND SOURCES, all verified official: law25_pia_s33 = P-39.1 s. 3.3 privacy impact assessment on acquisition, development or overhaul of an information system, LegisQuebec, in force 2023-09-22; law25_outside_quebec_s17 = P-39.1 s. 17 assessment and written agreement before communicating personal information outside Quebec or entrusting it to an outside-Quebec processor, LegisQuebec, in force 2023-09-22; law25_automated_decision_s121 = P-39.1 s. 12.1 disclosure for decisions based exclusively on automated processing, LegisQuebec, in force 2023-09-22; law25_consent_per_purpose_s14 = P-39.1 s. 14 consent requested separately for each purpose, LegisQuebec, in force 2023-09-22; law25_retention_s23 = P-39.1 s. 23 destruction or anonymization once purposes are achieved, LegisQuebec, in force 2023-09-22; law25_portability_s27 = P-39.1 s. 27 portability of computerized personal information collected from the person, LegisQuebec, in force 2024-09-22; biometrics_cai_s44 = c. C-1.1 s. 44 express consent plus disclosure to the Commission d'acces a l'information before a biometric process is put into service, LegisQuebec, in force 2022-09-22; charter_software_french_s52_1 = C-11 s. 52.1 software must be available in French where a French version exists, LegisQuebec, in force 1998-01-01; charter_commercial_documents_s52_s57 = C-11 s. 52 catalogues, order forms and other public documents on any medium, and s. 57 invoices and receipts, LegisQuebec, both in force 2022-06-01; charter_adhesion_contracts_s55 = C-11 s. 55 contracts of adhesion drawn up in French and remitted in French first, LegisQuebec, in force 2023-06-01; charter_employment_docs_s41 = C-11 s. 41 and s. 46 employment documents and stating the reason for a non-French language requirement, LegisQuebec, in force 2022-06-01; charter_registration_s139 = C-11 s. 139 registration with the Office, attestation, linguistic analysis, certificate or programme, LegisQuebec, in force 2025-06-01 (threshold deliberately not stated in the stem); cra_records_in_canada = CRA, records kept outside Canada and accessed electronically from Canada are not records kept in Canada, canada.ca (reused from base). Exactly one question is tagged quiz plus audit: layer_compliance_qc.lang.q01, the French-interface question, because it is short, concrete and answerable without preparation.",
+  "questions": [
+    {
+      "id": "layer_compliance_qc.priv.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "You put in or rebuild a system that holds personal information. Does the project get a privacy assessment?",
+        "fr": "Vous implantez ou refondez un système qui contient des renseignements personnels. Le projet fait-il l'objet d'une évaluation des facteurs relatifs à la vie privée?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_pia_s33",
+      "artifact_probe": {
+        "en": "Pull up the assessment for the last system you put in, and let's look at its date.",
+        "fr": "Sortez l'évaluation du dernier système que vous avez implanté, et regardons sa date."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I'd have to ask our IT person whether that exists", "fr": "Il faudrait que je demande à notre personne en TI si ça existe" }, "level": 1, "flag": "law25_no_pia" },
+        { "value": "never", "label": { "en": "No — we pick the system and go", "fr": "Non — on choisit le système et on y va" }, "level": 1, "flag": "law25_no_pia" },
+        { "value": "verbal", "label": { "en": "We'd talk it through, nothing written", "fr": "On en discuterait, rien d'écrit" }, "level": 2 },
+        { "value": "after_choice", "label": { "en": "It gets written, after the system is chosen", "fr": "C'est écrit, après le choix du système" }, "level": 3 },
+        { "value": "before_choice", "label": { "en": "It's written before the system is chosen", "fr": "C'est écrit avant le choix du système" }, "level": 4 },
+        { "value": "revisited", "label": { "en": "Written before the choice, and redone when the scope changes", "fr": "Écrit avant le choix, et refait quand la portée change" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "On a project like that, when does the person responsible for personal information get brought in?",
+        "fr": "Dans un projet comme celui-là, à quel moment la personne responsable des renseignements personnels est-elle impliquée?"
+      },
+      "instruments": ["audit"],
+      "notes": "s. 3.3 requires the person in charge to be consulted from the OUTSET of the project. base.comp.q01 asks who is named; this asks whether that naming does any work.",
+      "options": [
+        { "value": "nobody", "label": { "en": "There isn't really such a person here", "fr": "Il n'y a pas vraiment une telle personne ici" }, "level": 1 },
+        { "value": "never", "label": { "en": "They aren't involved in system projects", "fr": "Elle n'est pas impliquée dans les projets de système" }, "level": 1 },
+        { "value": "after_golive", "label": { "en": "After go-live, if something comes up", "fr": "Après la mise en service, si quelque chose survient" }, "level": 2 },
+        { "value": "during_config", "label": { "en": "Once we're configuring the system", "fr": "Quand on configure le système" }, "level": 3 },
+        { "value": "at_scoping", "label": { "en": "At the first scoping meeting", "fr": "À la première rencontre de cadrage" }, "level": 4 },
+        { "value": "at_scoping_recorded", "label": { "en": "At the first scoping meeting, and their input is on the record", "fr": "À la première rencontre de cadrage, et son apport est consigné" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q03",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Before personal information leaves Quebec, what gets looked at first?",
+        "fr": "Avant que des renseignements personnels sortent du Québec, qu'est-ce qui est examiné d'abord?"
+      },
+      "help": {
+        "en": "Hosting, backups, an outside payroll provider, support staff in another country — each one counts on its own.",
+        "fr": "L'hébergement, les sauvegardes, un fournisseur de paie externe, du soutien technique dans un autre pays — chacun compte séparément."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_outside_quebec_s17",
+      "options": [
+        { "value": "unknown", "label": { "en": "I'd have to ask our IT person whether any of it leaves Quebec", "fr": "Il faudrait que je demande à notre personne en TI si une partie sort du Québec" }, "level": 1, "flag": "cross_border_unassessed" },
+        { "value": "nothing", "label": { "en": "Nothing — the provider is reputable, so we go ahead", "fr": "Rien — le fournisseur est reconnu, alors on y va" }, "level": 2, "flag": "cross_border_unassessed" },
+        { "value": "informal", "label": { "en": "Someone looks at it informally, nothing written", "fr": "Quelqu'un l'examine de façon informelle, rien d'écrit" }, "level": 3 },
+        { "value": "written", "label": { "en": "A written assessment covering sensitivity, purpose and the destination's rules", "fr": "Une évaluation écrite couvrant la sensibilité, la finalité et les règles de la destination" }, "level": 4 },
+        { "value": "written_refreshed", "label": { "en": "That, and it's redone when the provider or the region changes", "fr": "Cela, et elle est refaite quand le fournisseur ou la région change" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q04",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Your host, your payroll provider, your outside support — which of them have a signed agreement covering the personal information they handle?",
+        "fr": "Votre hébergeur, votre fournisseur de paie, votre soutien externe — lesquels ont une entente signée couvrant les renseignements personnels qu'ils traitent?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_outside_quebec_s17",
+      "artifact_probe": {
+        "en": "Open the agreement with whoever holds your data and show me the clause that says where it's kept.",
+        "fr": "Ouvrez l'entente avec celui qui détient vos données et montrez-moi la clause qui dit où elles sont conservées."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I'm not sure which providers handle our personal information", "fr": "Je ne sais pas trop quels fournisseurs traitent nos renseignements personnels" }, "level": 1, "flag": "processor_inventory_missing" },
+        { "value": "standard_terms", "label": { "en": "None — we accepted their standard terms and that was it", "fr": "Aucun — on a accepté leurs conditions standards et c'est tout" }, "level": 2 },
+        { "value": "some", "label": { "en": "Some of them", "fr": "Quelques-uns" }, "level": 3 },
+        { "value": "all_written", "label": { "en": "All of them, in writing, naming where the information sits", "fr": "Tous, par écrit, en nommant où l'information se trouve" }, "level": 4 },
+        { "value": "all_reviewed", "label": { "en": "All of them, in writing, and we review them on a schedule", "fr": "Tous, par écrit, et nous les révisons selon un calendrier" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q05",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Who in your business established where your accounting records physically sit?",
+        "fr": "Qui, dans votre entreprise, a établi où vos registres comptables se trouvent physiquement?"
+      },
+      "help": {
+        "en": "Records kept outside Canada and opened electronically from Canada are not treated as records kept in Canada. Written permission is the exception, not the norm.",
+        "fr": "Des registres conservés hors du Canada et consultés électroniquement à partir du Canada ne sont pas considérés comme conservés au Canada. L'autorisation écrite est l'exception, pas la norme."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "cra_records_in_canada",
+      "notes": "Tension question 1 of 2. Pairs with layer_compliance_qc.priv.q06. The records-in-Canada rule and the outside-Quebec assessment rule pull in opposite directions; a cloud instance in a United States region potentially falls foul of the first and definitely triggers the second. base.comp.q02 asks WHERE the data is; this asks WHO established it and on what basis.",
+      "artifact_probe": {
+        "en": "Show me where your provider states the hosting region, in writing.",
+        "fr": "Montrez-moi où votre fournisseur indique la région d'hébergement, par écrit."
+      },
+      "options": [
+        { "value": "nobody", "label": { "en": "Nobody has — I'd have to ask our IT person", "fr": "Personne — il faudrait que je demande à notre personne en TI" }, "level": 1, "flag": "records_location_unestablished" },
+        { "value": "assume_provider", "label": { "en": "We assume the software provider takes care of that", "fr": "On présume que le fournisseur du logiciel s'en occupe" }, "level": 2 },
+        { "value": "accountant_raised", "label": { "en": "Our accountant raised it at some point", "fr": "Notre comptable l'a soulevé à un moment donné" }, "level": 3 },
+        { "value": "checked_country", "label": { "en": "Someone checked, and we know the country", "fr": "Quelqu'un a vérifié, et nous connaissons le pays" }, "level": 4 },
+        { "value": "contracted_reviewed", "label": { "en": "We know the country, it's in the provider agreement, and we recheck when the provider changes", "fr": "Nous connaissons le pays, c'est dans l'entente avec le fournisseur, et nous revérifions quand le fournisseur change" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q06",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Who chose which region your systems are hosted in, and what did they weigh?",
+        "fr": "Qui a choisi la région d'hébergement de vos systèmes, et sur quoi s'est-il basé?"
+      },
+      "help": {
+        "en": "One rule wants records kept in Canada. A separate one wants a written assessment and a written agreement before personal information goes outside Quebec. A region in the United States runs into both at once.",
+        "fr": "Une règle veut que les registres soient conservés au Canada. Une autre exige une évaluation écrite et une entente écrite avant que des renseignements personnels sortent du Québec. Une région aux États-Unis touche les deux à la fois."
+      },
+      "instruments": ["audit"],
+      "notes": "Tension question 2 of 2. Deliberately dimension systems_integration, not compliance_risk: the finding is usually that nobody owned the hosting decision, which is an architecture gap that produces the regulatory gap.",
+      "options": [
+        { "value": "came_with", "label": { "en": "Nobody chose — it came with the software", "fr": "Personne n'a choisi — c'est venu avec le logiciel" }, "level": 1, "flag": "cross_border_tension_unresolved" },
+        { "value": "default", "label": { "en": "Whoever set it up took the default", "fr": "La personne qui l'a configuré a pris la valeur par défaut" }, "level": 2, "flag": "cross_border_tension_unresolved" },
+        { "value": "price_speed", "label": { "en": "We picked a region, for speed or price", "fr": "Nous avons choisi une région, pour la vitesse ou le prix" }, "level": 3 },
+        { "value": "both_rules", "label": { "en": "We picked it knowing both rules applied", "fr": "Nous l'avons choisie en sachant que les deux règles s'appliquaient" }, "level": 4 },
+        { "value": "documented_approved", "label": { "en": "That, and the decision is written down with who approved it", "fr": "Cela, et la décision est consignée avec la personne qui l'a approuvée" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q07",
+      "dimension": "ai_automation_readiness",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Does anything in your systems decide something about a person — credit, an approval, a score — with nobody looking at it?",
+        "fr": "Y a-t-il quelque chose dans vos systèmes qui décide à propos d'une personne — crédit, approbation, pointage — sans que personne ne l'examine?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_automated_decision_s121",
+      "notes": "Dimension ai_automation_readiness on purpose: the control this question looks for is an automation-governance control, and it belongs beside base.ai.q03.",
+      "options": [
+        { "value": "na", "label": { "en": "No — a person is always in the loop", "fr": "Non — une personne est toujours dans la boucle" }, "na": true },
+        { "value": "unknown", "label": { "en": "I don't know what the system decides on its own", "fr": "Je ne sais pas ce que le système décide tout seul" }, "level": 1, "flag": "automated_decision_unmapped" },
+        { "value": "never_told", "label": { "en": "Yes, and the person is never told it was automatic", "fr": "Oui, et la personne n'est jamais informée que c'était automatique" }, "level": 2, "flag": "automated_decision_undisclosed" },
+        { "value": "explain_if_asked", "label": { "en": "Yes, and someone would explain it if asked", "fr": "Oui, et quelqu'un l'expliquerait si on le demandait" }, "level": 3 },
+        { "value": "told_and_contact", "label": { "en": "Yes, and we tell the person it was automatic and who can review it", "fr": "Oui, et nous informons la personne que c'était automatique et qui peut réviser" }, "level": 4 },
+        { "value": "factors_shown", "label": { "en": "That, and we can show which information and which main factors produced the decision", "fr": "Cela, et nous pouvons montrer quelle information et quels principaux facteurs ont produit la décision" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q08",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "When you collect personal information, how is consent asked for?",
+        "fr": "Quand vous recueillez des renseignements personnels, comment le consentement est-il demandé?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_consent_per_purpose_s14",
+      "artifact_probe": {
+        "en": "Show me the form or the screen where someone consents.",
+        "fr": "Montrez-moi le formulaire ou l'écran où une personne consent."
+      },
+      "options": [
+        { "value": "not_asked", "label": { "en": "We don't ask — people give us what we need", "fr": "On ne demande pas — les gens nous donnent ce qu'il faut" }, "level": 1 },
+        { "value": "one_box", "label": { "en": "One checkbox covers everything we do with it", "fr": "Une seule case couvre tout ce qu'on en fait" }, "level": 2 },
+        { "value": "one_box_listed", "label": { "en": "One consent, with the purposes listed in the text", "fr": "Un seul consentement, avec les finalités énumérées dans le texte" }, "level": 3 },
+        { "value": "per_purpose", "label": { "en": "A separate consent for each purpose, in plain language", "fr": "Un consentement distinct pour chaque finalité, en langage clair" }, "level": 4 },
+        { "value": "per_purpose_logged", "label": { "en": "That, and we can show when and how each person consented", "fr": "Cela, et nous pouvons montrer quand et comment chaque personne a consenti" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q09",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Once you no longer need someone's personal information, what happens to it?",
+        "fr": "Quand vous n'avez plus besoin des renseignements personnels d'une personne, qu'est-ce qui leur arrive?"
+      },
+      "help": {
+        "en": "Separate from your accounting records, which have their own retention period.",
+        "fr": "Distinct de vos registres comptables, qui ont leur propre période de conservation."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_retention_s23",
+      "artifact_probe": {
+        "en": "Show me the oldest contact record in the system and tell me why it's still there.",
+        "fr": "Montrez-moi la fiche de contact la plus ancienne dans le système et dites-moi pourquoi elle y est encore."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "Nobody knows — nothing is ever deleted", "fr": "Personne ne le sait — rien n'est jamais supprimé" }, "level": 1 },
+        { "value": "stays", "label": { "en": "It stays in the system, we just stop using it", "fr": "Ça reste dans le système, on cesse simplement de l'utiliser" }, "level": 2 },
+        { "value": "occasional_cleanup", "label": { "en": "Someone cleans things up now and then", "fr": "Quelqu'un fait un nettoyage de temps en temps" }, "level": 3 },
+        { "value": "written_schedule", "label": { "en": "A written schedule says what gets destroyed when", "fr": "Un calendrier écrit indique ce qui est détruit et quand" }, "level": 4 },
+        { "value": "schedule_applied", "label": { "en": "A written schedule, applied in the system, and we can show that it ran", "fr": "Un calendrier écrit, appliqué dans le système, et nous pouvons montrer qu'il s'est exécuté" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q10",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "A customer or an employee asks for a copy of the information they gave you. What do they get?",
+        "fr": "Un client ou un employé demande une copie de l'information qu'il vous a fournie. Que reçoit-il?"
+      },
+      "help": {
+        "en": "What they gave you, not what you worked out about them.",
+        "fr": "Ce qu'il vous a fourni, pas ce que vous avez déduit à son sujet."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_portability_s27",
+      "options": [
+        { "value": "no_idea", "label": { "en": "We wouldn't know where to start", "fr": "On ne saurait pas par où commencer" }, "level": 1 },
+        { "value": "screenshots", "label": { "en": "Screenshots or a PDF someone puts together", "fr": "Des captures d'écran ou un PDF que quelqu'un assemble" }, "level": 2 },
+        { "value": "manual_export", "label": { "en": "An export, after a few hours of manual work", "fr": "Une extraction, après quelques heures de travail manuel" }, "level": 3 },
+        { "value": "structured_file", "label": { "en": "A structured file from a known process", "fr": "Un fichier structuré, à partir d'un processus connu" }, "level": 4 },
+        { "value": "structured_tracked", "label": { "en": "That, within a set turnaround, and the request is logged", "fr": "Cela, dans un délai fixé, et la demande est consignée" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q11",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Does anyone clock in with a fingerprint, a hand or their face?",
+        "fr": "Est-ce que quelqu'un poinçonne avec une empreinte, une main ou son visage?"
+      },
+      "help": {
+        "en": "Same question for face recognition on a camera or at a door.",
+        "fr": "Même question pour la reconnaissance faciale sur une caméra ou à une porte."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "biometrics_cai_s44",
+      "reveals": ["biometric_in_use"],
+      "artifact_probe": {
+        "en": "Show me the clock, and show me what each person signed before it went live.",
+        "fr": "Montrez-moi le lecteur, et montrez-moi ce que chaque personne a signé avant sa mise en service."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "No, and nothing like it is planned", "fr": "Non, et rien de tel n'est prévu" }, "na": true, "reveals": { "biometric_in_use": false } },
+        { "value": "considering", "label": { "en": "We're looking at putting one in", "fr": "Nous envisageons d'en installer un" }, "level": 2, "flag": "biometric_planned", "reveals": { "biometric_in_use": "planned" } },
+        { "value": "in_service_unknown", "label": { "en": "It's in service — I don't know what was signed or filed", "fr": "C'est en service — je ne sais pas ce qui a été signé ni déclaré" }, "level": 1, "flag": "biometric_undisclosed", "reveals": { "biometric_in_use": true } },
+        { "value": "told_only", "label": { "en": "In service, people were told, nothing was signed", "fr": "En service, les gens ont été informés, rien n'a été signé" }, "level": 2, "flag": "biometric_undisclosed", "reveals": { "biometric_in_use": true } },
+        { "value": "written_consent", "label": { "en": "In service, with written consent from each person", "fr": "En service, avec le consentement écrit de chaque personne" }, "level": 3, "reveals": { "biometric_in_use": true } },
+        { "value": "consent_and_filed", "label": { "en": "Express written consent, and the regulator was told before it went live", "fr": "Consentement écrit exprès, et le régulateur a été avisé avant la mise en service" }, "level": 4, "reveals": { "biometric_in_use": true } },
+        { "value": "consent_filed_fallback", "label": { "en": "That, plus a fallback for anyone who refuses and a rule for how long the templates are kept", "fr": "Cela, plus une solution de rechange pour qui refuse et une règle sur la durée de conservation des gabarits" }, "level": 5, "reveals": { "biometric_in_use": true } }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.lang.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Is the software your staff use every day available to them in French?",
+        "fr": "Le logiciel que votre personnel utilise tous les jours est-il disponible en français?"
+      },
+      "help": {
+        "en": "Including custom fields, drop-down labels and any add-on module.",
+        "fr": "Y compris les champs personnalisés, les libellés de listes déroulantes et tout module complémentaire."
+      },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "charter_software_french_s52_1",
+      "reveals": ["french_localization_scope"],
+      "notes": "The single most recurring finding on Quebec ERP projects: the core screens get translated, the custom fields and the community modules do not. The one question in this bank carried in both instruments — short, concrete, answerable without preparation, and identical wording in both.",
+      "artifact_probe": {
+        "en": "Log in as one of your staff and show me the screen they use most.",
+        "fr": "Connectez-vous comme un de vos employés et montrez-moi l'écran qu'il utilise le plus."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I'd have to ask our IT person", "fr": "Il faudrait que je demande à notre personne en TI" }, "level": 1, "reveals": { "french_localization_scope": "unknown" } },
+        { "value": "english_only", "label": { "en": "No — the interface is English only", "fr": "Non — l'interface est en anglais seulement" }, "level": 1, "flag": "charter_software_not_french", "reveals": { "french_localization_scope": "full" } },
+        { "value": "core_only", "label": { "en": "The main screens are in French; custom fields and add-ons are not", "fr": "Les écrans principaux sont en français; les champs personnalisés et les modules complémentaires, non" }, "level": 3, "flag": "charter_software_partial_french", "reveals": { "french_localization_scope": "custom_and_modules" } },
+        { "value": "all_french", "label": { "en": "Everything staff touch is in French", "fr": "Tout ce que le personnel touche est en français" }, "level": 4, "reveals": { "french_localization_scope": "none" } },
+        { "value": "all_french_maintained", "label": { "en": "Everything is in French, and new fields are translated before they go live", "fr": "Tout est en français, et les nouveaux champs sont traduits avant leur mise en service" }, "level": 5, "reveals": { "french_localization_scope": "maintained" } }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.lang.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your invoices, order forms, catalogues and website — what language do customers get them in?",
+        "fr": "Vos factures, bons de commande, catalogues et site Web — dans quelle langue les clients les reçoivent-ils?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "charter_commercial_documents_s52_s57",
+      "artifact_probe": {
+        "en": "Print the last invoice that went out, and open your website's product pages beside it.",
+        "fr": "Imprimez la dernière facture envoyée, et ouvrez les pages de produits de votre site Web à côté."
+      },
+      "options": [
+        { "value": "english_only", "label": { "en": "English only", "fr": "En anglais seulement" }, "level": 1, "flag": "charter_documents_not_french" },
+        { "value": "french_on_request", "label": { "en": "French if the customer asks for it", "fr": "En français si le client le demande" }, "level": 2, "flag": "charter_documents_not_french" },
+        { "value": "split_by_customer", "label": { "en": "French for Quebec customers, English for the rest", "fr": "En français pour les clients du Québec, en anglais pour les autres" }, "level": 3 },
+        { "value": "french_default", "label": { "en": "French by default everywhere, another language available on at least equal terms", "fr": "En français par défaut partout, une autre langue offerte à des conditions au moins aussi favorables" }, "level": 4 },
+        { "value": "french_default_checked", "label": { "en": "That, and someone checks new templates before they go out", "fr": "Cela, et quelqu'un vérifie les nouveaux gabarits avant leur diffusion" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.lang.q03",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your standard customer contract or terms of service — in what language is it handed over?",
+        "fr": "Votre contrat client standard ou vos conditions de service — dans quelle langue est-il remis?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "charter_adhesion_contracts_s55",
+      "artifact_probe": {
+        "en": "Show me the last signed standard contract, and which version the customer received first.",
+        "fr": "Montrez-moi le dernier contrat standard signé, et quelle version le client a reçue en premier."
+      },
+      "options": [
+        { "value": "english_only", "label": { "en": "English only", "fr": "En anglais seulement" }, "level": 1, "flag": "charter_contract_not_french" },
+        { "value": "english_fr_on_request", "label": { "en": "English, French if they ask", "fr": "En anglais, en français s'ils le demandent" }, "level": 2, "flag": "charter_contract_not_french" },
+        { "value": "both_en_prominent", "label": { "en": "Both at once, with English more prominent", "fr": "Les deux à la fois, l'anglais plus en évidence" }, "level": 3 },
+        { "value": "french_first", "label": { "en": "The French version is given first, then the customer may choose another", "fr": "La version française est remise d'abord, puis le client peut en choisir une autre" }, "level": 4 },
+        { "value": "french_first_in_system", "label": { "en": "That, and the system that generates them does it the same way", "fr": "Cela, et le système qui les génère fonctionne de la même façon" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.lang.q04",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "When a job posting asks for a language other than French, what does the posting say about why?",
+        "fr": "Quand une offre d'emploi exige une langue autre que le français, que dit l'affichage sur la raison?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "charter_employment_docs_s41",
+      "notes": "Dimension people_continuity rather than compliance_risk: in a 10-150 person firm this sits with whoever does hiring, and the gap it exposes is a hiring-process gap.",
+      "artifact_probe": {
+        "en": "Pull up your last posting that asked for English.",
+        "fr": "Sortez votre dernier affichage qui exigeait l'anglais."
+      },
+      "options": [
+        { "value": "never_considered", "label": { "en": "We've never thought about it", "fr": "Nous n'y avons jamais pensé" }, "level": 1 },
+        { "value": "nothing", "label": { "en": "Nothing — we list the requirement and that's it", "fr": "Rien — on indique l'exigence et c'est tout" }, "level": 2 },
+        { "value": "sometimes", "label": { "en": "Sometimes we explain it", "fr": "Parfois on l'explique" }, "level": 3 },
+        { "value": "always_stated", "label": { "en": "The posting states the reason, every time", "fr": "L'affichage indique la raison, chaque fois" }, "level": 4 },
+        { "value": "assessed_documented", "label": { "en": "That, and the need is assessed and written down before the posting goes out", "fr": "Cela, et le besoin est évalué et consigné avant la diffusion de l'affichage" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.lang.q05",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Where are you with the Office's registration and francisation steps?",
+        "fr": "Où en êtes-vous avec les démarches d'inscription et de francisation de l'Office?"
+      },
+      "help": {
+        "en": "Which steps apply depends on your headcount. We check your count against the current rule in the session rather than guess at it here.",
+        "fr": "Les démarches applicables dépendent de votre nombre d'employés. Nous validons votre nombre avec la règle en vigueur pendant la séance plutôt que de le présumer ici."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "charter_registration_s139",
+      "reveals": ["charter_registration_due"],
+      "notes": "Deliberately asked without any threshold number. The headcount band is already captured at base.firmo.q01; the thresholds move and the consultant confirms the applicable one live.",
+      "options": [
+        { "value": "unknown", "label": { "en": "I don't know whether any of that applies to us", "fr": "Je ne sais pas si quoi que ce soit de cela s'applique à nous" }, "level": 1, "reveals": { "charter_registration_due": "unknown" } },
+        { "value": "applies_not_started", "label": { "en": "We know it applies and we haven't started", "fr": "Nous savons que ça s'applique et nous n'avons pas commencé" }, "level": 2, "flag": "charter_registration_outstanding", "reveals": { "charter_registration_due": true } },
+        { "value": "registered_no_analysis", "label": { "en": "We're registered; the linguistic analysis isn't done", "fr": "Nous sommes inscrits; l'analyse de la situation linguistique n'est pas faite" }, "level": 3, "reveals": { "charter_registration_due": true } },
+        { "value": "confirmed_not_yet", "label": { "en": "We checked our headcount against the rule and it doesn't apply yet", "fr": "Nous avons validé notre nombre d'employés avec la règle et ça ne s'applique pas encore" }, "level": 4, "reveals": { "charter_registration_due": false } },
+        { "value": "complete", "label": { "en": "Registered, analysis filed, certificate or programme in place", "fr": "Inscrits, analyse déposée, certificat ou programme en place" }, "level": 4, "reveals": { "charter_registration_due": false } },
+        { "value": "complete_owned", "label": { "en": "That, and someone owns the follow-up dates", "fr": "Cela, et quelqu'un est responsable des dates de suivi" }, "level": 5, "reveals": { "charter_registration_due": false } }
+      ]
+    },
+    {
+      "id": "layer_compliance_qc.priv.q12",
+      "dimension": "compliance_risk",
+      "type": "text",
+      "weight": 0,
+      "stem": {
+        "en": "Which of your systems or providers hold personal information outside Quebec? Name them.",
+        "fr": "Lesquels de vos systèmes ou fournisseurs détiennent des renseignements personnels hors du Québec? Nommez-les."
+      },
+      "instruments": ["audit"],
+      "reveals": ["outside_quebec_processors"],
+      "notes": "Audit only, and never in the quiz. This is the scoping list: one assessment and one written agreement per destination. In practice the answer is longer than the client expects once hosting, backups, the payroll bureau, e-signature, email marketing and offshore support are all on the board.",
+      "artifact_probe": {
+        "en": "Let's list them on the screen together, with the country beside each one.",
+        "fr": "Dressons la liste ensemble à l'écran, avec le pays à côté de chacun."
+      }
+    }
+  ]
+}

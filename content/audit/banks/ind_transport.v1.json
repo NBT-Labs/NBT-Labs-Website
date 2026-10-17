@@ -1,0 +1,414 @@
+{
+  "bank_id": "ind_transport",
+  "bank_version": "1.0.0",
+  "layer": "industry",
+  "label": {
+    "en": "Transport and logistics — carrier, broker or warehousing",
+    "fr": "Transport et logistique — transporteur, courtier ou entreposage"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q04", "op": "eq", "value": "transport" }
+  ],
+  "reweight": {
+    "scheduling_capacity": 1.6,
+    "quote_to_cash": 1.5,
+    "procure_inventory": 0.5
+  },
+  "notes": "SCOPE HONESTY — READ THIS BEFORE THE FIRST MEETING. We have NO TRANSPORT-MANAGEMENT CAPABILITY. There is no load board, no dispatch board, no route optimization, no rating engine with accessorial or fuel-surcharge tables, no driver or owner-operator settlement engine, and no fuel-tax (IFTA) reporting. A carrier or a broker therefore needs a dedicated transport-management system with our ERP sitting behind it as finance — Trimble, Axon, TruckMate, Shipwell and similar are the systems these clients already shop. SAY THIS IN THE FIRST MEETING, not in the proposal. Selling an ERP as a replacement for dispatch and settlement in this sector is how a consultancy loses a reference. ind_transport.sys.q01 exists specifically to establish which of those pieces the client already has, because that answer, not our module list, defines the engagement.\n\nWHERE WE DO FIT, and what the audit should be aimed at: third-party warehousing and logistics billing (storage, handling, in and out), freight cost allocation into landed cost, fleet and equipment maintenance cost, procurement, and the whole finance and reporting layer above whatever runs dispatch. The realistic engagement is integration plus operational reporting — load-level profitability, cost per kilometre, settlement accuracy, receivables — not replacement of the operating system.\n\nBENCHMARKS: NONE. Our transport benchmark figures (on-time delivery 88.5 percent average, empty kilometres 22 percent average and 12 percent top quartile, order cycle time 3.2 days, claims ratio 1.8 percent, operating ratio below 0.95, spot rates per mile) all trace to a single aggregator source and the transport benchmark literature is thin. They are CONVERSATION ANCHORS the consultant may use verbally; they are NOT defensible in a written report and NO benchmark_ref is set anywhere in this bank. Every numeric question here says in its help text that we use the client's own number. If a client's controller asks where a figure came from and the answer is an aggregator blog, we have lost the room.\n\nQUEBEC: ind_transport.comp.q02 asks whether any part of the business is paid passenger transport, which is one of the two sectors subject to Revenu Quebec's facturation obligatoire regime and requires a separately certified sales-recording system that we are not. Ask the question only. DO NOT state dates, generations or deadlines — our research on those is not from a primary Revenu Quebec page. The consultant verifies against Revenu Quebec and its published certified-product list before anything goes in writing.\n\nREVEALS KEYS INTRODUCED BY THIS BANK (cost-model inputs; must exist in scoring/scoring.v1.json#cost_model.inputs before this bank goes live):\n- accessorials_uncaptured_rate — share of earned accessorials (detention, waiting time, lumper, redelivery, layover) that never reach an invoice. The single largest revenue leak in this sector and the headline dollar figure.\n- pod_to_invoice_days — working days from proof of delivery to invoice issued. Feeds the working-capital module, which is gated on base.fin.q07 (line of credit drawn).\n- empty_km_pct — percentage of kilometres run empty. Feeds the fuel and equipment cost module.\n- settlement_hours_per_cycle — hours per settlement cycle spent calculating driver and owner-operator pay. Feeds the labour saving.\n- claims_cost_annual — CAD of claims absorbed in the last 12 months, including amounts offset against customer invoices.\n- cost_per_km_known — boolean: whether the client can state a loaded-kilometre cost and name what is inside it. Gates the load-profitability module; without it we cannot monetize anything load-level and must say so.",
+  "questions": [
+    {
+      "id": "ind_transport.sys.q01",
+      "dimension": "systems_integration",
+      "type": "multi",
+      "weight": 0,
+      "stem": {
+        "en": "Which of these do you have today, as a real system rather than a spreadsheet? Check everything in actual use.",
+        "fr": "Lesquels de ces éléments avez-vous aujourd'hui, comme véritable système et non comme chiffrier? Cochez tout ce qui est réellement utilisé."
+      },
+      "help": {
+        "en": "We need this before we design anything. We have no dispatch board, no rating engine and no settlement engine, so what you already have decides the shape of the project.",
+        "fr": "Nous avons besoin de cela avant de concevoir quoi que ce soit. Nous n'avons ni tableau de répartition, ni moteur de tarification, ni moteur de règlement : ce que vous avez déjà détermine la forme du projet."
+      },
+      "instruments": ["audit"],
+      "notes": "THE MOST IMPORTANT QUESTION IN THIS BANK. Unscored on purpose: it is not a maturity reading, it is the boundary of the engagement. Each unchecked line is a capability we cannot supply and the client must buy or already own. If dispatch, rating and settlement are all absent, the honest recommendation is a transport-management system first and us second — and saying that is what earns the finance work.",
+      "artifact_probe": {
+        "en": "Open each one you checked. I want to see the screen, not the login page.",
+        "fr": "Ouvrez chacun de ceux que vous avez cochés. Je veux voir l'écran, pas la page de connexion."
+      },
+      "options": [
+        { "value": "dispatch_board", "label": { "en": "A dispatch board where today's loads and equipment are assigned", "fr": "Un tableau de répartition où les chargements et les équipements du jour sont assignés" }, "informational": true },
+        { "value": "rating_engine", "label": { "en": "A rating engine holding customer rates, accessorial schedules and fuel surcharge tables", "fr": "Un moteur de tarification contenant les tarifs clients, les grilles d'accessoires et les tables de surcharge de carburant" }, "informational": true },
+        { "value": "settlement_engine", "label": { "en": "A system that calculates driver and owner-operator settlements", "fr": "Un système qui calcule les règlements des chauffeurs et des propriétaires-exploitants" }, "informational": true },
+        { "value": "fuel_tax", "label": { "en": "Fuel-tax (IFTA) reporting produced from trip and fuel data", "fr": "Déclaration de taxe sur les carburants (IFTA) produite à partir des données de voyage et de carburant" }, "informational": true },
+        { "value": "eld_hos", "label": { "en": "Electronic logging and hours-of-service", "fr": "Consignation électronique et heures de service" }, "informational": true },
+        { "value": "safety_file", "label": { "en": "A safety and vehicle file — SAAQ, PEVL or CVOR, inspections, DVIRs", "fr": "Un dossier de sécurité et de véhicules — SAAQ, PEVL ou CVOR, inspections, rapports de ronde de sécurité" }, "informational": true },
+        { "value": "load_tracking_portal", "label": { "en": "A portal or feed where the customer can see where their freight is", "fr": "Un portail ou un flux où le client peut voir où est sa marchandise" }, "informational": true },
+        { "value": "wms", "label": { "en": "A warehouse system for third-party storage and handling billing", "fr": "Un système d'entrepôt pour la facturation d'entreposage et de manutention pour tiers" }, "informational": true },
+        { "value": "none_spreadsheets", "label": { "en": "None of the above — dispatch, rates and pay all live in spreadsheets and in people's heads", "fr": "Aucun de ces éléments — la répartition, les tarifs et la paie vivent dans des chiffriers et dans la tête des gens" }, "informational": true, "flag": "no_tms_layer" }
+      ]
+    },
+    {
+      "id": "ind_transport.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.75,
+      "stem": {
+        "en": "It is 7 a.m. Where does the person dispatching look to see which driver is on which load today?",
+        "fr": "Il est 7 h. Où la personne qui fait la répartition regarde-t-elle pour savoir quel chauffeur est sur quel chargement aujourd'hui?"
+      },
+      "instruments": ["quiz", "audit"],
+      "artifact_probe": {
+        "en": "Take me to that screen, that whiteboard or that phone, right now, and show me today.",
+        "fr": "Amenez-moi à cet écran, à ce tableau blanc ou à ce téléphone, maintenant, et montrez-moi la journée."
+      },
+      "options": [
+        { "value": "in_head", "label": { "en": "In the dispatcher's head and in their text messages", "fr": "Dans la tête du répartiteur et dans ses messages texte" }, "level": 1 },
+        { "value": "whiteboard", "label": { "en": "A whiteboard or a magnet board in the dispatch office", "fr": "Un tableau blanc ou un tableau magnétique au bureau de répartition" }, "level": 2 },
+        { "value": "spreadsheet", "label": { "en": "A spreadsheet the dispatcher updates during the day", "fr": "Un chiffrier que le répartiteur met à jour durant la journée" }, "level": 3 },
+        { "value": "system_shared", "label": { "en": "A dispatch system that drivers, billing and customer service all see", "fr": "Un système de répartition que les chauffeurs, la facturation et le service à la clientèle voient tous" }, "level": 4 },
+        { "value": "system_measured", "label": { "en": "That, and we measure tender acceptance, dwell and on-time delivery off it weekly", "fr": "Cela, et nous en mesurons l'acceptation des chargements, le temps d'attente et la ponctualité chaque semaine" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_transport.sched.q02",
+      "dimension": "scheduling_capacity",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "What percentage of your kilometres last month were run empty, and who is accountable for that number?",
+        "fr": "Quel pourcentage de vos kilomètres du mois dernier ont été faits à vide, et qui est responsable de ce chiffre?"
+      },
+      "help": {
+        "en": "There is no benchmark we would defend in writing for this — the published transport figures come from aggregators. We use your number and we compare you to yourself over time.",
+        "fr": "Il n'existe aucune référence que nous défendrions par écrit pour cela — les chiffres publiés en transport proviennent d'agrégateurs. Nous utilisons votre chiffre et nous vous comparons à vous-même dans le temps."
+      },
+      "instruments": ["audit"],
+      "reveals": ["empty_km_pct"],
+      "artifact_probe": {
+        "en": "Show me where loaded and total kilometres both come from, for one truck, for last month.",
+        "fr": "Montrez-moi d'où viennent les kilomètres chargés et les kilomètres totaux, pour un camion, pour le mois dernier."
+      },
+      "numeric": {
+        "unit": { "en": "percent of kilometres run empty", "fr": "pourcentage de kilomètres à vide" },
+        "min": 0,
+        "max": 100,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 10, "level": 5, "label": { "en": "Tightly managed", "fr": "Géré de près" } },
+          { "lte": 15, "level": 4, "label": { "en": "Managed", "fr": "Géré" } },
+          { "lte": 25, "level": 3, "label": { "en": "Ordinary", "fr": "Ordinaire" } },
+          { "lte": 35, "level": 2, "label": { "en": "Expensive", "fr": "Coûteux" } },
+          { "gt": 35, "level": 1, "label": { "en": "Unmanaged", "fr": "Non géré" } }
+        ]
+      }
+    },
+    {
+      "id": "ind_transport.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 2,
+      "stem": {
+        "en": "A driver waits three hours at a dock. How does that become money on an invoice?",
+        "fr": "Un chauffeur attend trois heures à un quai. Comment cela devient-il de l'argent sur une facture?"
+      },
+      "help": {
+        "en": "Detention, waiting time, lumper, redelivery, layover — the charges earned in the field.",
+        "fr": "Temps d'attente, immobilisation, frais de déchargement, relivraison, nuitée — les frais gagnés sur la route."
+      },
+      "instruments": ["quiz", "audit"],
+      "notes": "The largest revenue leak in this sector: accessorials are earned in the field and never captured. Also an Odoo gap in the open — there are no accessorial tables and no rating engine, so whatever the client does here, the capture mechanism is a transport-management system's job and ours is to make sure the money reaches the invoice and the ledger.",
+      "reveals": ["accessorials_uncaptured_rate"],
+      "artifact_probe": {
+        "en": "Find me the last three invoices that carried a detention charge, and then tell me how many loads waited last week.",
+        "fr": "Trouvez-moi les trois dernières factures portant des frais d'attente, puis dites-moi combien de chargements ont attendu la semaine dernière."
+      },
+      "options": [
+        { "value": "never_billed", "label": { "en": "It doesn't — we absorb it, and nobody could tell you how often it happens", "fr": "Ça ne le devient pas — nous l'absorbons, et personne ne pourrait vous dire à quelle fréquence ça arrive" }, "level": 1, "flag": "accessorials_unbilled", "reveals": { "accessorials_uncaptured_rate": 1 } },
+        { "value": "driver_remembers", "label": { "en": "The driver mentions it if he remembers, and billing adds it if they believe him", "fr": "Le chauffeur le mentionne s'il y pense, et la facturation l'ajoute si on le croit" }, "level": 2, "reveals": { "accessorials_uncaptured_rate": 0.6 } },
+        { "value": "paper_notes", "label": { "en": "He writes the arrival and departure times on the trip sheet and billing keys it in", "fr": "Il inscrit les heures d'arrivée et de départ sur le bon de transport et la facturation la saisit" }, "level": 3, "reveals": { "accessorials_uncaptured_rate": 0.3 } },
+        { "value": "system_captured", "label": { "en": "Arrival and departure are time-stamped in a system and the charge is applied from the customer's accessorial schedule", "fr": "Les heures d'arrivée et de départ sont horodatées dans un système et les frais sont appliqués selon la grille d'accessoires du client" }, "level": 4, "reveals": { "accessorials_uncaptured_rate": 0.1 } },
+        { "value": "system_and_reviewed", "label": { "en": "That, and we review billed-versus-earned accessorials every month and chase the gap", "fr": "Cela, et nous révisons chaque mois les accessoires facturés contre les accessoires gagnés et traquons l'écart" }, "level": 5, "reveals": { "accessorials_uncaptured_rate": 0.02 } }
+      ]
+    },
+    {
+      "id": "ind_transport.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.75,
+      "stem": {
+        "en": "From proof of delivery in hand to the invoice leaving: how many working days, and who chases the paperwork?",
+        "fr": "De la preuve de livraison en main jusqu'au départ de la facture : combien de jours ouvrables, et qui court après la paperasse?"
+      },
+      "help": {
+        "en": "We don't use a published figure here — the transport benchmarks we have are aggregator-sourced. We use your number, and if you factor or take quick pay, this delay is costing you a discount as well as a delay.",
+        "fr": "Nous n'utilisons pas de chiffre publié ici — les références en transport que nous avons proviennent d'agrégateurs. Nous utilisons votre chiffre, et si vous faites de l'affacturage ou du paiement rapide, ce délai vous coûte un escompte en plus d'un retard."
+      },
+      "instruments": ["audit"],
+      "reveals": ["pod_to_invoice_days"],
+      "artifact_probe": {
+        "en": "Pick five invoices from last week and let's compare each delivery date to its invoice date.",
+        "fr": "Choisissons cinq factures de la semaine dernière et comparons chaque date de livraison à sa date de facturation."
+      },
+      "numeric": {
+        "unit": { "en": "working days", "fr": "jours ouvrables" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 2, "level": 4 },
+          { "lte": 5, "level": 3 },
+          { "lte": 10, "level": 2 },
+          { "gt": 10, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_transport.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "The rate on an invoice — where does the number come from, and what stops someone using last year's rate?",
+        "fr": "Le tarif sur une facture — d'où vient le chiffre, et qu'est-ce qui empêche quelqu'un d'utiliser le tarif de l'an dernier?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. There is no rating engine: no lane-based rate tables, no accessorial schedules, no minimum charges, no tariff rounding, no class or weight-break logic. If the client is at level 1 to 3 here, the rating layer is a purchase, not a configuration. Record which lane and rate dimensions they actually price on — per kilometre, per load, per pallet, per hundredweight, per hour — because that list is the integration specification.",
+      "artifact_probe": {
+        "en": "Show me where a customer's rate for one lane is stored, and show me the last time it was changed.",
+        "fr": "Montrez-moi où le tarif d'un client pour un trajet est conservé, et montrez-moi la dernière fois qu'il a été modifié."
+      },
+      "options": [
+        { "value": "memory", "label": { "en": "From memory, or from whatever the rate confirmation said when someone finds it", "fr": "De mémoire, ou de ce que disait la confirmation de tarif quand quelqu'un la retrouve" }, "level": 1 },
+        { "value": "email_or_paper", "label": { "en": "From an email or a paper rate sheet the biller goes looking for", "fr": "D'un courriel ou d'une feuille de tarifs papier que la personne à la facturation va chercher" }, "level": 2 },
+        { "value": "spreadsheet_rates", "label": { "en": "From a spreadsheet of customer rates that one person maintains", "fr": "D'un chiffrier de tarifs clients qu'une seule personne entretient" }, "level": 3 },
+        { "value": "system_rates", "label": { "en": "A system holds rates by lane and customer and applies them automatically", "fr": "Un système tient les tarifs par trajet et par client et les applique automatiquement" }, "level": 4 },
+        { "value": "system_rates_audited", "label": { "en": "That, and we audit billed rate against contracted rate and report the exceptions", "fr": "Cela, et nous vérifions le tarif facturé contre le tarif contractuel et rapportons les exceptions" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_transport.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "Your fuel surcharge — when was the table last recalculated, and against what published price?",
+        "fr": "Votre surcharge de carburant — quand la table a-t-elle été recalculée pour la dernière fois, et selon quel prix publié?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Open the fuel surcharge table and show me its effective date and the index behind it.",
+        "fr": "Ouvrez la table de surcharge de carburant et montrez-moi sa date d'entrée en vigueur et l'indice sur lequel elle repose."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We don't charge a fuel surcharge at all", "fr": "Nous ne facturons aucune surcharge de carburant" }, "na": true },
+        { "value": "flat_old", "label": { "en": "It's a flat percentage someone set a long time ago", "fr": "C'est un pourcentage fixe que quelqu'un a établi il y a longtemps" }, "level": 1 },
+        { "value": "adhoc", "label": { "en": "We change it when a customer complains or fuel moves a lot", "fr": "Nous la changeons quand un client se plaint ou que le carburant bouge beaucoup" }, "level": 2 },
+        { "value": "indexed_manual", "label": { "en": "It's indexed to a published price and somebody updates the table by hand", "fr": "Elle est indexée à un prix publié et quelqu'un met la table à jour à la main" }, "level": 3 },
+        { "value": "indexed_scheduled", "label": { "en": "Indexed, recalculated on a fixed schedule, and applied by the system", "fr": "Indexée, recalculée selon un calendrier fixe, et appliquée par le système" }, "level": 4 },
+        { "value": "indexed_recovery_measured", "label": { "en": "That, and we measure recovery — surcharge collected against fuel actually burned", "fr": "Cela, et nous mesurons la récupération — la surcharge perçue contre le carburant réellement consommé" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_transport.q2c.q05",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "In the last 12 months, how many dollars of freight claims — over, short, damaged — did you absorb or have offset against your invoices?",
+        "fr": "Au cours des 12 derniers mois, combien de dollars de réclamations de marchandises — excédent, manquant, endommagé — avez-vous absorbés ou vu déduits de vos factures?"
+      },
+      "help": {
+        "en": "Include the ones the customer simply took off a payment. We use your number — the published claims ratios in this sector are not sourced well enough to put in a report.",
+        "fr": "Incluez celles que le client a simplement retirées d'un paiement. Nous utilisons votre chiffre — les ratios de réclamations publiés dans ce secteur ne sont pas assez bien sourcés pour figurer dans un rapport."
+      },
+      "instruments": ["audit"],
+      "reveals": ["claims_cost_annual"],
+      "artifact_probe": {
+        "en": "Show me the claims account and any credit notes issued against delivery problems last year.",
+        "fr": "Montrez-moi le compte de réclamations et les notes de crédit émises pour des problèmes de livraison l'an dernier."
+      },
+      "numeric": {
+        "unit": { "en": "CAD, last 12 months", "fr": "$ CA, 12 derniers mois" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 10000, "level": 4 },
+          { "lte": 50000, "level": 3 },
+          { "lte": 150000, "level": 2 },
+          { "gt": 150000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_transport.fin.q01",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "On a brokered load, what shows up as your revenue — the whole amount the customer pays, or your margin after the carrier?",
+        "fr": "Sur un chargement courtié, qu'est-ce qui apparaît comme votre revenu — le montant complet payé par le client, ou votre marge après le transporteur?"
+      },
+      "help": {
+        "en": "This materially changes your reported revenue, so your banker and your accountant both care which it is and whether it is consistent.",
+        "fr": "Cela change matériellement votre chiffre d'affaires déclaré : votre banquier et votre comptable se soucient tous deux de savoir lequel c'est et si c'est appliqué de façon constante."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me one brokered load from customer invoice through to the carrier's payable, and show me the revenue account each side hit.",
+        "fr": "Montrez-moi un chargement courtié, de la facture client jusqu'au compte à payer du transporteur, et montrez-moi le compte de produits touché de chaque côté."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We never broker — every load moves on our own equipment", "fr": "Nous ne courtions jamais — chaque chargement se déplace sur notre propre équipement" }, "na": true },
+        { "value": "nobody_knows", "label": { "en": "Honestly, nobody here could tell you — brokered and asset loads are mixed together", "fr": "Honnêtement, personne ici ne pourrait vous le dire — les chargements courtiés et les nôtres sont mélangés" }, "level": 1, "flag": "brokered_revenue_presentation_unclear" },
+        { "value": "accountant_adjusts", "label": { "en": "Our accountant sorts it out at year end", "fr": "Notre comptable règle cela à la fin de l'exercice" }, "level": 2 },
+        { "value": "separate_accounts", "label": { "en": "Brokered revenue and carrier cost sit in their own accounts, reconciled monthly by hand", "fr": "Les produits de courtage et le coût des transporteurs sont dans leurs propres comptes, conciliés mensuellement à la main" }, "level": 3 },
+        { "value": "system_separated", "label": { "en": "The system separates brokered from asset loads and reports margin on each", "fr": "Le système sépare les chargements courtiés des nôtres et rapporte la marge sur chacun" }, "level": 4 },
+        { "value": "policy_and_reviewed", "label": { "en": "That, with a written presentation policy our accountant has signed off on and we review", "fr": "Cela, avec une politique de présentation écrite approuvée par notre comptable et que nous révisons" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_transport.fin.q02",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "Per pay cycle, how many hours go into calculating driver and owner-operator settlements?",
+        "fr": "Par cycle de paie, combien d'heures sont consacrées au calcul du règlement du chauffeur et de la paie des propriétaires-exploitants?"
+      },
+      "help": {
+        "en": "Count the per-kilometre and percentage calculations, stop pay, detention splits, deductions, advances and the disputes that come back. Your number, not an industry figure.",
+        "fr": "Comptez les calculs au kilomètre et au pourcentage, la paie d'arrêt, le partage du temps d'attente, les déductions, les avances et les contestations qui reviennent. Votre chiffre, pas une donnée sectorielle."
+      },
+      "instruments": ["audit"],
+      "reveals": ["settlement_hours_per_cycle"],
+      "artifact_probe": {
+        "en": "Open the last settlement run in whatever tool builds it, and show me the deductions tab.",
+        "fr": "Ouvrez le dernier règlement dans l'outil qui le produit, et montrez-moi l'onglet des déductions."
+      },
+      "numeric": {
+        "unit": { "en": "hours per pay cycle", "fr": "heures par cycle de paie" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 4, "level": 4 },
+          { "lte": 12, "level": 3 },
+          { "lte": 30, "level": 2 },
+          { "gt": 30, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "ind_transport.ppl.q01",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "A driver disputes his settlement. Who can reconstruct how the number was built, and from what?",
+        "fr": "Un chauffeur conteste son règlement. Qui peut reconstituer comment le chiffre a été bâti, et à partir de quoi?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP, and a people risk at the same time. There is no settlement engine — no per-kilometre or percentage pay models, no stop pay, no detention split, no advance or déduction ledger. Settlement in a chiffrier maintained by one person is simultaneously the client's biggest single-point-of-failure and the reason driver disputes never get resolved cleanly. Record who that person is by name in the report.",
+      "artifact_probe": {
+        "en": "Show me the file. Then tell me who else in the building can open it and explain it.",
+        "fr": "Montrez-moi le fichier. Puis dites-moi qui d'autre dans l'édifice peut l'ouvrir et l'expliquer."
+      },
+      "options": [
+        { "value": "one_person_spreadsheet", "label": { "en": "One person, in their own spreadsheet, and nobody else really understands it", "fr": "Une seule personne, dans son propre chiffrier, et personne d'autre ne le comprend vraiment" }, "level": 1, "flag": "settlement_single_point" },
+        { "value": "spreadsheet_shared", "label": { "en": "A spreadsheet two people can open, with the pay rules written nowhere", "fr": "Un chiffrier que deux personnes peuvent ouvrir, avec les règles de paie écrites nulle part" }, "level": 2 },
+        { "value": "documented_spreadsheet", "label": { "en": "A spreadsheet, plus the pay agreements written down and findable", "fr": "Un chiffrier, plus les ententes de rémunération écrites et repérables" }, "level": 3 },
+        { "value": "system_calculated", "label": { "en": "A system calculates it from the trips and the pay agreement, and prints a statement he can read", "fr": "Un système le calcule à partir des voyages et de l'entente de rémunération, et imprime un état qu'il peut lire" }, "level": 4 },
+        { "value": "system_and_disputes_tracked", "label": { "en": "That, and we track how many settlements get disputed and why", "fr": "Cela, et nous suivons combien de règlements sont contestés et pourquoi" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_transport.data.q01",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.75,
+      "stem": {
+        "en": "What does a loaded kilometre cost you, and what is in that number?",
+        "fr": "Combien vous coûte un kilomètre chargé, et qu'y a-t-il dans ce chiffre?"
+      },
+      "help": {
+        "en": "We are asking how you calculate it, not what it is. Driver pay, fuel, maintenance, tolls, insurance, equipment — which of those are in there?",
+        "fr": "Nous demandons comment vous le calculez, pas ce qu'il vaut. Paie des chauffeurs, carburant, entretien, péages, assurance, équipement — lesquels sont inclus?"
+      },
+      "instruments": ["audit"],
+      "notes": "Gates the whole load-profitability module. If the client cannot state this and name what is inside it, we cannot monetize anything at load level and the report must say so rather than invent a figure. Listen for the denominator: cost per total kilometre and cost per loaded kilometre are different numbers and clients mix them up.",
+      "reveals": ["cost_per_km_known"],
+      "artifact_probe": {
+        "en": "Write the number on the whiteboard, then show me where each component of it came from.",
+        "fr": "Écrivez le chiffre sur le tableau, puis montrez-moi d'où vient chacune de ses composantes."
+      },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody here knows", "fr": "Personne ici ne le sait" }, "level": 1, "reveals": { "cost_per_km_known": false } },
+        { "value": "fuel_and_driver", "label": { "en": "We have a rough figure — fuel and driver pay, nothing else", "fr": "Nous avons un chiffre approximatif — carburant et paie du chauffeur, rien d'autre" }, "level": 2, "reveals": { "cost_per_km_known": false } },
+        { "value": "annual_divide", "label": { "en": "Total costs for the year divided by total kilometres, done once a year", "fr": "Les coûts totaux de l'année divisés par les kilomètres totaux, une fois par année" }, "level": 3, "reveals": { "cost_per_km_known": true } },
+        { "value": "by_equipment_monthly", "label": { "en": "By equipment type and month, with maintenance, tolls, insurance and asset cost all allocated", "fr": "Par type d'équipement et par mois, avec l'entretien, les péages, l'assurance et l'équipement répartis" }, "level": 4, "reveals": { "cost_per_km_known": true } },
+        { "value": "per_load_reviewed", "label": { "en": "Allocated down to the load, and we review margin by lane and by customer on a cadence", "fr": "Réparti jusqu'au chargement, et nous révisons la marge par trajet et par client à intervalles réguliers" }, "level": 5, "reveals": { "cost_per_km_known": true } }
+      ]
+    },
+    {
+      "id": "ind_transport.comp.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Before you tender a load to an outside carrier, how do you know their insurance and their operating authority are still current?",
+        "fr": "Avant de confier un chargement à un transporteur externe, comment savez-vous que son assurance et son autorisation d'exploitation sont toujours valides?"
+      },
+      "instruments": ["audit"],
+      "notes": "Certificates expire silently and the exposure lands on the broker. Odoo has no vendor-compliance expiry model out of the box — this is a custom field plus an automated reminder, which is cheap to build and a credible early win if the client is at level 1 or 2.",
+      "artifact_probe": {
+        "en": "Pick a carrier you used last week and show me their current certificate of insurance and its expiry date.",
+        "fr": "Choisissez un transporteur utilisé la semaine dernière et montrez-moi son certificat d'assurance en vigueur et sa date d'expiration."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We never use outside carriers", "fr": "Nous n'utilisons jamais de transporteurs externes" }, "na": true },
+        { "value": "assume", "label": { "en": "We assume it's fine — we got a certificate when we first used them", "fr": "Nous présumons que c'est correct — nous avons eu un certificat la première fois" }, "level": 1, "flag": "carrier_compliance_unmonitored" },
+        { "value": "ask_occasionally", "label": { "en": "Somebody asks for a fresh one now and then", "fr": "Quelqu'un en redemande un de temps en temps" }, "level": 2 },
+        { "value": "folder_checked", "label": { "en": "Certificates live in a folder and the dispatcher checks before tendering", "fr": "Les certificats sont dans un dossier et le répartiteur vérifie avant de confier un chargement" }, "level": 3 },
+        { "value": "system_expiry", "label": { "en": "Expiry dates are in a system and a reminder goes out before they lapse", "fr": "Les dates d'expiration sont dans un système et un rappel est envoyé avant l'échéance" }, "level": 4 },
+        { "value": "system_blocks", "label": { "en": "The system blocks a tender to a carrier whose documents have lapsed, and we review the blocked list", "fr": "Le système bloque l'attribution à un transporteur dont les documents sont échus, et nous révisons la liste des blocages" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "ind_transport.comp.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "Does any part of your business carry paying passengers rather than freight?",
+        "fr": "Une partie de votre entreprise transporte-t-elle des personnes payantes plutôt que des marchandises?"
+      },
+      "help": {
+        "en": "Paid passenger transport is one of the sectors subject to Quebec's facturation obligatoire regime, which requires a separately certified sales-recording system. We need to know before we design anything.",
+        "fr": "Le transport rémunéré de personnes est l'un des secteurs assujettis au régime québécois de facturation obligatoire, qui exige un système d'enregistrement des ventes certifié distinct. Nous devons le savoir avant de concevoir quoi que ce soit."
+      },
+      "instruments": ["audit"],
+      "notes": "HARD BLOCKER IF IN SCOPE. We are not a certified sales-recording system and cannot become one; a client in scope needs a certified system alongside us. DO NOT state dates, system generations, deadlines or the no-printer exemption to the client from this bank — our research on those is not from a primary Revenu Quebec page. Ask, record, and have the consultant verify against Revenu Quebec and its published certified-product list before anything goes in writing.",
+      "artifact_probe": {
+        "en": "Show me what produces the customer's receipt on a passenger trip, and whether it carries a certification number.",
+        "fr": "Montrez-moi ce qui produit le reçu du client lors d'un transport de personnes, et s'il porte un numéro de certification."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "No — freight and warehousing only, never passengers", "fr": "Non — marchandises et entreposage seulement, jamais de personnes" }, "na": true },
+        { "value": "yes_unverified", "label": { "en": "Yes, and I don't know whether that regime applies to us", "fr": "Oui, et je ne sais pas si ce régime s'applique à nous" }, "level": 1, "flag": "srm_scope_unverified" },
+        { "value": "yes_no_certified", "label": { "en": "Yes, and we issue receipts from an ordinary app or a receipt book", "fr": "Oui, et nous émettons des reçus à partir d'une application ordinaire ou d'un carnet de reçus" }, "level": 1, "flag": "srm_scope_unverified" },
+        { "value": "yes_certified_standalone", "label": { "en": "Yes, and we have a certified system that stands apart from our accounting", "fr": "Oui, et nous avons un système certifié qui est séparé de notre comptabilité" }, "level": 3, "flag": "srm_integration_scope" },
+        { "value": "yes_certified_integrated", "label": { "en": "Yes, certified, and its transactions reach the accounting system without being retyped", "fr": "Oui, certifié, et ses transactions se rendent au système comptable sans être ressaisies" }, "level": 4, "flag": "srm_integration_scope" },
+        { "value": "yes_certified_reconciled", "label": { "en": "Yes, certified, integrated, and someone reconciles it and keeps the required backups", "fr": "Oui, certifié, intégré, et quelqu'un le concilie et conserve les sauvegardes requises" }, "level": 5, "flag": "srm_integration_scope" }
+      ]
+    }
+  ]
+}

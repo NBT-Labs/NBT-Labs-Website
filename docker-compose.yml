@@ -9,4 +9,25 @@ services:
       - "${WEB_PORT:-3010}:3000"
     environment:
       - NODE_ENV=production
+
+      # Scorecard submissions. Read from the host shell or from a `.env` file
+      # sitting next to this compose file — Compose loads that automatically,
+      # and `.env*` is gitignored so the secrets stay local. The image itself
+      # never contains them (`.env*` is in .dockerignore).
+      #
+      # These are RUNTIME values, read inside the route handler per request,
+      # so they belong here and not as build args.
+      #
+      # With none of them set, POST /api/scorecard returns 500 and logs why.
+      # That is deliberate: a lead with nowhere to go should fail loudly, not
+      # silently succeed. See .env.example.
+      - SCORECARD_WEBHOOK_URL=${SCORECARD_WEBHOOK_URL:-}
+      - SCORECARD_WEBHOOK_SECRET=${SCORECARD_WEBHOOK_SECRET:-}
+      - SMTP_HOST=${SMTP_HOST:-}
+      - SMTP_PORT=${SMTP_PORT:-587}
+      - SMTP_SECURE=${SMTP_SECURE:-false}
+      - SMTP_USER=${SMTP_USER:-}
+      - SMTP_PASSWORD=${SMTP_PASSWORD:-}
+      - SCORECARD_TO=${SCORECARD_TO:-info@nbtlabs.ca}
+      - SCORECARD_FROM=${SCORECARD_FROM:-info@nbtlabs.ca}
     restart: unless-stopped

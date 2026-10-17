@@ -1,0 +1,311 @@
+{
+  "bank_id": "model_retail",
+  "bank_version": "1.0.0",
+  "layer": "model",
+  "label": {
+    "en": "Retail, e-commerce and omnichannel",
+    "fr": "Détail, commerce en ligne et omnicanal"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q02", "op": "eq", "value": "retail" }
+  ],
+  "notes": "Served when base.firmo.q02 = retail. The router ALSO activates this bank when 'retail' is checked in the multi-select base.firmo.q03 — a distributor with a web store or a manufacturer selling direct runs a retail channel whether or not it answers q02 that way. REVEALS KEYS INTRODUCED: payout_recon_hours_per_month, shrink_adjustment_value, return_rate_pct, sell_through_rate, oversell_corrections_90d. BENCHMARK_REF KEYS: ecommerce_conversion_rate (Dynamic Yield data via SmartInsights 2025 — 2.9% overall, mobile 2.8%, desktop 3.2%, Food & Beverage 4.9% high, Home & Furniture 1.4% low); ecommerce_cart_abandonment_rate (same source — 76.2% overall, mobile 79.0%, desktop 68.1%); retail_return_rate (EasyReplenish inventory benchmarks — overall 15-20%, fashion 20-25%, electronics 5-10%); retail_shrink_and_accuracy (same source — shrink as a share of sales runs 1-3% grocery and 1-2% apparel, inventory accuracy target above 95%). Deliberately NO benchmark_ref on sell-through: the common 70-85% anchor is so category-dependent that quoting it to a client would be a guess wearing a citation, and the help text says so. Same for payout reconciliation hours and for the oversell count.",
+  "reweight": {
+    "procure_inventory": 1.8,
+    "data_reporting": 1.6,
+    "systems_integration": 1.2,
+    "quote_to_cash": 1.1,
+    "scheduling_capacity": 0.6
+  },
+  "questions": [
+    {
+      "id": "model_retail.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Someone buys the last unit online while a clerk is holding it at the point de vente. What happens?", "fr": "Quelqu'un achète la dernière unité en ligne pendant qu'un commis la garde de côté au point de vente. Que se passe-t-il?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "One stock pool, many channels. The level-1 and level-2 answers both end in an apology email; the difference is whether anyone counts how often it happens. Channel-by-channel safety buffers (level 3) look like control and are really locked-up inventory.",
+      "artifact_probe": { "en": "Show me where the available quantity for that SKU is read from, for each channel.", "fr": "Montrez-moi où la quantité disponible de ce SKU est lue, pour chaque canal." },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Honestly, we'd find out when one of the two customers complains", "fr": "Honnêtement, on l'apprendrait quand l'un des deux clients se plaindrait" }, "level": 1, "flag": "oversell_uncontrolled" },
+        { "value": "manual_fix", "label": { "en": "We oversell, then someone cancels an order and apologizes", "fr": "On survend, puis quelqu'un annule une commande et s'excuse" }, "level": 2 },
+        { "value": "channel_buffers", "label": { "en": "Each channel holds its own buffer so it can't happen", "fr": "Chaque canal garde son propre tampon pour que ça n'arrive pas" }, "level": 3 },
+        { "value": "one_pool", "label": { "en": "One stock pool, and quantities update across channels within minutes", "fr": "Un seul bassin de stock, et les quantités se mettent à jour entre les canaux en quelques minutes" }, "level": 4 },
+        { "value": "one_pool_measured", "label": { "en": "That, with stock reserved at order and a rupture de stock rate we review", "fr": "Cela, avec le stock réservé à la commande et un taux de rupture de stock que nous révisons" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.inv.q02",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "In the last 90 days, how many orders did you have to cancel or correct because the stock wasn't there?", "fr": "Au cours des 90 derniers jours, combien de commandes avez-vous dû annuler ou corriger parce que le stock n'y était pas?" },
+      "instruments": ["audit"],
+      "reveals": ["oversell_corrections_90d"],
+      "notes": "The count behind the previous answer. No benchmark exists for this at SMB scale; the number paired with a note de crédit count from base.q2c.q03 is what makes the oversell problem concrete.",
+      "artifact_probe": { "en": "Pull the cancelled and corrected orders for the period on screen.", "fr": "Affichez à l'écran les commandes annulées et corrigées pour la période." },
+      "numeric": {
+        "unit": { "en": "orders", "fr": "commandes" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 5, "level": 4 },
+          { "lte": 20, "level": 3 },
+          { "lte": 75, "level": 2 },
+          { "gt": 75, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_retail.data.q01",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "A marketplace payout lands in the bank, net of fees and returns. Who ties it back to orders, and in what tool?", "fr": "Un versement de place de marché arrive à la banque, net des frais et des retours. Qui le rattache aux commandes, et dans quel outil?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP, and the real omnichannel accounting problem. Marketplace connectors are third-party and the payout side — fees, returns, reserves, adjustments — is almost always left manual. Without it, revenue and margin by channel are estimates, which also means the client cannot tell you which channel is losing money.",
+      "artifact_probe": { "en": "Open the last payout statement and the file where it was reconciled.", "fr": "Ouvrez le dernier relevé de versement et le fichier où il a été concilié." },
+      "options": [
+        { "value": "na", "label": { "en": "We don't sell on any marketplace", "fr": "Nous ne vendons sur aucune place de marché" }, "na": true },
+        { "value": "nobody", "label": { "en": "Nobody does — the deposit is booked as sales and that's the end of it", "fr": "Personne ne le fait — le dépôt est comptabilisé en ventes et c'est tout" }, "level": 1, "flag": "payout_unreconciled" },
+        { "value": "bookkeeper_guess", "label": { "en": "The bookkeeper splits it between sales and fees by estimate", "fr": "La personne à la tenue de livres le répartit entre ventes et frais à l'estimé" }, "level": 2 },
+        { "value": "spreadsheet_monthly", "label": { "en": "One person reconciles it in a chiffrier, monthly", "fr": "Une personne le concilie dans un chiffrier, mensuellement" }, "level": 3 },
+        { "value": "per_payout", "label": { "en": "Each payout is reconciled to orders, fees and returns in the accounting system", "fr": "Chaque versement est concilié aux commandes, aux frais et aux retours dans le système comptable" }, "level": 4 },
+        { "value": "per_payout_reviewed", "label": { "en": "That, and we review fee and return cost per channel as a margin number", "fr": "Cela, et nous révisons les frais et le coût des retours par canal comme un indicateur de marge" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.data.q02",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 1.25,
+      "stem": { "en": "How many hours a month go into reconciling channel and payment-processor payouts?", "fr": "Combien d'heures par mois sont consacrées à la conciliation des versements des canaux et des processeurs de paiement?" },
+      "help": { "en": "Everyone who touches it, combined. There's no published benchmark; a conservative estimate is better than a generous one.", "fr": "Tout le monde qui y touche, ensemble. Aucune référence publiée; une estimation prudente vaut mieux qu'une généreuse." },
+      "instruments": ["audit"],
+      "reveals": ["payout_recon_hours_per_month"],
+      "numeric": {
+        "unit": { "en": "hours per month, all staff", "fr": "heures par mois, tout le personnel" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 4, "level": 4 },
+          { "lte": 12, "level": 3 },
+          { "lte": 30, "level": 2 },
+          { "gt": 30, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_retail.inv.q03",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "How is next season's buy decided?", "fr": "Comment la prochaine commande de saison est-elle décidée?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP: there is no merchandise planning or open-to-buy module, so assortment and markdown planning stay in a chiffrier no matter what else gets implemented. Worth naming in the audit so the client does not expect the ERP to replace the buyer's planning file — the realistic scope is feeding that file clean sell-through data.",
+      "artifact_probe": { "en": "Show me the file or report the last buy was built from.", "fr": "Montrez-moi le fichier ou le rapport qui a servi à bâtir la dernière commande." },
+      "options": [
+        { "value": "buyer_feel", "label": { "en": "The buyer's feel for the season — nothing written beforehand", "fr": "Le feeling de l'acheteur pour la saison — rien d'écrit à l'avance" }, "level": 1 },
+        { "value": "last_year_repeat", "label": { "en": "Last year's order, adjusted up or down", "fr": "La commande de l'an dernier, ajustée à la hausse ou à la baisse" }, "level": 2 },
+        { "value": "sales_report", "label": { "en": "A sales report by SKU pulled before the buy", "fr": "Un rapport de ventes par SKU sorti avant la commande" }, "level": 3 },
+        { "value": "otb_plan", "label": { "en": "An open-to-buy plan by category, with a budget per month", "fr": "Un plan d'achat ouvert par catégorie, avec un budget par mois" }, "level": 4 },
+        { "value": "otb_vs_actual", "label": { "en": "An open-to-buy plan reviewed against actual sell-through and markdowns during the season", "fr": "Un plan d'achat ouvert révisé contre l'écoulement réel et les démarques pendant la saison" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.inv.q04",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "Of last season's buy in one main category, what share had sold at full price by the end of the season?", "fr": "De la commande de la dernière saison dans une catégorie principale, quelle proportion s'était vendue à plein prix à la fin de la saison?" },
+      "help": { "en": "Sell-through benchmarks are so category-dependent that any single figure would mislead you. We use your number and look at the trend instead.", "fr": "Les références d'écoulement dépendent tellement de la catégorie qu'un chiffre unique vous induirait en erreur. Nous utilisons votre chiffre et regardons plutôt la tendance." },
+      "instruments": ["audit"],
+      "reveals": ["sell_through_rate"],
+      "artifact_probe": { "en": "Pull that category's sell-through and the markdowns taken on it.", "fr": "Sortez l'écoulement de cette catégorie et les démarques prises dessus." },
+      "numeric": {
+        "unit": { "en": "% sold at full price", "fr": "% vendu à plein prix" },
+        "min": 0,
+        "max": 100,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 85, "level": 5 },
+          { "gte": 70, "level": 4 },
+          { "gte": 55, "level": 3 },
+          { "gte": 35, "level": 2 },
+          { "lt": 35, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_retail.inv.q05",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "When was your last full count, and what did it say about shrink?", "fr": "Quand a eu lieu votre dernier dénombrement complet, et qu'a-t-il révélé sur les pertes?" },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "retail_shrink_and_accuracy",
+      "artifact_probe": { "en": "Show me the count variance and the entry that cleared it.", "fr": "Montrez-moi l'écart de dénombrement et l'écriture qui l'a soldé." },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody could tell you a shrink number", "fr": "Personne ne pourrait vous donner un chiffre de pertes" }, "level": 1 },
+        { "value": "annual_writeoff", "label": { "en": "Once a year, and the difference becomes a write-off", "fr": "Une fois par an, et l'écart devient une radiation" }, "level": 2 },
+        { "value": "annual_investigated", "label": { "en": "Once a year, and we look into the big differences", "fr": "Une fois par an, et nous examinons les gros écarts" }, "level": 3 },
+        { "value": "cycle_count", "label": { "en": "Inventaire tournant through the year, by location", "fr": "Inventaire tournant à l'année, par emplacement" }, "level": 4 },
+        { "value": "cycle_count_reviewed", "label": { "en": "Inventaire tournant, with accuracy and shrink as percentages we review", "fr": "Inventaire tournant, avec l'exactitude et les pertes en pourcentage que nous révisons" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.inv.q06",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "At cost, what was the adjustment your last count produced?", "fr": "Au coût, quel ajustement votre dernier dénombrement a-t-il produit?" },
+      "instruments": ["audit"],
+      "reveals": ["shrink_adjustment_value"],
+      "numeric": {
+        "unit": { "en": "CAD at cost", "fr": "$ CA au coût" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 10000, "level": 4 },
+          { "lte": 50000, "level": 3 },
+          { "lte": 150000, "level": 2 },
+          { "gt": 150000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_retail.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "An item comes back. What happens to it physically, and what happens to it in the books?", "fr": "Un article revient. Que lui arrive-t-il physiquement, et que lui arrive-t-il dans les livres?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP: returns exist as reverse transfers, but disposition — restock, refurbish, return to vendor, write-off — and reverse-logistics costing are thin. In apparel this is a fifth of units, so an unmodelled return is an unmodelled fifth of the margin.",
+      "artifact_probe": { "en": "Show me the last five returns and what each one became.", "fr": "Montrez-moi les cinq derniers retours et ce que chacun est devenu." },
+      "options": [
+        { "value": "shelf_no_record", "label": { "en": "Back on the shelf, note de crédit written by hand, nothing else recorded", "fr": "Retour sur la tablette, note de crédit faite à la main, rien d'autre consigné" }, "level": 1 },
+        { "value": "credit_only", "label": { "en": "The note de crédit is in the system; where the item went isn't", "fr": "La note de crédit est dans le système; l'endroit où l'article est allé, non" }, "level": 2 },
+        { "value": "receipt_recorded", "label": { "en": "The return is received into stock in the system, with no disposition recorded", "fr": "Le retour est reçu en stock dans le système, sans disposition consignée" }, "level": 3 },
+        { "value": "disposition", "label": { "en": "Every return has a disposition: restock, refurbish, return to vendor or write-off", "fr": "Chaque retour a une disposition : remise en stock, remise à neuf, retour au fournisseur ou radiation" }, "level": 4 },
+        { "value": "disposition_costed", "label": { "en": "That, with the freight and handling costed and the return rate reviewed by SKU", "fr": "Cela, avec le transport et la manutention chiffrés et le taux de retour révisé par SKU" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "What share of the units you ship comes back?", "fr": "Quelle proportion des unités que vous expédiez vous revient?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "retail_return_rate",
+      "reveals": ["return_rate_pct"],
+      "numeric": {
+        "unit": { "en": "% of units returned", "fr": "% des unités retournées" },
+        "min": 0,
+        "max": 100,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 5, "level": 5 },
+          { "lte": 12, "level": 4 },
+          { "lte": 20, "level": 3 },
+          { "lte": 30, "level": 2 },
+          { "gt": 30, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_retail.inv.q07",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "An online order could ship from the warehouse or from a store. Who or what decides which?", "fr": "Une commande en ligne pourrait partir de l'entrepôt ou d'un magasin. Qui ou quoi décide lequel?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP: there is no distributed order management logic — no rules engine for sourcing an order from the nearest, cheapest or best-stocked location, and ship-from-store takes configuration gymnastics. Also the question that exposes whether store-level stock is accurate enough to promise anything, since a store that rejects picks is a customer-experience cost nobody has priced.",
+      "artifact_probe": { "en": "Show me an order that shipped from a store and how that location was chosen.", "fr": "Montrez-moi une commande expédiée d'un magasin et comment cet emplacement a été choisi." },
+      "options": [
+        { "value": "na", "label": { "en": "We only ship from one place", "fr": "Nous n'expédions que d'un seul endroit" }, "na": true },
+        { "value": "nobody_knows", "label": { "en": "It depends who picks up the order that morning", "fr": "Ça dépend de qui prend la commande ce matin-là" }, "level": 1 },
+        { "value": "phone_around", "label": { "en": "Someone phones the stores to find the unit", "fr": "Quelqu'un appelle les magasins pour trouver l'unité" }, "level": 2 },
+        { "value": "stock_visible", "label": { "en": "Stock by location is visible and a person chooses", "fr": "Le stock par emplacement est visible et une personne choisit" }, "level": 3 },
+        { "value": "rules", "label": { "en": "Rules in a system pick the location automatically", "fr": "Des règles dans un système choisissent l'emplacement automatiquement" }, "level": 4 },
+        { "value": "rules_measured", "label": { "en": "Rules, and we measure how often a store can't fill what it was given", "fr": "Des règles, et nous mesurons combien de fois un magasin ne peut pas remplir ce qui lui est assigné" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.sys.q01",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "How does a day's point de vente tender total become an accounting entry?", "fr": "Comment le total des encaissements d'une journée au point de vente devient-il une écriture comptable?" },
+      "instruments": ["audit"],
+      "notes": "POS and accounting as separate worlds is the reason the month gets closed from chiffriers. Gift-card and loyalty balances usually surface here too, and they are liabilities an accountant has to look at.",
+      "artifact_probe": { "en": "Show me yesterday's close-out and the entry it produced.", "fr": "Montrez-moi la fermeture de caisse d'hier et l'écriture qu'elle a produite." },
+      "options": [
+        { "value": "paper_tape", "label": { "en": "A printed tape goes in an envelope to the bookkeeper", "fr": "Un ruban imprimé va dans une enveloppe pour la tenue de livres" }, "level": 1 },
+        { "value": "spreadsheet_daily", "label": { "en": "Someone types the totals into a chiffrier each day", "fr": "Quelqu'un saisit les totaux dans un chiffrier chaque jour" }, "level": 2 },
+        { "value": "monthly_summary", "label": { "en": "A monthly summary is entered as one journal entry", "fr": "Un sommaire mensuel est saisi comme une seule écriture de journal" }, "level": 3 },
+        { "value": "daily_automatic", "label": { "en": "The point de vente posts to accounting daily and someone checks the tender difference", "fr": "Le point de vente s'impute à la comptabilité chaque jour et quelqu'un vérifie l'écart de caisse" }, "level": 4 },
+        { "value": "daily_exceptions", "label": { "en": "Posts daily, matches the card settlement, and only differences get looked at", "fr": "S'impute chaque jour, s'apparie au règlement des cartes, et seuls les écarts sont examinés" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.data.q03",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Your online store: what do you know about how many visits turn into orders?", "fr": "Votre boutique en ligne : que savez-vous de la proportion de visites qui se transforment en commandes?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "ecommerce_conversion_rate",
+      "notes": "Benchmarked against Dynamic Yield's 2.9% overall rate with the sector spread, which is one of the few retail figures solid enough to show a client. Level 5 requires the number to be split by device and acted on, because mobile is roughly three quarters of traffic and converts worse than desktop.",
+      "artifact_probe": { "en": "Open the analytics and show me last month's rate.", "fr": "Ouvrez les statistiques et montrez-moi le taux du mois dernier." },
+      "options": [
+        { "value": "na", "label": { "en": "We don't sell online", "fr": "Nous ne vendons pas en ligne" }, "na": true },
+        { "value": "nobody_knows", "label": { "en": "Nobody knows the number", "fr": "Personne ne connaît le chiffre" }, "level": 1 },
+        { "value": "installed_unused", "label": { "en": "Analytics are installed; nobody looks at them", "fr": "Les statistiques sont installées; personne ne les consulte" }, "level": 2 },
+        { "value": "occasional", "label": { "en": "Someone checks it when sales feel slow", "fr": "Quelqu'un le vérifie quand les ventes semblent faibles" }, "level": 3 },
+        { "value": "monthly_target", "label": { "en": "Reviewed monthly against a target", "fr": "Révisé mensuellement contre une cible" }, "level": 4 },
+        { "value": "by_device_acted", "label": { "en": "Reviewed by device and channel, and we've changed the site because of it", "fr": "Révisé par appareil et par canal, et nous avons modifié le site en conséquence" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_retail.data.q04",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 0.75,
+      "stem": { "en": "Of the carts that reach your checkout, what share is abandoned?", "fr": "Parmi les paniers qui atteignent votre caisse en ligne, quelle proportion est abandonnée?" },
+      "help": { "en": "Leave it as unknown if you don't sell online. Published rates sit around three quarters of carts, so a low number usually means the measurement is wrong.", "fr": "Laissez inconnu si vous ne vendez pas en ligne. Les taux publiés tournent autour des trois quarts des paniers; un chiffre bas signifie habituellement que la mesure est erronée." },
+      "instruments": ["audit"],
+      "benchmark_ref": "ecommerce_cart_abandonment_rate",
+      "numeric": {
+        "unit": { "en": "% of carts abandoned", "fr": "% des paniers abandonnés" },
+        "min": 0,
+        "max": 100,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 60, "level": 5 },
+          { "lte": 70, "level": 4 },
+          { "lte": 80, "level": 3 },
+          { "lte": 90, "level": 2 },
+          { "gt": 90, "level": 1 }
+        ]
+      }
+    }
+  ]
+}

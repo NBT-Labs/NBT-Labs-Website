@@ -1,0 +1,235 @@
+{
+  "bank_id": "layer_growth_trigger",
+  "bank_version": "1.0.0",
+  "layer": "growth_trigger",
+  "label": {
+    "en": "The thing that makes this urgent",
+    "fr": "Ce qui rend le projet urgent"
+  },
+  "notes": "Served in every audit; the router activates it from base.spon.q05, and each question is additionally gated with show_when on the matching base.spon.q05 value so a client only ever sees the triggers they checked. One job: convert a trigger the client mentioned in passing into a DATED CONSTRAINT — what has to be true by when, and what breaks if the current way of working is still in place on that date. That is what moves a deal off stage two, and it is also the honest test of whether the project is real: a trigger with no date is a conversation, not a deadline. Most questions here are dimension sponsorship_change because the urgency and the ownership live together; three sit elsewhere where they genuinely belong (consolidated reporting after an acquisition is data_reporting, a departing key person is people_continuity, the evidence an auditor will ask for is process_documentation). No reweight: the trigger explains why now, it does not make any dimension more important than it was. REVEALS KEY INTRODUCED: trigger_deadline_set — whether the trigger has a fixed, written date, which is the gate on whether the implementation estimate can be built against a schedule at all. Scoring note: level 5 on these items requires that the date is being tracked against with a fallback, never that a date merely exists.",
+  "questions": [
+    {
+      "id": "layer_growth_trigger.trig.q01",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "By what date do the two businesses have to run as one, and what breaks if you're still on today's setup then?",
+        "fr": "À quelle date les deux entreprises doivent-elles fonctionner comme une seule, et qu'est-ce qui casse si vous êtes encore sur l'installation actuelle à ce moment-là?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["acquisition"] }],
+      "reveals": ["trigger_deadline_set"],
+      "options": [
+        { "value": "no_date", "label": { "en": "No date — the deal isn't that far along", "fr": "Aucune date — la transaction n'est pas si avancée" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_unknown", "label": { "en": "There's a closing date but I couldn't tell you what has to work by then", "fr": "Il y a une date de clôture mais je ne pourrais pas vous dire ce qui doit fonctionner d'ici là" }, "level": 2, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_written", "label": { "en": "A date is set and written down", "fr": "Une date est fixée et consignée" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_scoped_owned", "label": { "en": "A date, and we know which parts of the business have to be merged by then, with someone owning it", "fr": "Une date, et nous savons quelles parties de l'entreprise doivent être fusionnées d'ici là, avec un responsable" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_tracked_fallback", "label": { "en": "That, and we're tracking against it with a plan for what we run separately if we miss", "fr": "Cela, et nous suivons l'avancement avec un plan pour ce que nous gardons séparé si nous manquons la date" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q02",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "When do you first have to report both businesses as one set of numbers?",
+        "fr": "Quand devez-vous rapporter les deux entreprises comme un seul jeu de chiffres pour la première fois?"
+      },
+      "help": {
+        "en": "A bank, a shareholder or a year end usually fixes this date for you.",
+        "fr": "Une banque, un actionnaire ou une fin d'exercice fixe habituellement cette date pour vous."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["acquisition"] }],
+      "artifact_probe": {
+        "en": "Show me the last set of numbers each business produced, side by side.",
+        "fr": "Montrez-moi le dernier jeu de chiffres produit par chaque entreprise, côte à côte."
+      },
+      "options": [
+        { "value": "not_discussed", "label": { "en": "That hasn't come up yet", "fr": "La question ne s'est pas encore posée" }, "level": 1 },
+        { "value": "ask_accountant", "label": { "en": "I'd have to ask our accountant", "fr": "Il faudrait que je demande à notre comptable" }, "level": 1 },
+        { "value": "year_end_manual", "label": { "en": "At year end, and we'd combine them by hand in a spreadsheet", "fr": "À la fin de l'exercice, et nous les combinerions à la main dans un chiffrier" }, "level": 2 },
+        { "value": "date_known", "label": { "en": "We know the date and who needs it", "fr": "Nous connaissons la date et qui en a besoin" }, "level": 3 },
+        { "value": "chart_aligned", "label": { "en": "We know the date, and aligning the two charts of accounts is already planned work", "fr": "Nous connaissons la date, et l'harmonisation des deux plans comptables est déjà du travail planifié" }, "level": 4 },
+        { "value": "aligned_and_tested", "label": { "en": "That, and a combined set of numbers has already been produced once as a test", "fr": "Cela, et un jeu de chiffres combiné a déjà été produit une fois comme test" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q03",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When does the new location open, and what has to work on day one that doesn't today?",
+        "fr": "Quand le nouvel emplacement ouvre-t-il, et qu'est-ce qui doit fonctionner dès le premier jour et qui ne fonctionne pas aujourd'hui?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["new_site"] }],
+      "reveals": ["trigger_deadline_set"],
+      "options": [
+        { "value": "no_date", "label": { "en": "No opening date yet", "fr": "Pas encore de date d'ouverture" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_in_head", "label": { "en": "A date we're working toward, nothing written", "fr": "Une date vers laquelle on travaille, rien d'écrit" }, "level": 2, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_written", "label": { "en": "A fixed opening date", "fr": "Une date d'ouverture fixée" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_and_list", "label": { "en": "A fixed date, and a written list of what has to be running there", "fr": "Une date fixée, et une liste écrite de ce qui doit y rouler" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_list_owner", "label": { "en": "That, with an owner per item and a weekly check against the date", "fr": "Cela, avec un responsable par élément et une vérification hebdomadaire par rapport à la date" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q04",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When does the new line have to be sellable, and what can't you quote, cost or invoice for it today?",
+        "fr": "Quand la nouvelle gamme doit-elle être vendable, et que ne pouvez-vous pas soumissionner, chiffrer ou facturer pour elle aujourd'hui?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["new_line"] }],
+      "reveals": ["trigger_deadline_set"],
+      "options": [
+        { "value": "no_date", "label": { "en": "No date — we're still deciding whether to do it", "fr": "Aucune date — nous décidons encore si nous le faisons" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_no_gap_list", "label": { "en": "A target date, and we haven't worked out what the systems can't do", "fr": "Une date cible, et nous n'avons pas déterminé ce que les systèmes ne peuvent pas faire" }, "level": 2, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_and_gaps", "label": { "en": "A date, and we know roughly what's missing", "fr": "Une date, et nous savons à peu près ce qui manque" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_gaps_owned", "label": { "en": "A date, a written list of the gaps, and someone responsible for closing them", "fr": "Une date, une liste écrite des manques, et un responsable pour les combler" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_gaps_tracked", "label": { "en": "That, and we're measuring progress against the launch date", "fr": "Cela, et nous mesurons l'avancement par rapport à la date de lancement" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q05",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "What is that person's last day, and what only they can do right now?",
+        "fr": "Quel est le dernier jour de cette personne, et qu'est-ce qu'elle seule peut faire en ce moment?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["key_person"] }],
+      "reveals": ["trigger_deadline_set"],
+      "artifact_probe": {
+        "en": "Let's write the list of what they alone do, on screen, right now.",
+        "fr": "Dressons la liste de ce qu'elle seule fait, à l'écran, maintenant."
+      },
+      "options": [
+        { "value": "no_date_no_list", "label": { "en": "No firm date, and no list of what they alone do", "fr": "Pas de date ferme, et aucune liste de ce qu'elle seule fait" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_no_list", "label": { "en": "We know the date; nobody has written down what goes with them", "fr": "Nous connaissons la date; personne n'a consigné ce qui part avec elle" }, "level": 2, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_and_list", "label": { "en": "A date, and a written list of what they alone do", "fr": "Une date, et une liste écrite de ce qu'elle seule fait" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_list_named_cover", "label": { "en": "A date, the list, and a named person taking each item over", "fr": "Une date, la liste, et une personne nommée qui reprend chaque élément" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "handover_running", "label": { "en": "That, and the handover has already started and is being checked", "fr": "Cela, et le transfert est déjà commencé et vérifié" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q06",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When does ownership change hands, and what does whoever takes over have to be able to see by then?",
+        "fr": "Quand la propriété change-t-elle de mains, et que doit pouvoir voir la personne qui prend le relais d'ici là?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["succession"] }],
+      "reveals": ["trigger_deadline_set"],
+      "options": [
+        { "value": "no_timeline", "label": { "en": "No timeline — it's an intention", "fr": "Aucun échéancier — c'est une intention" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "horizon_only", "label": { "en": "A horizon in years, nothing dated", "fr": "Un horizon en années, rien de daté" }, "level": 2, "reveals": { "trigger_deadline_set": false } },
+        { "value": "dated", "label": { "en": "A dated plan", "fr": "Un plan daté" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "dated_and_requirements", "label": { "en": "A dated plan, and we know which numbers and records have to stand up to a buyer's review", "fr": "Un plan daté, et nous savons quels chiffres et registres doivent résister à l'examen d'un acheteur" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "dated_and_rehearsed", "label": { "en": "That, and someone outside the family or the founder group has already reviewed them once", "fr": "Cela, et quelqu'un hors de la famille ou du groupe fondateur les a déjà examinés une fois" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q07",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When is the bank or the investor next looking at your numbers, and what will they ask for that you can't produce today?",
+        "fr": "Quand la banque ou l'investisseur examinera-t-il vos chiffres la prochaine fois, et que demandera-t-il que vous ne pouvez pas produire aujourd'hui?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["financing"] }],
+      "reveals": ["trigger_deadline_set"],
+      "artifact_probe": {
+        "en": "Show me the last reporting package you sent them.",
+        "fr": "Montrez-moi la dernière liasse de rapports que vous leur avez envoyée."
+      },
+      "options": [
+        { "value": "no_date", "label": { "en": "No date set", "fr": "Aucune date fixée" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_unknown_asks", "label": { "en": "A date, and I don't know what they'll want", "fr": "Une date, et je ne sais pas ce qu'ils voudront" }, "level": 2, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_known_asks_manual", "label": { "en": "A date, and we know what they want — we assemble it by hand each time", "fr": "Une date, et nous savons ce qu'ils veulent — nous l'assemblons à la main chaque fois" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_package_defined", "label": { "en": "A date, and the package they want is defined and repeatable", "fr": "Une date, et la liasse qu'ils veulent est définie et reproductible" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "package_on_demand", "label": { "en": "That, and we could produce it this afternoon if they asked", "fr": "Cela, et nous pourrions la produire cet après-midi s'ils le demandaient" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q08",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When does that customer's volume land or leave, and what does it demand of you that today's setup won't carry?",
+        "fr": "Quand le volume de ce client arrive-t-il ou part-il, et qu'exige-t-il de vous que l'installation actuelle ne peut pas porter?"
+      },
+      "help": {
+        "en": "Winning one and losing one both set a date. Winning sets a requirement; losing sets a cost you have to see coming.",
+        "fr": "Gagner un client ou en perdre un fixe une date dans les deux cas. Un gain impose une exigence; une perte impose un coût qu'il faut voir venir."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["big_customer"] }],
+      "reveals": ["trigger_deadline_set"],
+      "options": [
+        { "value": "no_date", "label": { "en": "No date — it's still in play", "fr": "Aucune date — c'est encore en jeu" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_no_requirements", "label": { "en": "A date, and we haven't looked at what it changes for us", "fr": "Une date, et nous n'avons pas regardé ce que ça change pour nous" }, "level": 2, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_requirements_known", "label": { "en": "A date, and we know what they require of us", "fr": "Une date, et nous savons ce qu'ils exigent de nous" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_requirements_scoped", "label": { "en": "A date, their requirements written down, and the gaps costed", "fr": "Une date, leurs exigences consignées, et les manques chiffrés" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_tracked", "label": { "en": "That, and we're tracking readiness against the date", "fr": "Cela, et nous suivons l'état de préparation par rapport à la date" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q09",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "When is the audit or the certification, and what happens to the business if you don't pass it?",
+        "fr": "Quand a lieu l'audit ou la certification, et qu'arrive-t-il à l'entreprise si vous ne la réussissez pas?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["certification"] }],
+      "reveals": ["trigger_deadline_set"],
+      "options": [
+        { "value": "no_date", "label": { "en": "No date confirmed", "fr": "Aucune date confirmée" }, "level": 1, "reveals": { "trigger_deadline_set": false } },
+        { "value": "date_consequence_unclear", "label": { "en": "A date, and I'm not sure what failing would actually cost us", "fr": "Une date, et je ne sais pas trop ce qu'un échec nous coûterait réellement" }, "level": 2, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_consequence_known", "label": { "en": "A date, and we know exactly what we lose if we fail", "fr": "Une date, et nous savons exactement ce que nous perdons en cas d'échec" }, "level": 3, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_owner_plan", "label": { "en": "A date, the consequence, and someone preparing for it against a plan", "fr": "Une date, la conséquence, et quelqu'un qui s'y prépare selon un plan" }, "level": 4, "reveals": { "trigger_deadline_set": true } },
+        { "value": "date_rehearsed", "label": { "en": "That, and we've already run a dry run of it", "fr": "Cela, et nous avons déjà fait une simulation" }, "level": 5, "reveals": { "trigger_deadline_set": true } }
+      ]
+    },
+    {
+      "id": "layer_growth_trigger.trig.q10",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "What will the auditor ask to see, and could you put your hand on it this week?",
+        "fr": "Que l'auditeur demandera-t-il à voir, et pourriez-vous mettre la main dessus cette semaine?"
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.spon.q05", "op": "any_of", "value": ["certification"] }],
+      "artifact_probe": {
+        "en": "Name one record they'll ask for and let's find it together, timed.",
+        "fr": "Nommez un document qu'ils demanderont et trouvons-le ensemble, montre en main."
+      },
+      "options": [
+        { "value": "unknown", "label": { "en": "I don't know what they'll ask for", "fr": "Je ne sais pas ce qu'ils demanderont" }, "level": 1 },
+        { "value": "scramble", "label": { "en": "We know, and we assemble it in a scramble each time", "fr": "Nous le savons, et nous l'assemblons dans l'urgence chaque fois" }, "level": 2 },
+        { "value": "findable_slow", "label": { "en": "We could find it, with a few days of digging", "fr": "Nous pourrions le trouver, avec quelques jours de fouille" }, "level": 3 },
+        { "value": "in_system", "label": { "en": "It comes out of a system, in minutes", "fr": "Ça sort d'un système, en quelques minutes" }, "level": 4 },
+        { "value": "in_system_reviewed", "label": { "en": "It comes out of a system, and someone checks it's complete between audits", "fr": "Ça sort d'un système, et quelqu'un vérifie qu'il est complet entre les audits" }, "level": 5 }
+      ]
+    }
+  ]
+}
