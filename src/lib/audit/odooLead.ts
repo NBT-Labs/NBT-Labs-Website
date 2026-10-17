@@ -77,6 +77,6 @@ export async function toOdoo(submission: Submission): Promise<void> {
     partner_name: contact.company,
     phone: contact.phone || false,
     description,
-  });
+  }, "Site web Audit");
   if (failure) throw new Error(`Odoo lead creation failed (${failure.status})`);
 }

@@ -70,7 +70,7 @@ export async function POST(request: Request) {
       (score ? `<p><strong>Score:</strong> ${escapeHtml(score)}</p>` : "") +
       answersHtml +
       (report ? `<h3>Report</h3><p>${escapeHtml(report)}</p>` : ""),
-  });
+  }, "Site web Audit");
 
   return failure ?? NextResponse.json({ ok: true });
 }

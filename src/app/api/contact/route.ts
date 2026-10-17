@@ -37,7 +37,7 @@ export async function POST(request: Request) {
       `<p><strong>Topic:</strong> ${escapeHtml(topic)}</p>` +
       `<p><strong>Language:</strong> ${language}</p>` +
       `<p>${escapeHtml(message)}</p>`,
-  });
+  }, "Site web Contact");
 
   return failure ?? NextResponse.json({ ok: true });
 }

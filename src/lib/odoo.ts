@@ -21,8 +21,38 @@ type LeadValues = {
   description: string;
 };
 
+/** UTM sources (crm.lead.source_id) that must already exist in Odoo, looked up by name. */
+export type LeadSource = "Site web Audit" | "Site web Contact";
+
+const sourceIds = new Map<string, number>();
+
+async function odooCall(baseUrl: string, apiKey: string, path: string, body: unknown) {
+  return fetch(`${baseUrl}/json/2/${path}`, {
+    method: "POST",
+    headers: {
+      Authorization: `bearer ${apiKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+}
+
+// Missing source is logged, not fatal: a lead without a source beats a lost lead.
+async function findSourceId(baseUrl: string, apiKey: string, name: string): Promise<number | false> {
+  const cached = sourceIds.get(name);
+  if (cached) return cached;
+  const response = await odooCall(baseUrl, apiKey, "utm.source/search", { domain: [["name", "=", name]], limit: 1 });
+  const ids = response.ok ? ((await response.json()) as number[]) : [];
+  if (!ids.length) {
+    console.error(`Odoo: UTM source "${name}" not found; lead created without a source.`);
+    return false;
+  }
+  sourceIds.set(name, ids[0]);
+  return ids[0];
+}
+
 // Creates a crm.lead through Odoo's JSON-2 API. Returns null on success, or an error response.
-export async function createOdooLead(values: LeadValues) {
+export async function createOdooLead(values: LeadValues, source: LeadSource) {
   const baseUrl = process.env.ODOO_BASE_URL?.replace(/\/+$/, "");
   const apiKey = process.env.ODOO_API_KEY_WEBSITE;
 
@@ -31,13 +61,9 @@ export async function createOdooLead(values: LeadValues) {
     return errorResponse("This form is not configured yet. Please email info@nbtlabs.ca.", 500);
   }
 
-  const response = await fetch(`${baseUrl}/json/2/crm.lead/create`, {
-    method: "POST",
-    headers: {
-      Authorization: `bearer ${apiKey}`,
-      "Content-Type": "application/json",
-    },
-    body: JSON.stringify({ vals_list: [{ type: "lead", ...values }] }),
+  const source_id = await findSourceId(baseUrl, apiKey, source);
+  const response = await odooCall(baseUrl, apiKey, "crm.lead/create", {
+    vals_list: [{ type: "lead", source_id, ...values }],
   });
 
   if (!response.ok) {
