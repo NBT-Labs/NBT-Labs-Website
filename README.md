@@ -27,15 +27,13 @@ The development server prints its local URL after startup.
 
 ### Forms → Odoo CRM
 
-Both website forms create a lead in Odoo CRM (`crm.lead`) through Odoo's JSON-2 API (shared helper: `src/app/_lib/odoo.ts`):
+Every website form creates a lead in Odoo CRM (`crm.lead`) through Odoo's JSON-2 API (shared client: `src/lib/odoo.ts`):
 
-- `/get-in-touch` → `POST /api/contact` (name, email, company, topic, message)
-- Free audit (`/contact` form and the audit scorecard) → `POST /api/audit` (contact details, `answers: [{ question, answer }]`, optional `report` and `score`; the payload is documented at the top of `src/app/api/audit/route.ts`)
+- Contact us, `/[locale]/get-in-touch` → `POST /api/contact`
+- Free audit short form, `/[locale]/contact` → `POST /api/audit`
+- Audit scorecard, `/[locale]/scorecard` → `POST /api/scorecard`. The lead holds the contact, the report (index, band, pillars, dimensions), the company profile and all 12 questions with the answers, in the visitor's language (`src/lib/audit/odooLead.ts`).
 
- Copy `.env.example` to `.env.local` and set:
-
-- `ODOO_BASE_URL`: e.g. `https://nbtlabs.odoo.com`
-- `ODOO_API_KEY_WEBSITE`: API key of the Odoo user that owns website leads (Preferences → Account Security → New API Key)
+Copy `.env.example` to `.env.local` and set `ODOO_BASE_URL` and `ODOO_API_KEY_WEBSITE` (Odoo → Preferences → Account Security → New API Key). The scorecard can also send to a webhook and/or email: see `.env.example`.
 
 `docker compose` reads `.env.local` automatically. On Vercel, add the same variables under Project → Settings → Environment Variables. Never put the real key in `.env.example`: that file is committed.
 
@@ -86,7 +84,7 @@ src/
 - How We Work: `src/app/how-we-work/page.tsx`
 - Who We Help: `src/app/who-we-help/page.tsx`
 - Contact (free audit): `src/app/contact/page.tsx`
-- Get in touch (general contact form): `src/app/get-in-touch/page.tsx`, creates Odoo CRM leads via `src/app/api/contact/route.ts`
+- Get in touch (general contact form): `src/app/[locale]/get-in-touch/page.tsx`
 - Results: `src/app/case-studies/page.tsx`
 - Global styling and responsive behavior: `src/app/globals.css`
 

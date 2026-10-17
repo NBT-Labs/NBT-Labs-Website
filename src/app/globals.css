@@ -3525,3 +3525,430 @@ html[data-theme="dark"] .sticky-story {
   ::view-transition-new(root) { animation: none !important; }
   .theme-toggle-thumb { transition: none; }
 }
+
+/* ============================================================================
+   Operations scorecard  (/[locale]/scorecard) and plain prose pages
+   ----------------------------------------------------------------------------
+   Written against the THEMED tokens (--surface, --text, --text-muted, --line,
+   --canvas) rather than --paper/--ink, because only the themed set is
+   overridden under html[data-theme="dark"]. Using --paper-light here would
+   render a cream card on a near-black page.
+
+   Top padding mirrors .page-hero (170px): the header is fixed, and these two
+   routes have no hero to clear it.
+   ========================================================================== */
+
+.scorecard,
+.prose-page {
+  width: var(--page);
+  margin: 0 auto;
+  padding: clamp(132px, 15vh, 180px) 0 clamp(72px, 9vw, 120px);
+  color: var(--text);
+}
+
+.scorecard h1 {
+  margin: 14px 0 0;
+  font-size: clamp(38px, 5.4vw, 72px);
+  font-weight: 550;
+  letter-spacing: -0.045em;
+  line-height: 1.02;
+}
+
+.scorecard-lead {
+  max-width: 62ch;
+  margin: 26px 0 0;
+  color: var(--text-muted);
+  font-size: clamp(16px, 1.3vw, 19px);
+  line-height: 1.65;
+}
+
+.scorecard-promise {
+  margin: 18px 0 0;
+  color: var(--brand-mint);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.scorecard-actions {
+  margin-top: 40px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.button-ghost {
+  border-color: var(--line);
+  background: transparent;
+  color: var(--text);
+}
+.button-ghost:hover { border-color: var(--text); }
+
+/* ---- one question per screen ---- */
+
+.scorecard-flow { max-width: 780px; }
+
+.scorecard-step {
+  margin: 0;
+  color: var(--text-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scorecard-stem {
+  margin: 18px 0 0;
+  font-size: clamp(25px, 3.1vw, 40px);
+  font-weight: 550;
+  letter-spacing: -0.035em;
+  line-height: 1.16;
+}
+.scorecard-stem:focus { outline: none; }
+.scorecard-stem:focus-visible {
+  outline: 2px solid var(--brand-mint);
+  outline-offset: 6px;
+  border-radius: 4px;
+}
+
+.scorecard-help {
+  max-width: 58ch;
+  margin: 14px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.scorecard-options {
+  margin: 34px 0 0;
+  padding: 0;
+  border: 0;
+  display: grid;
+  gap: 10px;
+}
+
+.scorecard-option {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 14px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease;
+}
+.scorecard-option:hover { border-color: var(--text-muted); }
+.scorecard-option span { font-size: 16px; line-height: 1.45; }
+.scorecard-option input {
+  margin: 3px 0 0;
+  width: 17px;
+  height: 17px;
+  accent-color: #65a032;
+  flex: none;
+}
+.scorecard-option:has(input:checked) {
+  border-color: #65a032;
+  background: color-mix(in srgb, var(--brand-mint) 14%, var(--surface));
+}
+.scorecard-option:has(input:focus-visible) {
+  outline: 2px solid var(--brand-mint);
+  outline-offset: 2px;
+}
+
+/* ---- numeric answers ---- */
+
+.scorecard-number { margin-top: 34px; }
+
+.scorecard-number-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.scorecard-number input {
+  width: min(260px, 100%);
+  height: 60px;
+  padding: 0 18px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 22px;
+  font-variant-numeric: tabular-nums;
+}
+.scorecard-number input:focus {
+  outline: none;
+  border-color: #65a032;
+  box-shadow: 0 0 0 3px rgba(185, 244, 93, 0.3);
+}
+
+.scorecard-unit {
+  color: var(--text-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 11px;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.scorecard-unknown {
+  margin-top: 16px;
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--text-muted);
+  font-size: 14px;
+  cursor: pointer;
+}
+.scorecard-unknown input { width: 16px; height: 16px; accent-color: #65a032; }
+
+/* ---- result ---- */
+
+.scorecard-result { max-width: 880px; }
+
+.scorecard-index {
+  margin-top: 22px;
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+}
+.scorecard-index-value {
+  font-size: clamp(78px, 13vw, 160px);
+  font-weight: 550;
+  letter-spacing: -0.06em;
+  line-height: 0.88;
+  font-variant-numeric: tabular-nums;
+}
+.scorecard-index-scale {
+  color: var(--text-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.scorecard-index-label {
+  margin: 10px 0 0;
+  color: var(--text-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.scorecard-band {
+  margin: 34px 0 0;
+  font-size: clamp(27px, 3.4vw, 44px);
+  font-weight: 550;
+  letter-spacing: -0.04em;
+}
+.scorecard-headline {
+  max-width: 56ch;
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 18px;
+  line-height: 1.6;
+}
+
+.scorecard-result h3 {
+  margin: 54px 0 20px;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+/* Bars on a common scale, ordered worst first — the component sorts them.
+   Deliberately not a radar chart: axis order there is arbitrary and area
+   scales as the square of the radius, overstating every difference. */
+.scorecard-bars { margin: 0; padding: 0; list-style: none; display: grid; gap: 14px; }
+.scorecard-bars li {
+  display: grid;
+  grid-template-columns: minmax(130px, 1fr) 3fr auto;
+  align-items: center;
+  gap: 16px;
+}
+.scorecard-bar-label { font-size: 15px; }
+.scorecard-bar-track {
+  height: 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--text) 10%, transparent);
+  overflow: hidden;
+}
+.scorecard-bar-fill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--brand-mint);
+}
+.scorecard-bar-value {
+  min-width: 2.5ch;
+  text-align: right;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 13px;
+  font-variant-numeric: tabular-nums;
+}
+
+.scorecard-caps,
+.scorecard-consent-note {
+  margin: 22px 0 0;
+  color: var(--text-muted);
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.scorecard-coverage {
+  margin: 26px 0 0;
+  padding: 16px 20px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+}
+.scorecard-coverage summary {
+  cursor: pointer;
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 10px;
+  font-weight: 650;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
+}
+.scorecard-coverage p {
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+/* ---- the gate ---- */
+
+.scorecard-gate {
+  margin: 54px 0 32px;
+  padding: clamp(26px, 4vw, 48px);
+  border: 1px solid var(--line);
+  border-radius: 30px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+.scorecard-gate h3 {
+  margin: 0;
+  color: var(--text);
+  font-family: inherit;
+  font-size: clamp(22px, 2.6vw, 32px);
+  font-weight: 550;
+  letter-spacing: -0.035em;
+  text-transform: none;
+}
+.scorecard-gate > p {
+  max-width: 56ch;
+  margin: 12px 0 0;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+
+.scorecard-gate-list {
+  margin: 20px 0 30px;
+  padding: 0 0 0 20px;
+  color: var(--text-muted);
+  font-size: 15px;
+  line-height: 1.7;
+}
+
+.scorecard-gate label {
+  margin: 0 0 20px;
+  display: block;
+}
+.scorecard-gate label > span {
+  margin-bottom: 9px;
+  display: block;
+  color: var(--text-muted);
+  font-family: var(--font-geist-mono), monospace;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+.scorecard-gate label em { font-style: normal; opacity: 0.7; }
+.scorecard-gate input:not([type="checkbox"]),
+.scorecard-gate select {
+  width: 100%;
+  height: 54px;
+  padding: 0 15px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--canvas);
+  color: var(--text);
+  font-size: 15px;
+}
+.scorecard-gate input:focus,
+.scorecard-gate select:focus {
+  outline: none;
+  border-color: #65a032;
+  box-shadow: 0 0 0 3px rgba(185, 244, 93, 0.3);
+}
+
+/* Two purposes, two boxes — never merged into one. */
+.scorecard-consent {
+  display: flex !important;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 14px !important;
+  cursor: pointer;
+}
+.scorecard-consent input { margin-top: 3px; width: 17px; height: 17px; flex: none; accent-color: #65a032; }
+.scorecard-consent span {
+  margin: 0 !important;
+  color: var(--text) !important;
+  font-family: inherit !important;
+  font-size: 14px !important;
+  font-weight: 400 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+  line-height: 1.55;
+}
+
+.scorecard-gate .form-submit-row { margin-top: 26px; }
+.scorecard-gate .form-submit-row small { color: var(--text-muted); }
+
+.scorecard-gate-sent {
+  margin: 54px 0 32px;
+  padding: clamp(26px, 4vw, 48px);
+  border: 1px solid var(--brand-mint);
+  border-radius: 30px;
+  background: color-mix(in srgb, var(--brand-mint) 10%, var(--surface));
+}
+
+/* ---- prose pages (privacy) ---- */
+
+.prose-page { max-width: 760px; }
+.prose-page h1 {
+  margin: 0 0 18px;
+  font-size: clamp(36px, 4.6vw, 62px);
+  font-weight: 550;
+  letter-spacing: -0.045em;
+}
+.prose-page h2 {
+  margin: 44px 0 10px;
+  font-size: clamp(19px, 2vw, 25px);
+  font-weight: 550;
+  letter-spacing: -0.03em;
+}
+.prose-page p {
+  margin: 0 0 14px;
+  color: var(--text-muted);
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+@media (max-width: 760px) {
+  .scorecard-bars li { grid-template-columns: 1fr auto; }
+  .scorecard-bars .scorecard-bar-track { grid-column: 1 / -1; }
+  .form-row { grid-template-columns: 1fr; }
+}

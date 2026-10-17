@@ -1,0 +1,285 @@
+{
+  "bank_id": "model_project",
+  "bank_version": "1.0.0",
+  "layer": "model",
+  "label": {
+    "en": "Project-based delivery",
+    "fr": "Livraison par projets"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q02", "op": "eq", "value": "project" }
+  ],
+  "notes": "Served when base.firmo.q02 = project. The router ALSO activates this bank when 'project' is checked in the multi-select base.firmo.q03 — a service or manufacturing company with an install side runs projects whether or not it calls itself a project business. REVEALS KEYS INTRODUCED: committed_not_invoiced_value, unbilled_delivered_value, project_overrun_pct. BENCHMARK_REF KEYS: project_overrun_rate (SPI/Kantata 2025 Professional Services Maturity Benchmark — 11.3% average project overrun); project_on_time_delivery_rate (same study — 73.4% on-time delivery); evm_cpi_spi_threshold (earned value formulas, budgetoverrun.com — CPI/SPI at or above 1.0 is the target, below 0.9 is the intervention line). Deliberately NO benchmark_ref on unbilled delivered work, on committed-but-not-invoiced cost or on milestone-to-invoice lag: nothing defensible is published at this company size, and the help text says so rather than borrowing a number. The central finding in most project businesses is that % complete is the PM's opinion, so three questions here (perf.q01, fin.q04, perf.q02) exist to separate an estimate from a derivation.",
+  "reweight": {
+    "performance_management": 1.7,
+    "finance_close": 1.5,
+    "quote_to_cash": 1.2,
+    "data_reporting": 1.2,
+    "procure_inventory": 0.5
+  },
+  "questions": [
+    {
+      "id": "model_project.perf.q01",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "A project is halfway through. How is its % complete decided — and could two project managers give two different answers?", "fr": "Un projet est à mi-parcours. Comment son % d'avancement est-il déterminé — et deux chargés de projet pourraient-ils donner deux réponses différentes?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "The central finding of almost every project audit. If % complete is an opinion, then revenue, margin and the whole WIP position are opinions too. ODOO GAP in the same breath: there is no earned value engine, no baseline-versus-forecast and no automatic % complete derived from cost — Odoo project profitability compares actuals to revenue, not actuals to a budget by phase. A client at level 4-5 keeps that control in a parallel model and needs to be told so before signature.",
+      "artifact_probe": { "en": "Pick an active project. Show me the number and show me where it comes from.", "fr": "Choisissez un projet actif. Montrez-moi le chiffre et montrez-moi d'où il vient." },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody could give you a number for a specific project today", "fr": "Personne ne pourrait vous donner un chiffre pour un projet précis aujourd'hui" }, "level": 1 },
+        { "value": "pm_feel", "label": { "en": "The chargé de projet says what it feels like, and two of them would differ", "fr": "Le chargé de projet dit ce qu'il en pense, et deux d'entre eux ne s'entendraient pas" }, "level": 2 },
+        { "value": "pm_rule", "label": { "en": "Each chargé de projet has his own rule of thumb, written nowhere", "fr": "Chaque chargé de projet a sa propre règle du pouce, écrite nulle part" }, "level": 3 },
+        { "value": "derived", "label": { "en": "Derived the same way for every project — cost spent over cost forecast, or units done", "fr": "Dérivé de la même façon pour tous les projets — coût engagé sur coût prévu, ou unités complétées" }, "level": 4 },
+        { "value": "derived_reviewed", "label": { "en": "Derived that way and reviewed monthly against the jalons with finance in the room", "fr": "Dérivé ainsi et révisé mensuellement contre les jalons, avec les finances présentes" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.fin.q01",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Open bons de commande to subcontractors and suppliers on your biggest active project — where is that number?", "fr": "Les bons de commande ouverts aux sous-traitants et aux fournisseurs sur votre plus gros projet actif — où est ce chiffre?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP, and the highest-value lowest-effort customization in this model: there is no committed-cost view out of the box — no open PO lines measured against a project budget by cost type. Committed-but-not-invoiced cost is the silent overrun, and a client who answers level 1-2 here is discovering overruns when the bills arrive.",
+      "artifact_probe": { "en": "Open the project and show me committed cost beside spent cost on one screen.", "fr": "Ouvrez le projet et montrez-moi le coût engagé à côté du coût dépensé sur un seul écran." },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody knows — we find out when the invoices come in", "fr": "Personne ne le sait — on l'apprend quand les factures arrivent" }, "level": 1, "flag": "no_committed_cost_view" },
+        { "value": "pm_folder", "label": { "en": "In the chargé de projet's email and a folder of signed bons de commande", "fr": "Dans les courriels du chargé de projet et un dossier de bons de commande signés" }, "level": 2 },
+        { "value": "spreadsheet", "label": { "en": "A chiffrier someone updates when they remember", "fr": "Un chiffrier que quelqu'un met à jour quand il y pense" }, "level": 3 },
+        { "value": "system_open_po", "label": { "en": "The system shows open bons de commande against the project", "fr": "Le système montre les bons de commande ouverts imputés au projet" }, "level": 4 },
+        { "value": "system_vs_budget", "label": { "en": "Committed plus spent is compared to the budget by cost type, and reviewed at a fixed cadence", "fr": "Engagé plus dépensé est comparé au budget par type de coût, et révisé à intervalles fixes" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.fin.q02",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1.25,
+      "stem": { "en": "On that project, what dollar value is committed to suppliers and subcontractors but not yet invoiced to you?", "fr": "Sur ce projet, quelle valeur en dollars est engagée auprès des fournisseurs et sous-traitants mais pas encore facturée à vous?" },
+      "help": { "en": "Signed bons de commande minus bills received. Nobody publishes a benchmark for this; the number itself is the argument.", "fr": "Bons de commande signés moins factures reçues. Personne ne publie de référence là-dessus; le chiffre lui-même est l'argument." },
+      "instruments": ["audit"],
+      "reveals": ["committed_not_invoiced_value"],
+      "artifact_probe": { "en": "Show me the open bon de commande list for that project.", "fr": "Montrez-moi la liste des bons de commande ouverts de ce projet." },
+      "numeric": {
+        "unit": { "en": "CAD", "fr": "$ CA" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 50000, "level": 4 },
+          { "lte": 250000, "level": 3 },
+          { "lte": 1000000, "level": 2 },
+          { "gt": 1000000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_project.fin.q03",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Can you show a project budget with a ventilation by labour, matériel, sous-traitance and dépenses, and the actuals against each?", "fr": "Pouvez-vous montrer un budget de projet avec une ventilation par main-d'œuvre, matériel, sous-traitance et dépenses, et les réels en regard de chacun?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP in the configuration rather than the code: budget by cost type requires an analytic plan with analytic distribution applied to both AP bills and timesheets, which most implementers get wrong once and never revisit. Without it, 'are we on budget' can only be answered for the whole project, after the fact.",
+      "artifact_probe": { "en": "Open it now. I want to see the four cost types and the actuals in the same view.", "fr": "Ouvrez-le maintenant. Je veux voir les quatre types de coûts et les réels dans la même vue." },
+      "options": [
+        { "value": "no_budget", "label": { "en": "There's a contract price, no budget behind it", "fr": "Il y a un prix contractuel, pas de budget derrière" }, "level": 1 },
+        { "value": "total_only", "label": { "en": "One total budget number, no ventilation", "fr": "Un seul montant de budget total, sans ventilation" }, "level": 2 },
+        { "value": "spreadsheet_breakdown", "label": { "en": "A ventilation in a chiffrier, with actuals typed in from the accounting system", "fr": "Une ventilation dans un chiffrier, avec les réels recopiés du système comptable" }, "level": 3 },
+        { "value": "system_breakdown", "label": { "en": "Budget and actuals by cost type in one system", "fr": "Budget et réels par type de coût dans un seul système" }, "level": 4 },
+        { "value": "system_variance_reviewed", "label": { "en": "That, and the variance by cost type is reviewed while the project is still running", "fr": "Cela, et l'écart par type de coût est révisé pendant que le projet est encore en cours" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.fin.q04",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Who produces the cost to complete on an active project, and how often?", "fr": "Qui produit le coût à achever sur un projet actif, et à quelle fréquence?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "evm_cpi_spi_threshold",
+      "notes": "ODOO GAP: no native cost-to-complete or forecast-at-completion field on the project, and no earned value. A project business without a cost-to-complete is reporting travaux en cours from the rear-view mirror. Level 5 deliberately requires a forecast that moves and gets acted on, not a field that exists.",
+      "artifact_probe": { "en": "Show me the current cost to complete on one project and last month's version of it.", "fr": "Montrez-moi le coût à achever actuel d'un projet et la version du mois dernier." },
+      "options": [
+        { "value": "nobody", "label": { "en": "Nobody does — we see the result at the end", "fr": "Personne ne le fait — on voit le résultat à la fin" }, "level": 1 },
+        { "value": "pm_when_asked", "label": { "en": "The chargé de projet, when the owner asks", "fr": "Le chargé de projet, quand le propriétaire le demande" }, "level": 2 },
+        { "value": "monthly_spreadsheet", "label": { "en": "Finance rebuilds it monthly in a chiffrier", "fr": "Les finances le refont mensuellement dans un chiffrier" }, "level": 3 },
+        { "value": "system_forecast", "label": { "en": "A forecast to completion lives in the system and is updated monthly", "fr": "Une prévision à l'achèvement vit dans le système et est mise à jour mensuellement" }, "level": 4 },
+        { "value": "forecast_reviewed", "label": { "en": "Updated monthly, compared to the baseline, and a slipping project triggers a decision", "fr": "Mise à jour mensuellement, comparée à la base de référence, et un projet qui dérape déclenche une décision" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Where is the list of change requests on your biggest project, with each one's status?", "fr": "Où est la liste des demandes de changement de votre plus gros projet, avec le statut de chacune?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP: change orders are modelled as extra sales-order lines. There is no change log with approval states and no way to track work executed without approval — which is exactly the category that becomes a disputed invoice. Level 1 is the norm and it is worth naming as a risk, not as a software shortfall.",
+      "artifact_probe": { "en": "Open the log. I want to see one pending, one approved, and anything done without approval.", "fr": "Ouvrez le registre. Je veux voir une demande en attente, une approuvée, et tout ce qui a été fait sans approbation." },
+      "options": [
+        { "value": "email", "label": { "en": "In email threads — there's no list", "fr": "Dans des fils de courriels — il n'y a pas de liste" }, "level": 1, "flag": "no_change_log" },
+        { "value": "pm_head", "label": { "en": "The chargé de projet knows them; nothing is written in one place", "fr": "Le chargé de projet les connaît; rien n'est écrit en un seul endroit" }, "level": 2 },
+        { "value": "spreadsheet_log", "label": { "en": "A chiffrier log, updated when someone has time", "fr": "Un registre dans un chiffrier, mis à jour quand quelqu'un a le temps" }, "level": 3 },
+        { "value": "system_log", "label": { "en": "A log in a system with pending, approved and rejected statuses", "fr": "Un registre dans un système avec les statuts en attente, approuvée et refusée" }, "level": 4 },
+        { "value": "system_log_unapproved", "label": { "en": "That, and we also track work executed without approval and review it weekly", "fr": "Cela, et nous suivons aussi les travaux exécutés sans approbation et les révisons chaque semaine" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.5,
+      "stem": { "en": "How much work have you delivered across all active projects that hasn't been billed yet?", "fr": "Quelle valeur de travaux livrés, tous projets actifs confondus, n'a pas encore été facturée?" },
+      "help": { "en": "Approved work and passed jalons with no invoice behind them. There's no credible published benchmark — your number, and it is usually larger than the owner expects.", "fr": "Travaux approuvés et jalons franchis sans facture derrière. Aucune référence publiée crédible — votre chiffre, et il est habituellement plus élevé que le propriétaire ne le croit." },
+      "instruments": ["quiz", "audit"],
+      "reveals": ["unbilled_delivered_value"],
+      "artifact_probe": { "en": "Show me the travaux en cours list and point at the lines with no invoice.", "fr": "Montrez-moi la liste des travaux en cours et pointez les lignes sans facture." },
+      "numeric": {
+        "unit": { "en": "CAD", "fr": "$ CA" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 25000, "level": 4 },
+          { "lte": 100000, "level": 3 },
+          { "lte": 500000, "level": 2 },
+          { "gt": 500000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_project.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "A jalon is met. Who notices, and who raises the invoice?", "fr": "Un jalon est franchi. Qui s'en aperçoit, et qui émet la facture?" },
+      "instruments": ["audit"],
+      "notes": "Billing detached from delivery. The gap between 'the jalon was met' and 'somebody invoiced it' is pure financing cost, and it is invisible because nobody owns the handoff.",
+      "artifact_probe": { "en": "Take the last jalon on that project: show me the date it was met and the invoice date.", "fr": "Prenez le dernier jalon de ce projet : montrez-moi la date où il a été franchi et la date de la facture." },
+      "options": [
+        { "value": "client_asks", "label": { "en": "Honestly, sometimes the client asks us for the invoice", "fr": "Honnêtement, parfois c'est le client qui nous demande la facture" }, "level": 1 },
+        { "value": "pm_remembers", "label": { "en": "The chargé de projet remembers and emails accounting", "fr": "Le chargé de projet s'en souvient et écrit à la comptabilité" }, "level": 2 },
+        { "value": "monthly_sweep", "label": { "en": "Accounting sweeps the projects once a month and catches what's due", "fr": "La comptabilité passe les projets en revue une fois par mois et attrape ce qui est dû" }, "level": 3 },
+        { "value": "system_triggers", "label": { "en": "The jalon in the system creates the invoice to be approved", "fr": "Le jalon dans le système crée la facture à approuver" }, "level": 4 },
+        { "value": "system_measured", "label": { "en": "That, and we measure the days from jalon met to invoice sent", "fr": "Cela, et nous mesurons les jours entre le jalon franchi et la facture envoyée" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.fin.q05",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "Retenue held back on your invoices: how do you know what's outstanding and when it's releasable?", "fr": "La retenue retenue sur vos factures : comment savez-vous ce qui est en souffrance et quand elle est libérable?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP: holdback is not native and ends up as a manual credit line or a memo. Clients routinely leave retenue uncollected past the release condition because nothing tracks it. na is a real answer here — plenty of non-construction project contracts carry no holdback.",
+      "artifact_probe": { "en": "Show me total retenue outstanding and the oldest one on the list.", "fr": "Montrez-moi la retenue totale en souffrance et la plus ancienne de la liste." },
+      "options": [
+        { "value": "na", "label": { "en": "Our contracts don't have holdback", "fr": "Nos contrats n'ont pas de retenue" }, "na": true },
+        { "value": "nobody_knows", "label": { "en": "Nobody could tell you the total today", "fr": "Personne ne pourrait vous en donner le total aujourd'hui" }, "level": 1, "flag": "holdback_untracked" },
+        { "value": "invoice_by_invoice", "label": { "en": "We'd work it out invoice by invoice if we had to", "fr": "On le calculerait facture par facture s'il le fallait" }, "level": 2 },
+        { "value": "spreadsheet", "label": { "en": "A chiffrier tracks it, kept by one person", "fr": "Un chiffrier en fait le suivi, tenu par une seule personne" }, "level": 3 },
+        { "value": "system_account", "label": { "en": "It sits in its own account and we can list it by project", "fr": "Elle est dans son propre compte et nous pouvons la lister par projet" }, "level": 4 },
+        { "value": "system_release_dates", "label": { "en": "That, with release conditions dated and someone chasing them", "fr": "Cela, avec les conditions de libération datées et quelqu'un qui en fait le suivi" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Two projects need the same person next week. How does that get resolved?", "fr": "Deux projets ont besoin de la même personne la semaine prochaine. Comment cela se règle-t-il?" },
+      "instruments": ["audit"],
+      "artifact_probe": { "en": "Show me next week's resource plan, whatever form it's in.", "fr": "Montrez-moi le plan de ressources de la semaine prochaine, sous quelque forme qu'il soit." },
+      "options": [
+        { "value": "loudest_pm", "label": { "en": "The chargé de projet who pushes hardest gets them", "fr": "Le chargé de projet qui insiste le plus l'obtient" }, "level": 1 },
+        { "value": "owner_arbitrates", "label": { "en": "The owner arbitrates, case by case", "fr": "Le propriétaire arbitre, cas par cas" }, "level": 2 },
+        { "value": "spreadsheet_plan", "label": { "en": "A chiffrier shows who's booked where, and we talk it through", "fr": "Un chiffrier montre qui est réservé où, et on en discute" }, "level": 3 },
+        { "value": "system_plan", "label": { "en": "A system shows allocation across projects before anything is committed", "fr": "Un système montre l'affectation entre les projets avant tout engagement" }, "level": 4 },
+        { "value": "plan_vs_actual", "label": { "en": "That, and we compare planned hours to actual hours and fix the planning", "fr": "Cela, et nous comparons les heures planifiées aux heures réelles et corrigeons la planification" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.perf.q02",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "At project close, who compares final cost to the soumission — and does the estimator see it?", "fr": "À la clôture d'un projet, qui compare le coût final à la soumission — et l'estimateur le voit-il?" },
+      "instruments": ["audit"],
+      "notes": "The loop that makes estimating improve. Without it, every soumission repeats the last one's error at a larger scale. Level 5 requires the comparison to change a future estimate, which is the only version of this that is worth anything.",
+      "artifact_probe": { "en": "Show me the close-out comparison for the last project you finished.", "fr": "Montrez-moi la comparaison de clôture du dernier projet terminé." },
+      "options": [
+        { "value": "never", "label": { "en": "We don't formally close projects out", "fr": "Nous ne faisons pas de clôture formelle des projets" }, "level": 1 },
+        { "value": "owner_glance", "label": { "en": "The owner glances at the final margin", "fr": "Le propriétaire jette un oeil à la marge finale" }, "level": 2 },
+        { "value": "finance_only", "label": { "en": "Finance works it out; the estimator never sees it", "fr": "Les finances le calculent; l'estimateur ne le voit jamais" }, "level": 3 },
+        { "value": "shared_with_estimator", "label": { "en": "A close-out comparison is produced and shared with the estimator", "fr": "Une comparaison de clôture est produite et partagée avec l'estimateur" }, "level": 4 },
+        { "value": "feeds_next_estimate", "label": { "en": "Produced, reviewed as a group, and the rates in the next soumission change because of it", "fr": "Produite, révisée en groupe, et les taux de la prochaine soumission changent en conséquence" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_project.perf.q03",
+      "dimension": "performance_management",
+      "type": "number",
+      "weight": 1.25,
+      "stem": { "en": "On your last five finished projects, by how much did final cost exceed the estimate, on average?", "fr": "Sur vos cinq derniers projets terminés, de combien le coût final a-t-il dépassé l'estimation, en moyenne?" },
+      "help": { "en": "As a percentage. Enter a negative number if you came in under.", "fr": "En pourcentage. Entrez un nombre négatif si vous êtes arrivé en dessous." },
+      "instruments": ["audit"],
+      "benchmark_ref": "project_overrun_rate",
+      "reveals": ["project_overrun_pct"],
+      "artifact_probe": { "en": "Pull the five projects and show me estimate and final cost side by side.", "fr": "Sortez les cinq projets et montrez-moi l'estimation et le coût final côte à côte." },
+      "numeric": {
+        "unit": { "en": "% over estimate", "fr": "% au-dessus de l'estimation" },
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 5, "level": 4 },
+          { "lte": 11, "level": 3 },
+          { "lte": 25, "level": 2 },
+          { "gt": 25, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_project.perf.q04",
+      "dimension": "performance_management",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "Of your last ten finished projects, how many were delivered by the date you promised?", "fr": "Sur vos dix derniers projets terminés, combien ont été livrés à la date promise?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "project_on_time_delivery_rate",
+      "numeric": {
+        "unit": { "en": "projects out of ten", "fr": "projets sur dix" },
+        "min": 0,
+        "max": 10,
+        "integer": true,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 10, "level": 5 },
+          { "gte": 8, "level": 4 },
+          { "gte": 7, "level": 3 },
+          { "gte": 5, "level": 2 },
+          { "lt": 5, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_project.data.q01",
+      "dimension": "data_reporting",
+      "type": "text",
+      "weight": 0,
+      "stem": { "en": "Name the project you're least sure about right now, and say what you'd need to know to be sure.", "fr": "Nommez le projet dont vous êtes le moins certain en ce moment, et dites ce que vous auriez besoin de savoir pour en être certain." },
+      "instruments": ["audit"],
+      "notes": "Audit only — an open-ended question costs roughly 12.5 points of completion and never appears in the quiz. Placed last in the bank on purpose: by this point the respondent has had to admit where the numbers come from, and the answer is usually the scope of the engagement in one sentence.",
+      "artifact_probe": { "en": "Let's open that project together and find the missing number.", "fr": "Ouvrons ce projet ensemble et trouvons le chiffre manquant." }
+    }
+  ]
+}

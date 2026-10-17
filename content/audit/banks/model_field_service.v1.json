@@ -1,0 +1,302 @@
+{
+  "bank_id": "model_field_service",
+  "bank_version": "1.0.0",
+  "layer": "model",
+  "label": {
+    "en": "Field service, installation and maintenance",
+    "fr": "Service, installation et entretien chez le client"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q02", "op": "eq", "value": "field_service" }
+  ],
+  "notes": "Served when base.firmo.q02 = field_service. The router ALSO activates this bank when 'field_service' is checked in the multi-select base.firmo.q03, even if q02 says something else — most 10-150 employee service companies answer q02 as 'project' or 'distribution' and still run a dispatch board. REVEALS KEYS INTRODUCED: tech_paid_hours_week, tech_billed_hours_week, job_to_invoice_days, unbilled_work_orders_value, truck_stock_value, first_time_fix_rate. The paid/billed hour pair is the point of this bank: no credible utilization benchmark exists for a 10-150 employee service company, so the client supplies both numbers and the RATIO is the finding, computed in the cost model, not asserted from a vendor blog. BENCHMARK_REF KEYS: field_service_first_time_fix_rate (ServiceTitan field service metrics — ~80% average, 90% ideal, under 70% is a problem); field_service_agreement_attach_rate (ServiceTitan — high performers 30-50% of customers under agreement). Deliberately NO benchmark_ref on technician utilization, on days-to-invoice, on unbilled completed work or on truck stock value: nothing defensible is published for this size of company, and the help text says so out loud. The avoidable-dispatch figure is not set either — the sector research on file carries no sourced number for it, so inventing a key for it would be inventing a benchmark.",
+  "reweight": {
+    "scheduling_capacity": 1.7,
+    "quote_to_cash": 1.5,
+    "procure_inventory": 1.15,
+    "systems_integration": 1.2
+  },
+  "questions": [
+    {
+      "id": "model_field_service.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Who builds tomorrow's schedule, what do they build it in, and what happens when that person is sick?", "fr": "Qui bâtit l'horaire de demain, dans quoi le bâtit-il, et qu'arrive-t-il quand cette personne est malade?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "The single most diagnostic question in field service. A dispatch board that lives in one head makes the business un-scalable and un-sellable, and it is the answer that decides whether the engagement is a software project or a succession problem.",
+      "artifact_probe": { "en": "Show me tomorrow's dispatch board exactly as it stands right now.", "fr": "Montrez-moi le tableau de répartition de demain tel qu'il est en ce moment." },
+      "options": [
+        { "value": "one_head", "label": { "en": "One person, from memory and their phone — when they're out, we improvise", "fr": "Une personne, de mémoire et avec son cellulaire — quand elle est absente, on improvise" }, "level": 1, "flag": "dispatch_single_point" },
+        { "value": "whiteboard", "label": { "en": "One person, on a whiteboard or on paper someone else could read", "fr": "Une personne, sur un tableau blanc ou sur papier qu'un autre pourrait lire" }, "level": 2 },
+        { "value": "spreadsheet", "label": { "en": "A chiffrier or shared calendar a backup person can open", "fr": "Un chiffrier ou un calendrier partagé qu'un remplaçant peut ouvrir" }, "level": 3 },
+        { "value": "system_shared", "label": { "en": "A system the technicians and the office both see, and two people can dispatch", "fr": "Un système que les techniciens et le bureau voient tous les deux, et deux personnes peuvent répartir" }, "level": 4 },
+        { "value": "system_measured", "label": { "en": "That, and we review drive time and jobs per tech each week and change the schedule because of it", "fr": "Cela, et nous révisons le temps de déplacement et les appels par technicien chaque semaine, et nous modifions l'horaire en conséquence" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_field_service.sched.q02",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Before a bon de travail is assigned, what gets checked about the technician and the pièces?", "fr": "Avant qu'un bon de travail soit assigné, que vérifie-t-on sur le technicien et les pièces?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP, asked as a diagnostic. Odoo Field Service has no skills or certification-based auto-assignment, no route optimization and no capacity-aware scheduling. If the client is at level 4-5 here today, standard Field Service is a downgrade and the scope must include either a dispatch add-on or an explicit decision to keep dispatch where it is. Better to say that in the audit than after the signature.",
+      "artifact_probe": { "en": "Where is each technician's certification list kept, and when was it last updated?", "fr": "Où est conservée la liste des certifications de chaque technicien, et quand a-t-elle été mise à jour?" },
+      "options": [
+        { "value": "nothing", "label": { "en": "Whoever is free gets it — certifications and parts are sorted out on site", "fr": "Celui qui est libre l'obtient — les certifications et les pièces se règlent sur place" }, "level": 1 },
+        { "value": "dispatcher_memory", "label": { "en": "The dispatcher knows who is certified for what and roughly what's on each camion", "fr": "Le répartiteur sait qui est certifié pour quoi et à peu près ce qu'il y a dans chaque camion" }, "level": 2 },
+        { "value": "lists_on_paper", "label": { "en": "Certification and territory lists exist on paper or in a chiffrier, consulted sometimes", "fr": "Des listes de certifications et de territoires existent sur papier ou dans un chiffrier, consultées parfois" }, "level": 3 },
+        { "value": "system_flags", "label": { "en": "The system holds skills and territory and warns when the assignment doesn't fit", "fr": "Le système contient les compétences et le territoire et avertit quand l'assignation ne convient pas" }, "level": 4 },
+        { "value": "system_parts_measured", "label": { "en": "That, plus parts availability is checked before the promise, and we measure how often we got it wrong", "fr": "Cela, et la disponibilité des pièces est vérifiée avant l'engagement, et nous mesurons combien de fois nous nous sommes trompés" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_field_service.sched.q03",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Your contrats d'entretien préventif: where do the scheduled visits live, and what tells you one is overdue?", "fr": "Vos contrats d'entretien préventif : où vivent les visites planifiées, et qu'est-ce qui vous dit qu'une visite est en retard?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "field_service_agreement_attach_rate",
+      "notes": "ODOO GAP, and the most expensive one in this model. Subscriptions bills the recurring revenue fine, but it does not generate the preventive-visit schedule, does not consume contract entitlements, and does not draw labour and pièces down against a contract value. Deferred revenue on prepaid agreements is also manual. A client at level 1-2 is billing contracts it is not delivering; a client at level 4-5 is relying on something Odoo cannot replace out of the box. Either way this is a named custom build, scoped in the audit.",
+      "artifact_probe": { "en": "Show me the list of PM visits that are overdue right now, and the margin on one agreement.", "fr": "Montrez-moi la liste des visites d'entretien préventif en retard en ce moment, et la marge sur un contrat." },
+      "options": [
+        { "value": "na", "label": { "en": "We don't sell maintenance agreements at all", "fr": "Nous ne vendons aucun contrat d'entretien" }, "na": true },
+        { "value": "nobody_knows", "label": { "en": "Honestly, nobody could tell you which visits are owed", "fr": "Honnêtement, personne ne pourrait vous dire quelles visites sont dues" }, "level": 1, "flag": "pm_visits_unscheduled" },
+        { "value": "billed_only", "label": { "en": "The billing is set up; the visits get booked when the customer calls to ask", "fr": "La facturation est en place; les visites se planifient quand le client appelle pour les demander" }, "level": 2, "flag": "pm_visits_unscheduled" },
+        { "value": "spreadsheet_tracker", "label": { "en": "A chiffrier tracks which visits are due, kept by one person", "fr": "Un chiffrier suit les visites dues, tenu par une seule personne" }, "level": 3 },
+        { "value": "system_schedule", "label": { "en": "The contract generates the visit schedule in a system that shows what's overdue", "fr": "Le contrat génère l'horaire des visites dans un système qui montre ce qui est en retard" }, "level": 4 },
+        { "value": "system_margin_reviewed", "label": { "en": "That, and hours and pièces are drawn against the contract value so we review margin per agreement", "fr": "Cela, et les heures et les pièces sont imputées à la valeur du contrat, donc nous révisons la marge par contrat" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_field_service.sched.q04",
+      "dimension": "scheduling_capacity",
+      "type": "number",
+      "weight": 1.25,
+      "stem": { "en": "Of the jobs you closed last month, what share were finished on the first visit?", "fr": "Parmi les appels fermés le mois dernier, quelle proportion a été réglée à la première visite?" },
+      "help": { "en": "The second trip costs you a tech-day and the customer's patience. If nobody has the number, say so — that is itself the finding.", "fr": "Le deuxième déplacement vous coûte une journée-technicien et la patience du client. Si personne n'a le chiffre, dites-le — c'est justement la découverte." },
+      "instruments": ["audit"],
+      "benchmark_ref": "field_service_first_time_fix_rate",
+      "reveals": ["first_time_fix_rate"],
+      "artifact_probe": { "en": "Pull last month's closed bons de travail and show me the ones with a return visit.", "fr": "Sortez les bons de travail fermés du mois dernier et montrez-moi ceux avec une visite de retour." },
+      "numeric": {
+        "unit": { "en": "% of jobs fixed on the first visit", "fr": "% des appels réglés à la première visite" },
+        "min": 0,
+        "max": 100,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 90, "level": 5 },
+          { "gte": 80, "level": 4 },
+          { "gte": 70, "level": 3 },
+          { "gte": 50, "level": 2 },
+          { "lt": 50, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_field_service.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 0,
+      "stem": { "en": "Last full week: how many hours did you pay your field technicians, all of them together?", "fr": "La dernière semaine complète : combien d'heures avez-vous payées à vos techniciens, tous ensemble?" },
+      "help": { "en": "Straight from payroll. Overtime and travel included.", "fr": "Directement de la paie. Temps supplémentaire et déplacements inclus." },
+      "instruments": ["audit"],
+      "reveals": ["tech_paid_hours_week"],
+      "notes": "Half of the pair. Unscored on purpose — the number alone says nothing, the ratio against the next question says everything. Payroll hours first, because they are the harder number to shade.",
+      "artifact_probe": { "en": "Open the payroll register for that week.", "fr": "Ouvrez le registre de paie de cette semaine." },
+      "numeric": {
+        "unit": { "en": "paid hours", "fr": "heures payées" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 1 },
+          { "gt": 0, "level": 4 }
+        ]
+      }
+    },
+    {
+      "id": "model_field_service.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 0,
+      "stem": { "en": "Same week: how many of those hours landed on a bon de travail you could bill or charge to a contract?", "fr": "Même semaine : combien de ces heures se sont retrouvées sur un bon de travail facturable ou imputable à un contrat?" },
+      "help": { "en": "There is no credible utilization benchmark for a company your size — anyone quoting you one is selling something. We use your two numbers and the gap between them.", "fr": "Il n'existe aucune référence crédible de taux d'utilisation pour une entreprise de votre taille — quiconque vous en cite une vend quelque chose. Nous utilisons vos deux chiffres et l'écart entre eux." },
+      "instruments": ["audit"],
+      "reveals": ["tech_billed_hours_week"],
+      "notes": "Other half of the pair. Deliberately no benchmark_ref: the published 60-80% utilization range is for companies with a working time-capture system, which is precisely what the client being audited does not have. The ratio of this to the previous answer, multiplied by a loaded hourly rate, is the headline dollar figure of the whole field-service report.",
+      "artifact_probe": { "en": "Total the labour hours on that week's bons de travail in front of me.", "fr": "Totalisez devant moi les heures de main-d'œuvre des bons de travail de cette semaine." },
+      "numeric": {
+        "unit": { "en": "hours on a bon de travail", "fr": "heures sur un bon de travail" },
+        "min": 0,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 1 },
+          { "gt": 0, "level": 4 }
+        ]
+      }
+    },
+    {
+      "id": "model_field_service.perf.q01",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "How do you know what share of a paid technician week ends up on a bon de travail?", "fr": "Comment savez-vous quelle part d'une semaine payée de technicien aboutit sur un bon de travail?" },
+      "instruments": ["audit"],
+      "notes": "This is the level-5 gate for the hour pair above. Two clients can hand over the same two numbers; only one of them produced them without being asked. Level 5 requires a reviewed number, not a better app.",
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody here knows — the two numbers you just got were assembled for you", "fr": "Personne ici ne le sait — les deux chiffres que vous venez d'obtenir ont été assemblés pour vous" }, "level": 1 },
+        { "value": "owner_feel", "label": { "en": "The owner has a feel for it from the bank account", "fr": "Le propriétaire s'en fait une idée par le compte bancaire" }, "level": 2 },
+        { "value": "annual_calc", "label": { "en": "Someone works it out once a year, by hand", "fr": "Quelqu'un le calcule une fois par an, à la main" }, "level": 3 },
+        { "value": "monthly_report", "label": { "en": "A monthly report compares paid hours to billed hours", "fr": "Un rapport mensuel compare les heures payées aux heures facturées" }, "level": 4 },
+        { "value": "weekly_reviewed", "label": { "en": "We review it weekly per technician, against a target, and act on the gap", "fr": "Nous le révisons chaque semaine par technicien, contre une cible, et nous agissons sur l'écart" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_field_service.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.5,
+      "stem": { "en": "From a technician finishing a job to the invoice leaving: how many days, typically?", "fr": "Entre la fin du travail par le technicien et le départ de la facture : combien de jours, habituellement?" },
+      "help": { "en": "No published benchmark covers companies your size. One to three weeks is what we usually find, and it is the biggest cash-flow number in this report.", "fr": "Aucune référence publiée ne couvre les entreprises de votre taille. Nous trouvons habituellement une à trois semaines, et c'est le plus gros chiffre de liquidité de ce rapport." },
+      "instruments": ["quiz", "audit"],
+      "reveals": ["job_to_invoice_days"],
+      "artifact_probe": { "en": "Pick three bons de travail closed last month and compare the completion date to the invoice date.", "fr": "Choisissez trois bons de travail fermés le mois dernier et comparez la date d'exécution à la date de facturation." },
+      "numeric": {
+        "unit": { "en": "days", "fr": "jours" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 3, "level": 4 },
+          { "lte": 7, "level": 3 },
+          { "lte": 15, "level": 2 },
+          { "gt": 15, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_field_service.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.25,
+      "stem": { "en": "Right now, what is the value of completed work that has not been invoiced?", "fr": "En ce moment, quelle est la valeur des travaux exécutés qui n'ont pas été facturés?" },
+      "help": { "en": "Closed bons de travail with no invoice behind them. Nobody publishes a benchmark for this; your own number is the argument.", "fr": "Des bons de travail fermés sans facture derrière. Personne ne publie de référence là-dessus; votre propre chiffre est l'argument." },
+      "instruments": ["audit"],
+      "reveals": ["unbilled_work_orders_value"],
+      "artifact_probe": { "en": "Show me the list of closed bons de travail with no invoice attached.", "fr": "Montrez-moi la liste des bons de travail fermés sans facture rattachée." },
+      "numeric": {
+        "unit": { "en": "CAD", "fr": "$ CA" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 10000, "level": 4 },
+          { "lte": 50000, "level": 3 },
+          { "lte": 150000, "level": 2 },
+          { "gt": 150000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_field_service.q2c.q05",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "A technician finds extra work on site. How does the customer approve it, and how does it become a soumission?", "fr": "Un technicien découvre des travaux supplémentaires sur place. Comment le client les approuve-t-il, et comment cela devient-il une soumission?" },
+      "instruments": ["audit"],
+      "notes": "Where T&M overages turn into disputes and notes de crédit. The level-1 answer and the level-2 answer look the same to the owner until the first argument about a 14,000-dollar invoice.",
+      "artifact_probe": { "en": "Show me the last extra-work approval you have on file, with the customer's name on it.", "fr": "Montrez-moi la dernière approbation de travaux supplémentaires que vous avez au dossier, avec le nom du client dessus." },
+      "options": [
+        { "value": "verbal_nothing", "label": { "en": "The customer says go ahead and the tech does it — nothing is written", "fr": "Le client dit d'y aller et le technicien le fait — rien n'est écrit" }, "level": 1, "flag": "no_onsite_approval_trail" },
+        { "value": "note_on_paper", "label": { "en": "The tech writes it on the paper bon de travail and the customer initials it", "fr": "Le technicien l'inscrit sur le bon de travail papier et le client initiale" }, "level": 2 },
+        { "value": "office_quote_later", "label": { "en": "The tech calls the office and a soumission goes out a day or two later", "fr": "Le technicien appelle le bureau et une soumission part un ou deux jours plus tard" }, "level": 3 },
+        { "value": "signed_on_device", "label": { "en": "Priced and signed on the technician's device before the work starts", "fr": "Chiffré et signé sur l'appareil du technicien avant le début des travaux" }, "level": 4 },
+        { "value": "signed_and_measured", "label": { "en": "That, and we track how many recommendations get approved and follow up on the rest", "fr": "Cela, et nous suivons combien de recommandations sont approuvées et faisons un suivi sur les autres" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_field_service.q2c.q06",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "A standard repair you do every week — where does its price come from?", "fr": "Une réparation standard que vous faites chaque semaine — d'où vient son prix?" },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. A flat-rate price book with good-better-best options is not native; Odoo Field Service prices time and materials. A client at level 4-5 here is giving something up by moving, and the replacement has to be designed, not assumed. A client at level 1-2 is quietly selling labour below cost on every third call.",
+      "artifact_probe": { "en": "Open the price book and show me when a labour rate in it was last changed.", "fr": "Ouvrez la liste de prix et montrez-moi quand un taux de main-d'œuvre a été modifié pour la dernière fois." },
+      "options": [
+        { "value": "tech_decides", "label": { "en": "The technician works it out on site from hours and pièces", "fr": "Le technicien le calcule sur place à partir des heures et des pièces" }, "level": 1 },
+        { "value": "owner_memory", "label": { "en": "The owner knows what we charge for that one", "fr": "Le propriétaire sait ce qu'on charge pour celle-là" }, "level": 2 },
+        { "value": "price_list_file", "label": { "en": "A price list in a chiffrier or a binder, updated when someone gets to it", "fr": "Une liste de prix dans un chiffrier ou un cartable, mise à jour quand quelqu'un y arrive" }, "level": 3 },
+        { "value": "flat_rate_book", "label": { "en": "A flat-rate price book the technician reads from on site", "fr": "Une liste de prix forfaitaires que le technicien consulte sur place" }, "level": 4 },
+        { "value": "flat_rate_reviewed", "label": { "en": "A flat-rate book compared against actual job cost and repriced on a schedule", "fr": "Une liste forfaitaire comparée au coût réel des travaux et réévaluée selon un calendrier" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_field_service.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "The pièces in your camions: who knows what's there, and when was it last counted?", "fr": "Les pièces dans vos camions : qui sait ce qui s'y trouve, et quand cela a-t-il été compté?" },
+      "instruments": ["audit"],
+      "notes": "Truck stock typically runs 15-30% of total inventory value in a service company, uncounted, replenished by whoever remembers, and written off once a year. It is the inventory finding nobody expects.",
+      "artifact_probe": { "en": "Pick one camion. Show me what the system says is in it, then we walk out and look.", "fr": "Choisissez un camion. Montrez-moi ce que le système dit qu'il contient, puis nous allons voir." },
+      "options": [
+        { "value": "nobody", "label": { "en": "Nobody really knows — each technician manages his own camion", "fr": "Personne ne le sait vraiment — chaque technicien gère son propre camion" }, "level": 1, "flag": "truck_stock_uncontrolled" },
+        { "value": "tech_knows", "label": { "en": "The technician knows his camion; the office doesn't", "fr": "Le technicien connaît son camion; le bureau, non" }, "level": 2 },
+        { "value": "counted_annually", "label": { "en": "Counted once a year and the difference becomes a write-off", "fr": "Compté une fois par an et l'écart devient une radiation" }, "level": 3 },
+        { "value": "system_location", "label": { "en": "Each camion is a stock location in a system and pièces are issued to bons de travail", "fr": "Chaque camion est un emplacement de stock dans un système et les pièces sont imputées aux bons de travail" }, "level": 4 },
+        { "value": "cycle_counted", "label": { "en": "That, with an inventaire tournant per camion and shrink tracked as a number", "fr": "Cela, avec un inventaire tournant par camion et les pertes suivies comme un indicateur" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_field_service.inv.q02",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 0,
+      "stem": { "en": "At cost, what value of pièces is sitting in your camions right now?", "fr": "Au coût, quelle valeur de pièces se trouve dans vos camions en ce moment?" },
+      "instruments": ["audit"],
+      "reveals": ["truck_stock_value"],
+      "notes": "Unscored; it exists to put a dollar sign on the previous answer. 'I don't know' here combined with level 1-2 above is the whole finding.",
+      "numeric": {
+        "unit": { "en": "CAD at cost", "fr": "$ CA au coût" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 1 },
+          { "gt": 0, "level": 4 }
+        ]
+      }
+    },
+    {
+      "id": "model_field_service.sys.q01",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "How does a finished bon de travail get from the technician's hands into the office system?", "fr": "Comment un bon de travail terminé passe-t-il des mains du technicien au système du bureau?" },
+      "instruments": ["audit"],
+      "notes": "The field paperwork gap. This answer, multiplied by model_field_service.q2c.q03, is the invoice lag. Also the question that decides whether offline mobile capability is a hard requirement — basements, mechanical rooms and rural sites, where Odoo's offline support is thin.",
+      "artifact_probe": { "en": "Show me the three most recent bons de travail in whatever form they arrived in.", "fr": "Montrez-moi les trois bons de travail les plus récents dans la forme où ils sont arrivés." },
+      "options": [
+        { "value": "paper_batch", "label": { "en": "Paper copies come in with the camion, in a batch, when the tech passes by", "fr": "Des copies papier arrivent avec le camion, en lot, quand le technicien passe" }, "level": 1 },
+        { "value": "photo_text", "label": { "en": "A photo by text or email, and someone re-types it", "fr": "Une photo par texto ou courriel, et quelqu'un la ressaisit" }, "level": 2 },
+        { "value": "form_retyped", "label": { "en": "The tech fills a digital form and the office re-keys it into the billing system", "fr": "Le technicien remplit un formulaire numérique et le bureau le ressaisit dans le système de facturation" }, "level": 3 },
+        { "value": "app_same_system", "label": { "en": "The tech closes it in the same system the office bills from", "fr": "Le technicien le ferme dans le même système à partir duquel le bureau facture" }, "level": 4 },
+        { "value": "app_measured", "label": { "en": "That, and we watch how many bons de travail are still open past their job date", "fr": "Cela, et nous surveillons combien de bons de travail restent ouverts après leur date d'exécution" }, "level": 5 }
+      ]
+    }
+  ]
+}

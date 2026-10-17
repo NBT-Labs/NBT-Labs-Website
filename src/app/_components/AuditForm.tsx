@@ -1,10 +1,43 @@
 "use client";
 
 import { FormEvent, useState } from "react";
+import type { Locale } from "@/lib/audit/types";
 
-const BOTTLENECK_QUESTION = "What is the biggest manual or slow part of your operations right now?";
+const COPY = {
+  fr: {
+    name: "Nom",
+    company: "Entreprise",
+    workEmail: "Courriel professionnel",
+    phone: "Téléphone",
+    optional: "Facultatif",
+    languageLegend: "Langue préférée",
+    bottleneck:
+      "Quelle est la partie la plus manuelle ou la plus lente de vos opérations en ce moment?",
+    submit: "Réserver mon audit gratuit",
+    sending: "Envoi…",
+    note: "On utilise vos coordonnées uniquement pour préparer et réserver votre appel d'audit.",
+    sent: "Merci! On a bien reçu votre demande et on vous répond en un jour ouvrable pour fixer l'appel.",
+    error: "Votre demande n'a pas pu être envoyée. Réessayez ou écrivez à info@nbtlabs.ca.",
+  },
+  en: {
+    name: "Name",
+    company: "Company",
+    workEmail: "Work email",
+    phone: "Phone",
+    optional: "Optional",
+    languageLegend: "Preferred language",
+    bottleneck:
+      "What is the biggest manual or slow part of your operations right now?",
+    submit: "Book my Free Audit",
+    sending: "Sending…",
+    note: "We only use your details to prepare and book your audit call.",
+    sent: "Thanks! We received your request and will reply within one business day to book your call.",
+    error: "We couldn't send your request. Please try again or email info@nbtlabs.ca.",
+  },
+} as const;
 
-export function AuditForm() {
+export function AuditForm({ locale }: { locale: Locale }) {
+  const copy = COPY[locale];
   const [status, setStatus] = useState({ error: false, message: "" });
   const [sending, setSending] = useState(false);
 
@@ -13,7 +46,7 @@ export function AuditForm() {
     const form = event.currentTarget;
     const data = new FormData(form);
     setSending(true);
-    setStatus({ error: false, message: "Sending your request…" });
+    setStatus({ error: false, message: "" });
 
     try {
       const response = await fetch("/api/audit", {
@@ -26,17 +59,14 @@ export function AuditForm() {
           phone: data.get("phone"),
           language: data.get("language"),
           website: data.get("website"),
-          answers: [{ question: BOTTLENECK_QUESTION, answer: data.get("bottleneck") }],
+          answers: [{ question: copy.bottleneck, answer: data.get("bottleneck") }],
         }),
       });
-      const result = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        throw new Error(result.error ?? "Something went wrong. Please try again.");
-      }
+      if (!response.ok) throw new Error(String(response.status));
       form.reset();
-      setStatus({ error: false, message: "Thanks! We received your request and will reply within one business day to book your call." });
-    } catch (error) {
-      setStatus({ error: true, message: error instanceof Error ? error.message : "Something went wrong. Please try again." });
+      setStatus({ error: false, message: copy.sent });
+    } catch {
+      setStatus({ error: true, message: copy.error });
     } finally {
       setSending(false);
     }
@@ -46,39 +76,39 @@ export function AuditForm() {
     <form id="audit-form" className="audit-form" onSubmit={handleSubmit}>
       <div className="form-row">
         <label>
-          <span>Name</span>
+          <span>{copy.name}</span>
           <input name="name" autoComplete="name" required />
         </label>
         <label>
-          <span>Company</span>
+          <span>{copy.company}</span>
           <input name="company" autoComplete="organization" required />
         </label>
       </div>
       <div className="form-row">
         <label>
-          <span>Work email</span>
+          <span>{copy.workEmail}</span>
           <input name="email" type="email" autoComplete="email" required />
         </label>
         <label>
-          <span>Phone <em>Optional</em></span>
+          <span>{copy.phone} <em>{copy.optional}</em></span>
           <input name="phone" type="tel" autoComplete="tel" />
         </label>
       </div>
       <fieldset>
-        <legend>Preferred language</legend>
+        <legend>{copy.languageLegend}</legend>
         <div className="radio-row">
           <label>
-            <input name="language" type="radio" value="English" defaultChecked />
+            <input name="language" type="radio" value="English" defaultChecked={locale === "en"} />
             <span>English</span>
           </label>
           <label>
-            <input name="language" type="radio" value="Français" />
+            <input name="language" type="radio" value="Français" defaultChecked={locale === "fr"} />
             <span>Français</span>
           </label>
         </div>
       </fieldset>
       <label>
-        <span>{BOTTLENECK_QUESTION}</span>
+        <span>{copy.bottleneck}</span>
         <textarea name="bottleneck" rows={5} maxLength={2000} required />
       </label>
       <label className="form-honeypot" aria-hidden="true">
@@ -87,9 +117,9 @@ export function AuditForm() {
       </label>
       <div className="form-submit-row">
         <button className="button" type="submit" disabled={sending}>
-          {sending ? "Sending…" : "Book my Free Audit"} <span aria-hidden="true">↗</span>
+          {sending ? copy.sending : copy.submit} <span aria-hidden="true">↗</span>
         </button>
-        <small>We only use your details to prepare and book your audit call.</small>
+        <small>{copy.note}</small>
       </div>
       <p className={`form-status${status.error ? " is-error" : ""}`} aria-live="polite">
         {status.message}

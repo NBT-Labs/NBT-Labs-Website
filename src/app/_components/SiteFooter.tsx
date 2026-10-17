@@ -1,47 +1,51 @@
+/* eslint-disable @next/next/no-img-element -- brand asset is already optimized. */
 
-/* eslint-disable @next/next/no-html-link-for-pages, @next/next/no-img-element -- keep full document navigation; brand asset is already optimized. */
 
-const footerLinks = [
-  { href: "/services", label: "Services" },
-  { href: "/pricing", label: "Pricing" },
-  { href: "/how-we-work", label: "How we work" },
-  { href: "/who-we-help", label: "Who we help" },
-  { href: "/why-nbt", label: "Why NBT" },
-  { href: "/case-studies", label: "Results" },
-  { href: "/get-in-touch", label: "Contact" },
-];
+import { localePath } from "@/i18n/config";
+import type { Dictionary } from "@/i18n/dictionaries";
+import type { Locale } from "@/lib/audit/types";
 
-export function SiteFooter() {
+type Props = {
+  locale: Locale;
+  nav: Dictionary["nav"];
+  footer: Dictionary["footer"];
+};
+
+export function SiteFooter({ locale, nav, footer }: Props) {
+  const href = (path: string) => localePath(locale, path);
+
   return (
     <footer className="site-footer">
       <div className="footer-top">
         <div>
-          <a className="brand brand-light" href="/">
+          <a className="brand brand-light" href={href("/")}>
             <span className="brand-mark" aria-hidden="true">
               <img src="/nbt-logo-mark.png" alt="" />
             </span>
             <span className="brand-wordmark">NBT LABS</span>
           </a>
-          <p>
-            Process-led digital transformation for Quebec and Canadian SMBs.
-          </p>
+          <p>{footer.tagline}</p>
         </div>
-        <div className="footer-links" aria-label="Footer navigation">
-          {footerLinks.map((item) => (
-            <a key={item.href} href={item.href}>
+        <div className="footer-links" aria-label={footer.navLabel}>
+          {nav.map((item) => (
+            <a key={item.href} href={href(item.href)}>
               {item.label}
             </a>
           ))}
+          <a href={href("/get-in-touch")}>{footer.contact}</a>
+          <a href={href("/privacy")}>{footer.privacy}</a>
         </div>
         <div className="footer-contact">
-          <span>Start with the bottleneck.</span>
+          <span>{footer.contactLead}</span>
           <a href="mailto:info@nbtlabs.ca">info@nbtlabs.ca</a>
-          <p>Montréal, Québec · French & English</p>
+          <p>{footer.place}</p>
         </div>
       </div>
       <div className="footer-bottom">
-        <span>© {new Date().getFullYear()} NBT Labs</span>
-        <span>Built around better work.</span>
+        <span>
+          © {new Date().getFullYear()} {footer.rights}
+        </span>
+        <span>{footer.closing}</span>
       </div>
     </footer>
   );

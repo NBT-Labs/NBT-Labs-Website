@@ -11,6 +11,10 @@
     "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "isolatedModules": true,
+    // The test suite runs on Node's own test runner with type stripping,
+    // which requires explicit .ts extensions in its imports. Safe here
+    // because noEmit is true.
+    "allowImportingTsExtensions": true,
     "jsx": "react-jsx",
     "incremental": true,
     "plugins": [

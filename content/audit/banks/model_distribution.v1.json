@@ -1,0 +1,370 @@
+{
+  "bank_id": "model_distribution",
+  "bank_version": "1.0.0",
+  "layer": "model",
+  "label": {
+    "en": "Buying and reselling from stock",
+    "fr": "Achat-revente à partir du stock"
+  },
+  "applies_when": [
+    { "field": "base.firmo.q02", "op": "eq", "value": "distribution" }
+  ],
+  "reweight": {
+    "procure_inventory": 1.6,
+    "quote_to_cash": 1.4,
+    "data_reporting": 1.1,
+    "scheduling_capacity": 0.9
+  },
+  "notes": "ROUTER: served on base.firmo.q02 = distribution. The router ALSO activates this layer when base.firmo.q03 (multi-select mix) includes distribution; applies_when uses AND semantics so the q03 alternative cannot be expressed here and lives in the router instead.\n\nNEW reveals KEYS introduced by this bank, to be added to scoring/scoring.v1.json#cost_model.inputs: manual_order_line_share_pct, vendor_rebate_programs_tracked, vendor_rebate_claim_rate_pct, inventory_turns, ebitda_pct.\n\nNEW benchmark_ref KEYS used by this bank, to be added to scoring/benchmarks.v1.json: dist_fill_rate_target (EasyReplenish inventory KPI benchmarks — line/order/case fill rate target above 95%); inventory_turns_general_anchor (EasyReplenish — 6-8x general anchor, with wide product-class variation: industrial fasteners 2-4x, food 15-25x); dist_ebitda_pct_naw (NAW, Data-Driven Distributor Transformation — average distributor around 4% of sales, elite 8-12%; the most defensible distribution benchmark available).\n\nREUSES an existing base key: none. DELIBERATELY NO BENCHMARK: gross margin percentage (3-8% in food and pharma to 30-45% in specialty industrial — a single number would be false precision), vendor rebate claim rate, cost to serve, backorder policy. The research is explicit that most circulating distribution numbers come from software vendors and should be used as conversation anchors, never asserted as fact.\n\nODOO GAPS SURFACED AS DIAGNOSTICS (not objections): vendor rebates, special pricing agreements and ship-and-debit are not modelled at all — no accrual, no claim generation, no deviated-cost tracking (q2c.q02 and q2c.q03), and this is usually the fastest-ROI finding in a distribution audit; reordering rules are min/max with no statistical safety stock, no seasonality and no lead-time variance modelling (inv.q02); customer contract pricing on cost-plus-of-current-replacement-cost with effective dates is awkward in pricelists (q2c.q05); EDI and the chargeback/deduction reconciliation it drags in are not native (q2c.q06).",
+  "questions": [
+    {
+      "id": "model_distribution.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.5,
+      "stem": {
+        "en": "Of your order lines last month, what share arrived by phone or email?",
+        "fr": "De vos lignes de commande du mois dernier, quelle proportion est arrivée par téléphone ou par courriel?"
+      },
+      "help": {
+        "en": "The rest being EDI, the web, or a customer portal. Someone re-types the phone and email ones.",
+        "fr": "Le reste étant par EDI, le web ou un portail client. Quelqu'un ressaisit celles du téléphone et du courriel."
+      },
+      "instruments": ["quiz", "audit"],
+      "reveals": ["manual_order_line_share_pct"],
+      "artifact_probe": {
+        "en": "Show me last month's order count broken down by how each one came in.",
+        "fr": "Montrez-moi le nombre de commandes du mois dernier, réparti selon leur mode d'arrivée."
+      },
+      "numeric": {
+        "unit": { "en": "% of order lines", "fr": "% des lignes de commande" },
+        "min": 0,
+        "max": 100,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 10, "level": 5 },
+          { "lte": 30, "level": 4 },
+          { "lte": 60, "level": 3 },
+          { "lte": 90, "level": 2 },
+          { "gt": 90, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_distribution.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Vendor rebates and special pricing you claim back — where does that number live?",
+        "fr": "Les ristournes fournisseurs et les prix spéciaux que vous réclamez — où vit ce chiffre?"
+      },
+      "instruments": ["quiz", "audit"],
+      "notes": "ODOO GAP, and the headline one. Vendor rebates, special pricing agreements and ship-and-debit are not modelled at all: no accrual, no claim generation, no deviated-cost tracking. Under-claiming and rejected claims are pure margin loss, which is why this is usually the fastest ROI finding in the whole audit — so it is asked as a diagnostic, never raised as an objection.",
+      "reveals": ["vendor_rebate_programs_tracked"],
+      "artifact_probe": {
+        "en": "Open wherever that lives and show me this year's claims and what came back.",
+        "fr": "Ouvrez l'endroit où ça vit et montrez-moi les réclamations de cette année et ce qui est revenu."
+      },
+      "options": [
+        { "value": "na", "label": { "en": "We have no rebate or special-pricing agreements", "fr": "Nous n'avons aucune entente de ristourne ni de prix spécial" }, "na": true },
+        { "value": "nobody_knows", "label": { "en": "Nobody knows what we're owed", "fr": "Personne ne sait ce qui nous est dû" }, "level": 1, "flag": "rebate_leakage_unquantified" },
+        { "value": "one_spreadsheet", "label": { "en": "One person's chiffrier", "fr": "Le chiffrier d'une seule personne" }, "level": 2 },
+        { "value": "reconciled_monthly", "label": { "en": "A chiffrier reconciled to vendor statements monthly", "fr": "Un chiffrier concilié aux relevés fournisseurs chaque mois" }, "level": 3 },
+        { "value": "system_accrued", "label": { "en": "Accrued per agreement in a system", "fr": "Provisionné par entente dans un système" }, "level": 4 },
+        { "value": "claims_tracked", "label": { "en": "Accrued, claimed, and we track what got rejected and why", "fr": "Provisionné, réclamé, et nous suivons ce qui a été refusé et pourquoi" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "Of what your vendor agreements entitled you to last year, what share did you actually claim?",
+        "fr": "De ce à quoi vos ententes fournisseurs vous donnaient droit l'an dernier, quelle proportion avez-vous réellement réclamée?"
+      },
+      "help": {
+        "en": "There is no credible industry benchmark for this. We use your number, not somebody else's — and \"we don't know what we were entitled to\" is itself the finding.",
+        "fr": "Il n'existe aucune référence sectorielle crédible pour cela. Nous utilisons votre chiffre, pas celui d'un autre — et « nous ne savons pas à quoi nous avions droit » est en soi la découverte."
+      },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "model_distribution.q2c.q02", "op": "neq", "value": "na" }],
+      "reveals": ["vendor_rebate_claim_rate_pct"],
+      "artifact_probe": {
+        "en": "Pick your biggest agreement and show me the entitlement next to what was collected.",
+        "fr": "Choisissez votre plus grosse entente et montrez-moi le droit à la ristourne à côté de ce qui a été encaissé."
+      },
+      "numeric": {
+        "unit": { "en": "% of entitlement", "fr": "% du droit à la ristourne" },
+        "min": 0,
+        "max": 100,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 98, "level": 5 },
+          { "gte": 90, "level": 4 },
+          { "gte": 75, "level": 3 },
+          { "gte": 50, "level": 2 },
+          { "lt": 50, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_distribution.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "What's your fill rate, and does a partial shipment count as filled?",
+        "fr": "Quel est votre taux de service, et une expédition partielle compte-t-elle comme servie?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "dist_fill_rate_target",
+      "notes": "Asked as 'how do you calculate it', not 'what is it'. Line fill, order fill and case fill share a name and have different denominators, and clients conflate them — a partial counting as filled is what flatters the number.",
+      "artifact_probe": {
+        "en": "Show me the report and tell me what one line on it counts as a miss.",
+        "fr": "Montrez-moi le rapport et dites-moi ce qui, sur une ligne, compte comme un manque."
+      },
+      "options": [
+        { "value": "not_measured", "label": { "en": "We don't measure it", "fr": "Nous ne le mesurons pas" }, "level": 1 },
+        { "value": "partial_counts", "label": { "en": "We measure it, and a partial counts as filled", "fr": "Nous le mesurons, et une partielle compte comme servie" }, "level": 2 },
+        { "value": "line_fill", "label": { "en": "Line fill, measured monthly", "fr": "Taux de service par ligne, mesuré mensuellement" }, "level": 3 },
+        { "value": "defined_both", "label": { "en": "Line fill and order fill, both defined in writing", "fr": "Par ligne et par commande, les deux définis par écrit" }, "level": 4 },
+        { "value": "target_reviewed", "label": { "en": "Defined, with a target, and misses reviewed by cause", "fr": "Définis, avec une cible, et les manques révisés par cause" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.q2c.q05",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "A customer on cost-plus contract pricing — when your replacement cost moves, what happens to their price?",
+        "fr": "Un client avec un prix contractuel coût-plus — quand votre coût de remplacement bouge, qu'arrive-t-il à son prix?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Customer-specific contract pricing with effective dates, and cost-plus that must follow current replacement cost rather than the cost at quote, is awkward in pricelists. Clients at level 1 or 2 are selling at last year's cost and do not know it.",
+      "artifact_probe": {
+        "en": "Pick one contract customer and show me the price next to today's cost.",
+        "fr": "Choisissez un client sous contrat et montrez-moi le prix à côté du coût d'aujourd'hui."
+      },
+      "options": [
+        { "value": "nobody_knows", "label": { "en": "Nobody knows which customers are on cost-plus", "fr": "Personne ne sait quels clients sont au coût-plus" }, "level": 1 },
+        { "value": "stays_until_complaint", "label": { "en": "It stays where it was until someone notices", "fr": "Il reste où il était jusqu'à ce que quelqu'un le remarque" }, "level": 2 },
+        { "value": "manual_sweep", "label": { "en": "Someone re-does the price list by hand, periodically", "fr": "Quelqu'un refait la liste de prix à la main, périodiquement" }, "level": 3 },
+        { "value": "system_current_cost", "label": { "en": "The system prices off the current cost", "fr": "Le système établit le prix selon le coût courant" }, "level": 4 },
+        { "value": "margin_reviewed", "label": { "en": "That, with effective dates, and realized margin by contract gets reviewed", "fr": "Cela, avec dates d'entrée en vigueur, et la marge réalisée par contrat est révisée" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.q2c.q06",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "A customer short-pays an invoice and calls it a deduction. What happens next?",
+        "fr": "Un client paie une facture en moins et appelle ça une déduction. Que se passe-t-il ensuite?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP-adjacent. Retail and EDI trading partners deduct unilaterally for ASN errors, label errors and late delivery; reconciliation is manual and there is no native deduction or chargeback object, so a level 1 or 2 answer is a quantifiable leak and a note de crédit habit.",
+      "artifact_probe": {
+        "en": "Show me the open deductions and what reason each one is coded to.",
+        "fr": "Montrez-moi les déductions ouvertes et le motif auquel chacune est codée."
+      },
+      "options": [
+        { "value": "written_off", "label": { "en": "It gets written off to keep the peace", "fr": "C'est radié pour garder la paix" }, "level": 1 },
+        { "value": "chased_adhoc", "label": { "en": "Someone chases it when they notice", "fr": "Quelqu'un le relance quand il le remarque" }, "level": 2 },
+        { "value": "logged_disputed", "label": { "en": "It's logged in a chiffrier and disputed", "fr": "C'est consigné dans un chiffrier et contesté" }, "level": 3 },
+        { "value": "coded_tracked", "label": { "en": "Coded by reason and tracked to resolution", "fr": "Codé par motif et suivi jusqu'au règlement" }, "level": 4 },
+        { "value": "causes_fixed", "label": { "en": "That, and the top reasons get fixed upstream", "fr": "Cela, et les principaux motifs sont corrigés en amont" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 1.25,
+      "stem": {
+        "en": "How many times did your inventory turn last year?",
+        "fr": "Combien de fois votre inventaire a-t-il tourné l'an dernier?"
+      },
+      "help": {
+        "en": "The 6-to-8 anchor is general and it depends on your product class — fasteners sit at 2 to 4, food at 15 to 25.",
+        "fr": "L'ancrage de 6 à 8 est général et dépend de votre classe de produits — la quincaillerie tourne de 2 à 4 fois, l'alimentation de 15 à 25."
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "inventory_turns_general_anchor",
+      "reveals": ["inventory_turns"],
+      "artifact_probe": {
+        "en": "Show me the cost of goods and the average inventory you divided.",
+        "fr": "Montrez-moi le coût des marchandises vendues et l'inventaire moyen que vous avez divisés."
+      },
+      "numeric": {
+        "unit": { "en": "turns per year", "fr": "rotations par année" },
+        "min": 0,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 8, "level": 5 },
+          { "gte": 6, "level": 4 },
+          { "gte": 4, "level": 3 },
+          { "gte": 2, "level": 2 },
+          { "lt": 2, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_distribution.inv.q02",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Your points de commande — when were they last reviewed, and by whom?",
+        "fr": "Vos points de commande — quand ont-ils été révisés la dernière fois, et par qui?"
+      },
+      "instruments": ["audit"],
+      "notes": "ODOO GAP. Reordering rules are min/max with an optional forecast view: no statistical safety stock, no seasonality, no lead-time variance modelling. Static reorder points are what produce simultaneous stockouts on A items and years of supply on C items, so this question sizes the planning bolt-on.",
+      "artifact_probe": {
+        "en": "Pick an A item and show me its point de commande and when it was last changed.",
+        "fr": "Choisissez un article A et montrez-moi son point de commande et la date du dernier changement."
+      },
+      "options": [
+        { "value": "none", "label": { "en": "There aren't any — the buyer just knows", "fr": "Il n'y en a pas — l'acheteur sait" }, "level": 1 },
+        { "value": "at_setup", "label": { "en": "Set when the system went in, never since", "fr": "Établis à l'implantation, jamais depuis" }, "level": 2 },
+        { "value": "buyer_adhoc", "label": { "en": "The buyer adjusts them when something goes wrong", "fr": "L'acheteur les ajuste quand quelque chose cloche" }, "level": 3 },
+        { "value": "scheduled_review", "label": { "en": "Reviewed on a schedule by a named person", "fr": "Révisés selon un calendrier par une personne nommée" }, "level": 4 },
+        { "value": "demand_and_lead_time", "label": { "en": "Reviewed against measured demand and supplier lead-time variation", "fr": "Révisés selon la demande mesurée et la variation des délais fournisseurs" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.inv.q03",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "How are your items classified by value or movement, and what happens to the slow ones?",
+        "fr": "Comment vos articles sont-ils classés par valeur ou par mouvement, et qu'arrive-t-il aux plus lents?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Pull the list of items that haven't sold in 12 months.",
+        "fr": "Sortez la liste des articles qui ne se sont pas vendus depuis 12 mois."
+      },
+      "options": [
+        { "value": "not_classified", "label": { "en": "They aren't classified", "fr": "Ils ne sont pas classés" }, "level": 1 },
+        { "value": "buyer_knows", "label": { "en": "The buyer knows which are which", "fr": "L'acheteur sait lesquels sont lesquels" }, "level": 2 },
+        { "value": "abc_once", "label": { "en": "An ABC classification exists, done once", "fr": "Une classification ABC existe, faite une seule fois" }, "level": 3 },
+        { "value": "abc_maintained", "label": { "en": "ABC kept current, with a last-sold report", "fr": "ABC tenue à jour, avec un rapport de dernière vente" }, "level": 4 },
+        { "value": "decisions_taken", "label": { "en": "That, and slow items get a stop-carry or write-down decision on a cadence", "fr": "Cela, et les articles lents font l'objet d'une décision d'arrêt ou de radiation à intervalles réguliers" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1,
+      "stem": {
+        "en": "An order can't ship complete. Who decides partial-ship versus hold, and is it written down?",
+        "fr": "Une commande ne peut pas partir complète. Qui décide entre expédition partielle et attente, et est-ce écrit?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the backorders open right now and how old the oldest one is.",
+        "fr": "Montrez-moi les commandes en souffrance ouvertes en ce moment et l'âge de la plus vieille."
+      },
+      "options": [
+        { "value": "picker_decides", "label": { "en": "Whoever is picking decides", "fr": "Celui qui prépare la commande décide" }, "level": 1 },
+        { "value": "inside_sales", "label": { "en": "Inside sales calls the customer and decides", "fr": "Le service interne appelle le client et décide" }, "level": 2 },
+        { "value": "unwritten_norm", "label": { "en": "There's an unwritten norm everyone follows", "fr": "Il y a une norme non écrite que tous suivent" }, "level": 3 },
+        { "value": "written_per_customer", "label": { "en": "A written policy, set per customer in the system", "fr": "Une politique écrite, définie par client dans le système" }, "level": 4 },
+        { "value": "aging_reviewed", "label": { "en": "Written, set per customer, and backorder aging gets reviewed", "fr": "Écrite, définie par client, et le vieillissement des commandes en souffrance est révisé" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.data.q01",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.5,
+      "stem": {
+        "en": "Which 20 customers make you the most money after the cost of serving them?",
+        "fr": "Quels 20 clients vous rapportent le plus après le coût de les servir?"
+      },
+      "help": {
+        "en": "Small orders, will-call, special orders and returns-heavy accounts are the cost. No credible benchmark exists for cost to serve — we use your numbers.",
+        "fr": "Les petites commandes, le ramassage au comptoir, les commandes spéciales et les comptes à fort taux de retours sont le coût. Il n'existe aucune référence crédible pour le coût de service — nous utilisons vos chiffres."
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Pull margin by customer for last year and tell me what isn't in it.",
+        "fr": "Sortez la marge par client de l'an dernier et dites-moi ce qui n'y est pas."
+      },
+      "options": [
+        { "value": "revenue_only", "label": { "en": "We'd go by revenue — we can't see cost to serve", "fr": "Nous irions par le chiffre d'affaires — nous ne voyons pas le coût de service" }, "level": 1 },
+        { "value": "gut_list", "label": { "en": "The owner has a list, from instinct", "fr": "Le propriétaire a une liste, à l'instinct" }, "level": 2 },
+        { "value": "margin_only", "label": { "en": "We have gross margin by customer", "fr": "Nous avons la marge brute par client" }, "level": 3 },
+        { "value": "with_serve_cost", "label": { "en": "Margin by customer, with freight, returns and small orders loaded in", "fr": "La marge par client, avec le transport, les retours et les petites commandes inclus" }, "level": 4 },
+        { "value": "reviewed_acted", "label": { "en": "That, reviewed, and we act on the bottom of the list", "fr": "Cela, révisé, et nous agissons sur le bas de la liste" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "model_distribution.perf.q01",
+      "dimension": "performance_management",
+      "type": "number",
+      "weight": 1,
+      "stem": {
+        "en": "What was EBITDA as a share of sales last year?",
+        "fr": "Quelle part des ventes représentait le BAIIA l'an dernier?"
+      },
+      "instruments": ["audit"],
+      "benchmark_ref": "dist_ebitda_pct_naw",
+      "notes": "The one defensible distribution-wide benchmark. Gross margin percentage is deliberately NOT asked against a benchmark: it runs 3-8% in food and pharma and 30-45% in specialty industrial, so a single number would be false precision.",
+      "reveals": ["ebitda_pct"],
+      "artifact_probe": {
+        "en": "Show me the statement the number comes off.",
+        "fr": "Montrez-moi l'état financier d'où vient le chiffre."
+      },
+      "numeric": {
+        "unit": { "en": "% of sales", "fr": "% des ventes" },
+        "min": -50,
+        "max": 100,
+        "direction": "higher_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "gte": 8, "level": 5 },
+          { "gte": 6, "level": 4 },
+          { "gte": 4, "level": 3 },
+          { "gte": 2, "level": 2 },
+          { "lt": 2, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "model_distribution.perf.q02",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": {
+        "en": "A supplier delivers late. How do you find out, and does it change your next bon de commande?",
+        "fr": "Un fournisseur livre en retard. Comment l'apprenez-vous, et cela change-t-il votre prochain bon de commande?"
+      },
+      "instruments": ["audit"],
+      "artifact_probe": {
+        "en": "Show me the open bons de commande past their promised date.",
+        "fr": "Montrez-moi les bons de commande ouverts dont la date promise est dépassée."
+      },
+      "options": [
+        { "value": "customer_tells_us", "label": { "en": "A customer tells us, because we couldn't ship", "fr": "Un client nous le dit, parce qu'on n'a pas pu expédier" }, "level": 1 },
+        { "value": "buyer_remembers", "label": { "en": "The buyer remembers who's unreliable", "fr": "L'acheteur se souvient de qui n'est pas fiable" }, "level": 2 },
+        { "value": "chased_from_report", "label": { "en": "We chase open bons de commande off a report", "fr": "Nous relançons les bons de commande ouverts à partir d'un rapport" }, "level": 3 },
+        { "value": "otd_measured", "label": { "en": "Supplier on-time delivery is measured", "fr": "La livraison à temps des fournisseurs est mesurée" }, "level": 4 },
+        { "value": "feeds_planning", "label": { "en": "Measured, and the lead times we plan with come from it", "fr": "Mesurée, et les délais que nous utilisons pour planifier en découlent" }, "level": 5 }
+      ]
+    }
+  ]
+}

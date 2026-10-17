@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { createOdooLead, EMAIL_PATTERN, errorResponse, escapeHtml, field } from "../../_lib/odoo";
+import { createOdooLead, EMAIL_PATTERN, errorResponse, escapeHtml, field } from "@/lib/odoo";
 
 /*
  * Free audit submissions → Odoo CRM lead.

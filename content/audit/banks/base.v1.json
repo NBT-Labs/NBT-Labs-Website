@@ -1,0 +1,1116 @@
+{
+  "bank_id": "base",
+  "bank_version": "1.0.0",
+  "layer": "base",
+  "label": {
+    "en": "Operations baseline — every company",
+    "fr": "Diagnostic de base — toute entreprise"
+  },
+  "notes": "FROZEN once live. Question order is part of the instrument (Pew split-sample order effects): the quiz and the audit share this order for every question tagged with both. Firmographics first, then dimensions in the order below. Satisfaction/pain questions are NOT front-loaded ahead of factual ones — doing so manufactures dissatisfaction by contrast and a sharp controller will notice.",
+  "questions": [
+    {
+      "id": "base.firmo.q01",
+      "dimension": "firmographic",
+      "type": "single",
+      "weight": 0,
+      "stem": { "en": "How many people work in the business, including part-time?", "fr": "Combien de personnes travaillent dans l'entreprise, temps partiel inclus?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "Deliberately question 1: short, easy, unambiguous. First-question length is the single strongest completion predictor after open-ended count (Liu & Wronski 2018, beta=-0.016). Also the most load-bearing field in the whole instrument — every Charter of the French Language threshold keys off it (5-24 / 25+ / 100+).",
+      "reveals": ["headcount_band"],
+      "options": [
+        { "value": "lt10", "label": { "en": "Fewer than 10", "fr": "Moins de 10" }, "informational": true, "reveals": { "headcount_mid": 6 } },
+        { "value": "e10_24", "label": { "en": "10 to 24", "fr": "10 à 24" }, "informational": true, "reveals": { "headcount_mid": 17 } },
+        { "value": "e25_49", "label": { "en": "25 to 49", "fr": "25 à 49" }, "informational": true, "reveals": { "headcount_mid": 37 }, "flag": "charter_registration_threshold" },
+        { "value": "e50_99", "label": { "en": "50 to 99", "fr": "50 à 99" }, "informational": true, "reveals": { "headcount_mid": 74 }, "flag": "charter_registration_threshold" },
+        { "value": "e100_150", "label": { "en": "100 to 150", "fr": "100 à 150" }, "informational": true, "reveals": { "headcount_mid": 125 }, "flag": "charter_committee_threshold" },
+        { "value": "gt150", "label": { "en": "More than 150", "fr": "Plus de 150" }, "informational": true, "reveals": { "headcount_mid": 200 }, "flag": "charter_committee_threshold" }
+      ]
+    },
+    {
+      "id": "base.firmo.q02",
+      "dimension": "firmographic",
+      "type": "single",
+      "weight": 0,
+      "stem": { "en": "Which of these is closest to how you make your money?", "fr": "Lequel de ces modèles décrit le mieux comment vous gagnez votre argent?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "Single-select even though most 10-150 employee firms are mixed-mode. 'Which is CLOSEST' is deliberate: it keeps the quiz to one question while the audit asks the mix question (base.firmo.q03).",
+      "routes": [
+        { "when_value": "prof_services", "activates": ["model_prof_services"] },
+        { "when_value": "manufacturing", "activates": ["model_manufacturing"] },
+        { "when_value": "distribution", "activates": ["model_distribution"] },
+        { "when_value": "field_service", "activates": ["model_field_service"] },
+        { "when_value": "project", "activates": ["model_project"] },
+        { "when_value": "retail", "activates": ["model_retail"] }
+      ],
+      "options": [
+        { "value": "prof_services", "label": { "en": "We sell our people's time and expertise", "fr": "Nous vendons le temps et l'expertise de nos gens" }, "informational": true },
+        { "value": "manufacturing", "label": { "en": "We make or assemble a product", "fr": "Nous fabriquons ou assemblons un produit" }, "informational": true },
+        { "value": "distribution", "label": { "en": "We buy and resell products we hold in stock", "fr": "Nous achetons et revendons des produits que nous gardons en stock" }, "informational": true },
+        { "value": "field_service", "label": { "en": "We install, service or maintain things at the customer's site", "fr": "Nous installons, réparons ou entretenons chez le client" }, "informational": true },
+        { "value": "project", "label": { "en": "We deliver defined projects with a start and an end", "fr": "Nous livrons des projets définis, avec un début et une fin" }, "informational": true },
+        { "value": "retail", "label": { "en": "We sell to consumers, in store or online", "fr": "Nous vendons aux consommateurs, en magasin ou en ligne" }, "informational": true }
+      ]
+    },
+    {
+      "id": "base.firmo.q03",
+      "dimension": "firmographic",
+      "type": "multi",
+      "weight": 0,
+      "stem": { "en": "And which of these also apply? Check all that do.", "fr": "Et lesquels s'appliquent aussi? Cochez tout ce qui s'applique." },
+      "help": { "en": "Most businesses your size run two or three of these at once. Knowing the mix is usually the finding.", "fr": "La plupart des entreprises de votre taille en combinent deux ou trois. Connaître le mélange est souvent la découverte elle-même." },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "prof_services", "label": { "en": "Selling time and expertise", "fr": "Vente de temps et d'expertise" }, "informational": true },
+        { "value": "manufacturing", "label": { "en": "Making or assembling", "fr": "Fabrication ou assemblage" }, "informational": true },
+        { "value": "distribution", "label": { "en": "Buying and reselling from stock", "fr": "Achat-revente à partir du stock" }, "informational": true },
+        { "value": "field_service", "label": { "en": "Service or installation at the customer's site", "fr": "Service ou installation chez le client" }, "informational": true },
+        { "value": "project", "label": { "en": "Defined projects", "fr": "Projets définis" }, "informational": true },
+        { "value": "retail", "label": { "en": "Selling to consumers", "fr": "Vente aux consommateurs" }, "informational": true }
+      ]
+    },
+    {
+      "id": "base.firmo.q04",
+      "dimension": "firmographic",
+      "type": "single",
+      "weight": 0,
+      "stem": { "en": "What industry are you in?", "fr": "Dans quel secteur êtes-vous?" },
+      "instruments": ["quiz", "audit"],
+      "routes": [
+        { "when_value": "construction", "activates": ["ind_construction"] },
+        { "when_value": "real_estate", "activates": ["ind_real_estate"] },
+        { "when_value": "aec", "activates": ["ind_aec"] },
+        { "when_value": "food", "activates": ["ind_food"] },
+        { "when_value": "transport", "activates": ["ind_transport"] },
+        { "when_value": "health", "activates": ["ind_health"] }
+      ],
+      "options": [
+        { "value": "construction", "label": { "en": "Construction or specialty trades", "fr": "Construction ou métiers spécialisés" }, "informational": true },
+        { "value": "real_estate", "label": { "en": "Real estate or property management", "fr": "Immobilier ou gestion immobilière" }, "informational": true },
+        { "value": "aec", "label": { "en": "Engineering, architecture or technical consulting", "fr": "Génie, architecture ou conseil technique" }, "informational": true },
+        { "value": "food", "label": { "en": "Food and beverage", "fr": "Alimentation et boissons" }, "informational": true },
+        { "value": "transport", "label": { "en": "Transport or logistics", "fr": "Transport ou logistique" }, "informational": true },
+        { "value": "health", "label": { "en": "Health or allied health clinic", "fr": "Clinique de santé ou santé connexe" }, "informational": true },
+        { "value": "industrial_products", "label": { "en": "Industrial or technical products", "fr": "Produits industriels ou techniques" }, "informational": true },
+        { "value": "business_services", "label": { "en": "Business or professional services", "fr": "Services aux entreprises ou services professionnels" }, "informational": true },
+        { "value": "other", "label": { "en": "Something else", "fr": "Autre chose" }, "informational": true }
+      ]
+    },
+    {
+      "id": "base.firmo.q05",
+      "dimension": "firmographic",
+      "type": "single",
+      "weight": 0,
+      "stem": { "en": "Where does the business operate from?", "fr": "D'où l'entreprise exerce-t-elle ses activités?" },
+      "instruments": ["quiz", "audit"],
+      "routes": [
+        { "when_value": "qc", "activates": ["layer_compliance_qc"] },
+        { "when_value": "qc_and_other", "activates": ["layer_compliance_qc"] }
+      ],
+      "options": [
+        { "value": "qc", "label": { "en": "Quebec only", "fr": "Québec seulement" }, "informational": true },
+        { "value": "qc_and_other", "label": { "en": "Quebec and other provinces", "fr": "Québec et d'autres provinces" }, "informational": true },
+        { "value": "canada_other", "label": { "en": "Canada, outside Quebec", "fr": "Canada, hors Québec" }, "informational": true },
+        { "value": "intl", "label": { "en": "Canada and outside Canada", "fr": "Canada et hors Canada" }, "informational": true }
+      ]
+    },
+    {
+      "id": "base.firmo.q06",
+      "dimension": "firmographic",
+      "type": "single",
+      "weight": 0,
+      "stem": { "en": "What is your role?", "fr": "Quel est votre rôle?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "Drives question wording in the respondent layer AND is the key for the perception-gap comparison when two people from the same company answer. Self-other agreement on process questions runs around r=.35 — expect material disagreement and treat it as the product, not as noise.",
+      "routes": [
+        { "when_value": "owner", "activates": ["layer_respondent"] },
+        { "when_value": "ops", "activates": ["layer_respondent"] },
+        { "when_value": "finance", "activates": ["layer_respondent"] },
+        { "when_value": "other", "activates": ["layer_respondent"] }
+      ],
+      "options": [
+        { "value": "owner", "label": { "en": "Owner, president or general manager", "fr": "Propriétaire, président ou directeur général" }, "informational": true },
+        { "value": "ops", "label": { "en": "Operations, production or service manager", "fr": "Responsable des opérations, de la production ou du service" }, "informational": true },
+        { "value": "finance", "label": { "en": "Finance, accounting or controller", "fr": "Finances, comptabilité ou contrôleur" }, "informational": true },
+        { "value": "other", "label": { "en": "Something else", "fr": "Autre chose" }, "informational": true }
+      ]
+    },
+    {
+      "id": "base.firmo.q07",
+      "dimension": "firmographic",
+      "type": "multi",
+      "weight": 0,
+      "stem": { "en": "What do you run the business on today? Check everything in real use.", "fr": "Sur quoi faites-vous rouler l'entreprise aujourd'hui? Cochez tout ce qui est réellement utilisé." },
+      "instruments": ["audit"],
+      "routes": [
+        { "when_value": "spreadsheets_only", "activates": ["layer_size_stack"] },
+        { "when_value": "quickbooks", "activates": ["layer_size_stack"] },
+        { "when_value": "sage", "activates": ["layer_size_stack"] },
+        { "when_value": "legacy_erp", "activates": ["layer_size_stack"] },
+        { "when_value": "acomba", "activates": ["layer_size_stack"] }
+      ],
+      "options": [
+        { "value": "spreadsheets_only", "label": { "en": "Spreadsheets and email, mostly", "fr": "Chiffriers et courriels, surtout" }, "informational": true },
+        { "value": "quickbooks", "label": { "en": "QuickBooks", "fr": "QuickBooks" }, "informational": true },
+        { "value": "sage", "label": { "en": "Sage", "fr": "Sage" }, "informational": true },
+        { "value": "acomba", "label": { "en": "Acomba or Avantage", "fr": "Acomba ou Avantage" }, "informational": true },
+        { "value": "legacy_erp", "label": { "en": "An older ERP we've outgrown", "fr": "Un ERP vieillissant que nous avons dépassé" }, "informational": true },
+        { "value": "industry_specific", "label": { "en": "An industry-specific system", "fr": "Un système propre à notre secteur" }, "informational": true },
+        { "value": "crm_separate", "label": { "en": "A separate CRM", "fr": "Un CRM distinct" }, "informational": true },
+        { "value": "payroll_bureau", "label": { "en": "An outside payroll provider", "fr": "Un fournisseur de paie externe" }, "informational": true },
+        { "value": "nothing", "label": { "en": "Paper, honestly", "fr": "Du papier, honnêtement" }, "informational": true }
+      ]
+    },
+
+    {
+      "id": "base.q2c.q01",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Think about your last ten customer orders. How did they get into whatever system you use?", "fr": "Pensez à vos dix dernières commandes clients. Comment sont-elles entrées dans le système que vous utilisez?" },
+      "instruments": ["quiz", "audit"],
+      "artifact_probe": { "en": "Show me the last three orders as they arrived, and where each one was first typed.", "fr": "Montrez-moi les trois dernières commandes telles qu'elles sont arrivées, et où chacune a été saisie la première fois." },
+      "options": [
+        { "value": "verbal", "label": { "en": "By phone or in person, and someone writes them down", "fr": "Par téléphone ou en personne, et quelqu'un les note" }, "level": 1 },
+        { "value": "email_retype", "label": { "en": "By email, and someone re-types them into a system", "fr": "Par courriel, et quelqu'un les ressaisit dans un système" }, "level": 2 },
+        { "value": "typed_once", "label": { "en": "Typed once into one system, by one team", "fr": "Saisies une seule fois dans un système, par une seule équipe" }, "level": 3 },
+        { "value": "self_entered", "label": { "en": "Customers or our reps enter them directly", "fr": "Les clients ou nos représentants les saisissent directement" }, "level": 4 },
+        { "value": "automated", "label": { "en": "They arrive electronically and only exceptions get touched", "fr": "Elles arrivent électroniquement et seules les exceptions sont traitées" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.q2c.q02",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "A customer calls asking where their order is. What does the person who answers do?", "fr": "Un client appelle pour savoir où en est sa commande. Que fait la personne qui répond?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "asks_around", "label": { "en": "Walks around and asks people", "fr": "Fait le tour et demande aux gens" }, "level": 1 },
+        { "value": "several_places", "label": { "en": "Checks a few different files or systems", "fr": "Vérifie dans quelques fichiers ou systèmes différents" }, "level": 2 },
+        { "value": "one_system", "label": { "en": "Opens one system and finds it", "fr": "Ouvre un système et la trouve" }, "level": 3 },
+        { "value": "one_screen", "label": { "en": "Reads one screen that is always current", "fr": "Consulte un écran toujours à jour" }, "level": 4 },
+        { "value": "customer_self", "label": { "en": "The customer could already see it themselves", "fr": "Le client pouvait déjà le voir lui-même" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.q2c.q03",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "In the last 90 days, how many credit notes or corrected invoices did you issue?", "fr": "Au cours des 90 derniers jours, combien de notes de crédit ou de factures corrigées avez-vous émises?" },
+      "help": { "en": "A count, not an estimate. Your accounting system knows.", "fr": "Un nombre, pas une estimation. Votre système comptable le sait." },
+      "instruments": ["audit"],
+      "benchmark_ref": "invoice_error_free_first_time",
+      "reveals": ["credit_notes_90d"],
+      "artifact_probe": { "en": "Pull the credit note list for the last 90 days on screen.", "fr": "Affichez la liste des notes de crédit des 90 derniers jours à l'écran." },
+      "numeric": {
+        "unit": { "en": "credit notes", "fr": "notes de crédit" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5, "label": { "en": "None", "fr": "Aucune" } },
+          { "lte": 3, "level": 4, "label": { "en": "A handful", "fr": "Quelques-unes" } },
+          { "lte": 10, "level": 3, "label": { "en": "Regular", "fr": "Régulières" } },
+          { "lte": 30, "level": 2, "label": { "en": "Frequent", "fr": "Fréquentes" } },
+          { "gt": 30, "level": 1, "label": { "en": "Routine", "fr": "Courantes" } }
+        ]
+      }
+    },
+    {
+      "id": "base.q2c.q04",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "How many different people have to touch a new order before the first invoice goes out?", "fr": "Combien de personnes différentes doivent intervenir sur une nouvelle commande avant l'émission de la première facture?" },
+      "instruments": ["audit"],
+      "reveals": ["order_touches"],
+      "numeric": {
+        "unit": { "en": "people", "fr": "personnes" },
+        "min": 1,
+        "integer": true,
+        "direction": "lower_is_better",
+        "bands": [
+          { "lte": 2, "level": 5 },
+          { "lte": 3, "level": 4 },
+          { "lte": 5, "level": 3 },
+          { "lte": 7, "level": 2 },
+          { "gt": 7, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.q2c.q05",
+      "dimension": "quote_to_cash",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "Someone wants to sell below the normal price. Who can say yes, and what do they look at to know the floor?", "fr": "Quelqu'un veut vendre sous le prix normal. Qui peut dire oui, et sur quoi se base-t-il pour connaître le plancher?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "no_floor", "label": { "en": "Honestly, nobody knows what the floor is", "fr": "Honnêtement, personne ne sait où est le plancher" }, "level": 1 },
+        { "value": "owner_gut", "label": { "en": "The owner decides, case by case", "fr": "Le propriétaire décide, cas par cas" }, "level": 2 },
+        { "value": "pricelist_unenforced", "label": { "en": "There's a price list, but it isn't enforced", "fr": "Il y a une liste de prix, mais elle n'est pas appliquée" }, "level": 3 },
+        { "value": "system_floor", "label": { "en": "The system enforces a floor and flags exceptions", "fr": "Le système applique un plancher et signale les exceptions" }, "level": 4 },
+        { "value": "margin_reported", "label": { "en": "That, plus we review margin by customer and product", "fr": "Cela, et nous révisons la marge par client et par produit" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.q2c.q06",
+      "dimension": "quote_to_cash",
+      "type": "number",
+      "weight": 0.75,
+      "stem": { "en": "From a customer asking for a price to your quote in their hands: how many working days, typically?", "fr": "Entre la demande de prix d'un client et votre soumission entre ses mains : combien de jours ouvrables, habituellement?" },
+      "help": { "en": "There is no credible industry benchmark for this. We use your number, not somebody else's.", "fr": "Il n'existe aucune référence sectorielle crédible pour cela. Nous utilisons votre chiffre, pas celui d'un autre." },
+      "instruments": ["audit"],
+      "reveals": ["quote_turnaround_days"],
+      "numeric": {
+        "unit": { "en": "working days", "fr": "jours ouvrables" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 2, "level": 4 },
+          { "lte": 5, "level": 3 },
+          { "lte": 10, "level": 2 },
+          { "gt": 10, "level": 1 }
+        ]
+      }
+    },
+
+    {
+      "id": "base.inv.q01",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "How do you decide what to order from your suppliers?", "fr": "Comment décidez-vous quoi commander à vos fournisseurs?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "na", "label": { "en": "We don't hold stock or buy for inventory", "fr": "Nous ne tenons pas de stock et n'achetons pas pour l'inventaire" }, "na": true },
+        { "value": "when_out", "label": { "en": "When we notice we've run out", "fr": "Quand on s'aperçoit qu'on est à sec" }, "level": 1 },
+        { "value": "buyer_memory", "label": { "en": "The buyer knows what to get and when", "fr": "L'acheteur sait quoi prendre et quand" }, "level": 2 },
+        { "value": "minmax_stale", "label": { "en": "Minimum levels exist in a system, set a while ago", "fr": "Des minimums existent dans un système, établis il y a un bon moment" }, "level": 3 },
+        { "value": "minmax_reviewed", "label": { "en": "Reorder points in a system, reviewed on a schedule", "fr": "Des points de commande dans un système, révisés selon un calendrier" }, "level": 4 },
+        { "value": "demand_driven", "label": { "en": "Driven by forecast and actual lead times, and we measure how well it works", "fr": "Pilotés par la prévision et les délais réels, et nous mesurons l'efficacité" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.inv.q02",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "The last time someone counted what's physically on the shelves — when was it, and what happened to the difference?", "fr": "La dernière fois que quelqu'un a compté ce qui est physiquement sur les tablettes — c'était quand, et qu'est-il arrivé à l'écart?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "inventory_count_accuracy_median",
+      "show_when": [{ "field": "base.inv.q01", "op": "neq", "value": "na" }],
+      "artifact_probe": { "en": "Show me the last count sheet and the adjustment it produced.", "fr": "Montrez-moi la dernière feuille de dénombrement et l'ajustement qu'elle a produit." },
+      "options": [
+        { "value": "never", "label": { "en": "We've never really counted it", "fr": "Nous ne l'avons jamais vraiment compté" }, "level": 1 },
+        { "value": "annual_writeoff", "label": { "en": "Once a year, and the difference becomes a write-off", "fr": "Une fois par an, et l'écart devient une radiation" }, "level": 2 },
+        { "value": "annual_investigated", "label": { "en": "Once a year, and we look into the big differences", "fr": "Une fois par an, et nous examinons les gros écarts" }, "level": 3 },
+        { "value": "cycle_count", "label": { "en": "We cycle count through the year", "fr": "Nous faisons un inventaire tournant à l'année" }, "level": 4 },
+        { "value": "cycle_count_measured", "label": { "en": "Cycle counting, and we track accuracy as a number", "fr": "Inventaire tournant, et nous suivons l'exactitude comme un indicateur" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.inv.q03",
+      "dimension": "procure_inventory",
+      "type": "number",
+      "weight": 1,
+      "notes": "Scored as a share of total inventory value where that is known; the absolute bands below are the fallback when it is not.",
+      "stem": { "en": "At cost, what is sitting in your stock that hasn't moved in 12 months?", "fr": "Au coût, quelle valeur de votre stock n'a pas bougé depuis 12 mois?" },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.inv.q01", "op": "neq", "value": "na" }],
+      "benchmark_ref": "inventory_carrying_cost_rate",
+      "reveals": ["dead_stock_value"],
+      "numeric": {
+        "unit": { "en": "CAD at cost", "fr": "$ CA au coût" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 25000, "level": 4 },
+          { "lte": 100000, "level": 3 },
+          { "lte": 250000, "level": 2 },
+          { "gt": 250000, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.inv.q04",
+      "dimension": "procure_inventory",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "Freight in, duty and customs brokerage on what you buy — where do those costs end up?", "fr": "Le transport entrant, les droits de douane et le courtage sur vos achats — où ces coûts aboutissent-ils?" },
+      "help": { "en": "This decides whether your gross margin on imported goods is real.", "fr": "C'est ce qui détermine si votre marge brute sur les marchandises importées est réelle." },
+      "instruments": ["audit"],
+      "show_when": [{ "field": "base.inv.q01", "op": "neq", "value": "na" }],
+      "options": [
+        { "value": "expense", "label": { "en": "They're an expense, separate from the product cost", "fr": "Ce sont des dépenses, séparées du coût du produit" }, "level": 1 },
+        { "value": "sometimes_manual", "label": { "en": "Sometimes added to product cost, by hand", "fr": "Parfois ajoutés au coût du produit, à la main" }, "level": 2 },
+        { "value": "always_manual", "label": { "en": "Always added to product cost, by hand", "fr": "Toujours ajoutés au coût du produit, à la main" }, "level": 3 },
+        { "value": "system_landed", "label": { "en": "The system loads them onto the product cost", "fr": "Le système les intègre au coût de revient" }, "level": 4 },
+        { "value": "system_landed_reported", "label": { "en": "That, and margin is reported on the true landed cost", "fr": "Cela, et la marge est rapportée sur le coût de revient réel" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.sched.q01",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Who builds next week's work schedule, and what do they build it in?", "fr": "Qui bâtit l'horaire de travail de la semaine prochaine, et dans quoi le bâtit-il?" },
+      "instruments": ["quiz", "audit"],
+      "artifact_probe": { "en": "Show me next week's schedule as it exists right now.", "fr": "Montrez-moi l'horaire de la semaine prochaine tel qu'il existe en ce moment." },
+      "options": [
+        { "value": "in_head", "label": { "en": "One person, mostly in their head", "fr": "Une personne, surtout dans sa tête" }, "level": 1 },
+        { "value": "whiteboard", "label": { "en": "One person, on a whiteboard or on paper", "fr": "Une personne, sur un tableau blanc ou sur papier" }, "level": 2 },
+        { "value": "spreadsheet", "label": { "en": "A spreadsheet or shared calendar", "fr": "Un chiffrier ou un calendrier partagé" }, "level": 3 },
+        { "value": "system_visible", "label": { "en": "A system everyone involved can see", "fr": "Un système que tous les intervenants peuvent voir" }, "level": 4 },
+        { "value": "system_capacity", "label": { "en": "A system that checks capacity and skills before anything is committed", "fr": "Un système qui vérifie la capacité et les compétences avant tout engagement" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.sched.q02",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Before you promise a customer a date, what gets checked?", "fr": "Avant de promettre une date à un client, que vérifie-t-on?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "nothing", "label": { "en": "Nothing — we commit and then figure it out", "fr": "Rien — on s'engage et on se débrouille ensuite" }, "level": 1 },
+        { "value": "sales_judgment", "label": { "en": "Whoever is selling uses their judgment", "fr": "La personne qui vend se fie à son jugement" }, "level": 2 },
+        { "value": "phone_ops", "label": { "en": "A call or a walk over to operations", "fr": "Un appel ou un détour par les opérations" }, "level": 3 },
+        { "value": "capacity_view", "label": { "en": "A capacity or workload view in a system", "fr": "Une vue de la capacité ou de la charge dans un système" }, "level": 4 },
+        { "value": "committed_date", "label": { "en": "The system gives a date it can actually hold, and we measure whether we held it", "fr": "Le système donne une date qu'il peut réellement tenir, et nous mesurons si nous l'avons tenue" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.sched.q03",
+      "dimension": "scheduling_capacity",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "In the last 90 days, how often did you miss a date you had promised a customer?", "fr": "Au cours des 90 derniers jours, combien de fois avez-vous manqué une date promise à un client?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "dont_track", "label": { "en": "We don't track that", "fr": "Nous ne suivons pas cela" }, "level": 1 },
+        { "value": "six_plus", "label": { "en": "Six times or more", "fr": "Six fois ou plus" }, "level": 2 },
+        { "value": "three_five", "label": { "en": "Three to five times", "fr": "Trois à cinq fois" }, "level": 3 },
+        { "value": "one_two", "label": { "en": "Once or twice", "fr": "Une ou deux fois" }, "level": 4 },
+        { "value": "none_measured", "label": { "en": "Not once, and I can show you the number", "fr": "Pas une seule fois, et je peux vous montrer le chiffre" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.fin.q01",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1.5,
+      "stem": { "en": "How many business days after month end are last month's books finished?", "fr": "Combien de jours ouvrables après la fin du mois les livres du mois précédent sont-ils terminés?" },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "close_within_six_days",
+      "reveals": ["close_days"],
+      "numeric": {
+        "unit": { "en": "business days", "fr": "jours ouvrables" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 4, "level": 5 },
+          { "lte": 6, "level": 4 },
+          { "lte": 10, "level": 3 },
+          { "lte": 20, "level": 2 },
+          { "gt": 20, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.fin.q02",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1.25,
+      "stem": { "en": "Per close, roughly how many hours go into manual journal entries and reconciliations?", "fr": "Par fermeture de mois, combien d'heures environ sont consacrées aux écritures de journal et aux conciliations manuelles?" },
+      "help": { "en": "Nobody publishes a credible benchmark for this. It's your number and it's the easiest one for a controller to produce.", "fr": "Personne ne publie de référence crédible là-dessus. C'est votre chiffre, et le plus facile à produire pour un contrôleur." },
+      "instruments": ["audit"],
+      "reveals": ["close_manual_hours"],
+      "numeric": {
+        "unit": { "en": "hours per close", "fr": "heures par fermeture" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 4, "level": 5 },
+          { "lte": 10, "level": 4 },
+          { "lte": 25, "level": 3 },
+          { "lte": 50, "level": 2 },
+          { "gt": 50, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.fin.q03",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "In the last 90 days, how often did you have to reopen a closed period to fix something?", "fr": "Au cours des 90 derniers jours, combien de fois avez-vous dû réouvrir une période fermée pour corriger quelque chose?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "close_reopen_rate",
+      "options": [
+        { "value": "always", "label": { "en": "It's normal for us", "fr": "C'est normal chez nous" }, "level": 1 },
+        { "value": "three_plus", "label": { "en": "Three times or more", "fr": "Trois fois ou plus" }, "level": 2 },
+        { "value": "twice", "label": { "en": "Twice", "fr": "Deux fois" }, "level": 3 },
+        { "value": "once", "label": { "en": "Once", "fr": "Une fois" }, "level": 4 },
+        { "value": "never", "label": { "en": "Not once", "fr": "Pas une seule fois" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.fin.q04",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Something happens in operations — a job finishes, goods ship. How does that become an accounting entry?", "fr": "Quelque chose se produit aux opérations — un travail se termine, des marchandises partent. Comment cela devient-il une écriture comptable?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "retyped_paper", "label": { "en": "Someone re-types it from paper", "fr": "Quelqu'un la ressaisit à partir du papier" }, "level": 1 },
+        { "value": "export_import", "label": { "en": "We export from one place and import into another", "fr": "Nous exportons d'un endroit et importons dans un autre" }, "level": 2 },
+        { "value": "same_system_manual", "label": { "en": "Same system, but a person still has to push it through", "fr": "Même système, mais une personne doit encore la pousser" }, "level": 3 },
+        { "value": "automatic_review", "label": { "en": "Automatically, with someone reviewing", "fr": "Automatiquement, avec une révision par quelqu'un" }, "level": 4 },
+        { "value": "automatic_exceptions", "label": { "en": "Automatically, and only exceptions get looked at", "fr": "Automatiquement, et seules les exceptions sont examinées" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.fin.q05",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "How does your bank account get reconciled?", "fr": "Comment le compte bancaire est-il concilié?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "paper", "label": { "en": "On paper, or we check the balance and move on", "fr": "Sur papier, ou on regarde le solde et on passe à autre chose" }, "level": 1 },
+        { "value": "spreadsheet", "label": { "en": "In a spreadsheet", "fr": "Dans un chiffrier" }, "level": 2 },
+        { "value": "system_manual", "label": { "en": "In the accounting system, matched by hand from a statement", "fr": "Dans le système comptable, apparié à la main à partir d'un relevé" }, "level": 3 },
+        { "value": "feed_manual", "label": { "en": "A bank feed comes in and someone matches it", "fr": "Un flux bancaire entre et quelqu'un l'apparie" }, "level": 4 },
+        { "value": "feed_auto", "label": { "en": "A bank feed matches itself and only exceptions are reviewed", "fr": "Un flux bancaire s'apparie seul et seules les exceptions sont révisées" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.fin.q06",
+      "dimension": "finance_close",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "On average, how many days from issuing an invoice to the money arriving?", "fr": "En moyenne, combien de jours entre l'émission d'une facture et l'arrivée de l'argent?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "canadian_smb_invoice_to_payment_days",
+      "reveals": ["dso_days"],
+      "numeric": {
+        "unit": { "en": "days", "fr": "jours" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 20, "level": 5 },
+          { "lte": 30, "level": 4 },
+          { "lte": 45, "level": 3 },
+          { "lte": 60, "level": 2 },
+          { "gt": 60, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.fin.q07",
+      "dimension": "finance_close",
+      "type": "single",
+      "weight": 0,
+      "stem": { "en": "Are you currently drawn on an operating line of credit?", "fr": "Êtes-vous actuellement utilisateur d'une marge de crédit d'exploitation?" },
+      "help": { "en": "This decides whether collecting faster is worth real money to you or not. We won't claim a saving you can't bank.", "fr": "Cela détermine si encaisser plus vite vous rapporte réellement de l'argent ou non. Nous ne réclamerons pas une économie que vous ne pouvez pas encaisser." },
+      "instruments": ["audit"],
+      "notes": "Hard gate on the working-capital cost module. Monetizing a DSO reduction for a company sitting in cash is the fastest way to lose a controller.",
+      "reveals": ["line_of_credit_drawn"],
+      "options": [
+        { "value": "yes", "label": { "en": "Yes, regularly", "fr": "Oui, régulièrement" }, "informational": true, "reveals": { "line_of_credit_drawn": true } },
+        { "value": "sometimes", "label": { "en": "Sometimes, seasonally", "fr": "Parfois, de façon saisonnière" }, "informational": true, "reveals": { "line_of_credit_drawn": "seasonal" } },
+        { "value": "no", "label": { "en": "No, we sit in cash", "fr": "Non, nous sommes en encaisse" }, "informational": true, "reveals": { "line_of_credit_drawn": false } },
+        { "value": "unknown", "label": { "en": "I'd have to check", "fr": "Il faudrait que je vérifie" }, "informational": true, "reveals": { "line_of_credit_drawn": null } }
+      ]
+    },
+
+    {
+      "id": "base.data.q01",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 1.5,
+      "stem": { "en": "How many separate systems or files hold a copy of your customer list?", "fr": "Combien de systèmes ou de fichiers distincts contiennent une copie de votre liste de clients?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "Replaces 'are your systems well integrated?' — a count beats a rating. Observable, bounded, countable: the three documented moderators of self-report accuracy.",
+      "reveals": ["customer_list_copies"],
+      "numeric": {
+        "unit": { "en": "systems or files", "fr": "systèmes ou fichiers" },
+        "min": 1,
+        "integer": true,
+        "direction": "lower_is_better",
+        "allow_unknown": true,
+        "unknown_level": 1,
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 2, "level": 4 },
+          { "lte": 4, "level": 3 },
+          { "lte": 7, "level": 2 },
+          { "gt": 7, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.data.q02",
+      "dimension": "data_reporting",
+      "type": "number",
+      "weight": 1.5,
+      "stem": { "en": "There's a report someone on your team rebuilds by hand every month. How many hours does it take?", "fr": "Il y a un rapport que quelqu'un dans votre équipe refait à la main chaque mois. Combien d'heures cela prend-il?" },
+      "help": { "en": "Nearly every business has one. Enter 0 only if there genuinely isn't one.", "fr": "Presque toutes les entreprises en ont un. Entrez 0 seulement s'il n'y en a vraiment aucun." },
+      "instruments": ["quiz", "audit"],
+      "notes": "The single highest-yield question in the instrument. In practice it surfaces the WIP schedule, the CAM reconciliation, the owner statements, the driver settlement, the rebate claim and the production-vs-collection report — i.e. the actual project. Keep it in the quiz as a number; the audit asks WHICH report (base.data.q03).",
+      "reveals": ["manual_report_hours_per_month"],
+      "numeric": {
+        "unit": { "en": "hours per month", "fr": "heures par mois" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 2, "level": 4 },
+          { "lte": 8, "level": 3 },
+          { "lte": 24, "level": 2 },
+          { "gt": 24, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.data.q03",
+      "dimension": "data_reporting",
+      "type": "text",
+      "weight": 0,
+      "stem": { "en": "Which report is it, and who builds it?", "fr": "De quel rapport s'agit-il, et qui le construit?" },
+      "instruments": ["audit"],
+      "notes": "Audit only. An open-ended question costs roughly 12.5 percentage points of completion — about sixty closed questions' worth — so it never appears in the quiz.",
+      "artifact_probe": { "en": "Open last month's version of it and walk me through where each number came from.", "fr": "Ouvrez la version du mois dernier et expliquez-moi d'où vient chaque chiffre." }
+    },
+    {
+      "id": "base.data.q04",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Two reports disagree about the same number. How does that get settled?", "fr": "Deux rapports ne s'entendent pas sur le même chiffre. Comment cela se règle-t-il?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "loudest", "label": { "en": "Whoever argues hardest wins", "fr": "Celui qui argumente le plus fort gagne" }, "level": 1 },
+        { "value": "owner_decides", "label": { "en": "The owner decides which one to believe", "fr": "Le propriétaire décide auquel croire" }, "level": 2 },
+        { "value": "traced_manually", "label": { "en": "Someone traces it back by hand, every time", "fr": "Quelqu'un remonte à la source à la main, chaque fois" }, "level": 3 },
+        { "value": "agreed_source", "label": { "en": "There's one agreed source and we go to it", "fr": "Il y a une source convenue et nous y allons" }, "level": 4 },
+        { "value": "documented_defs", "label": { "en": "The definitions are written down and the source is agreed", "fr": "Les définitions sont écrites et la source est convenue" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.data.q05",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "If I asked for last month's gross margin by customer, how long until I had it?", "fr": "Si je demandais la marge brute du mois dernier par client, combien de temps avant de l'avoir?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "cannot", "label": { "en": "We couldn't produce it", "fr": "Nous ne pourrions pas la produire" }, "level": 1 },
+        { "value": "days", "label": { "en": "A few days of manual work", "fr": "Quelques jours de travail manuel" }, "level": 2 },
+        { "value": "hours", "label": { "en": "A few hours of manual work", "fr": "Quelques heures de travail manuel" }, "level": 3 },
+        { "value": "minutes", "label": { "en": "Minutes, from a report that exists", "fr": "Quelques minutes, à partir d'un rapport existant" }, "level": 4 },
+        { "value": "always_on", "label": { "en": "It's already on a screen", "fr": "C'est déjà à l'écran" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.data.q06",
+      "dimension": "data_reporting",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Who is accountable for your customer and product information being correct?", "fr": "Qui est responsable de l'exactitude de vos informations clients et produits?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "nobody", "label": { "en": "Nobody, really", "fr": "Personne, vraiment" }, "level": 1 },
+        { "value": "whoever_notices", "label": { "en": "Whoever notices a problem fixes it", "fr": "Celui qui remarque un problème le corrige" }, "level": 2 },
+        { "value": "each_team", "label": { "en": "Each team looks after its own", "fr": "Chaque équipe s'occupe des siennes" }, "level": 3 },
+        { "value": "named_owner", "label": { "en": "One named person owns it", "fr": "Une personne nommée en est responsable" }, "level": 4 },
+        { "value": "owner_rules_checks", "label": { "en": "One named person, with written rules and periodic checks", "fr": "Une personne nommée, avec des règles écrites et des vérifications périodiques" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.sys.q01",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "How does information get from one of your systems to another?", "fr": "Comment l'information passe-t-elle d'un de vos systèmes à un autre?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "retype", "label": { "en": "It doesn't — someone re-types it", "fr": "Elle ne passe pas — quelqu'un la ressaisit" }, "level": 1 },
+        { "value": "export_import", "label": { "en": "Exported and imported as spreadsheets", "fr": "Exportée et importée en chiffriers" }, "level": 2 },
+        { "value": "scheduled_files", "label": { "en": "Scheduled file transfers somebody set up", "fr": "Des transferts de fichiers programmés que quelqu'un a configurés" }, "level": 3 },
+        { "value": "integrated", "label": { "en": "They're connected directly and someone watches it", "fr": "Ils sont connectés directement et quelqu'un surveille" }, "level": 4 },
+        { "value": "monitored_queue", "label": { "en": "Connected, monitored, with retries and an error queue", "fr": "Connectés, surveillés, avec reprises et file d'erreurs" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.sys.q02",
+      "dimension": "systems_integration",
+      "type": "number",
+      "weight": 1.5,
+      "stem": { "en": "Across your whole team, how many hours a week go into typing the same information into a second place?", "fr": "Pour toute votre équipe, combien d'heures par semaine sont consacrées à ressaisir la même information dans un deuxième endroit?" },
+      "help": { "en": "Your best estimate, for everyone combined. This is the number the dollar estimate is built on, so a conservative guess is better than a generous one.", "fr": "Votre meilleure estimation, pour tout le monde ensemble. C'est le chiffre sur lequel repose l'estimation en dollars : une estimation prudente vaut mieux qu'une généreuse." },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "manual_data_transfer_hours_week",
+      "reveals": ["rekeying_hours_per_week"],
+      "numeric": {
+        "unit": { "en": "hours per week, all staff", "fr": "heures par semaine, tout le personnel" },
+        "min": 0,
+        "direction": "lower_is_better",
+        "bands": [
+          { "lte": 1, "level": 5 },
+          { "lte": 5, "level": 4 },
+          { "lte": 15, "level": 3 },
+          { "lte": 40, "level": 2 },
+          { "gt": 40, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.sys.q03",
+      "dimension": "systems_integration",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "When a transfer or an import fails, how do you find out?", "fr": "Quand un transfert ou une importation échoue, comment l'apprenez-vous?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "customer_complains", "label": { "en": "A customer tells us", "fr": "Un client nous le dit" }, "level": 1 },
+        { "value": "eventually", "label": { "en": "Somebody notices eventually", "fr": "Quelqu'un finit par le remarquer" }, "level": 2 },
+        { "value": "owner_checks", "label": { "en": "The person who runs it checks", "fr": "La personne qui s'en occupe vérifie" }, "level": 3 },
+        { "value": "alerts", "label": { "en": "An alert goes to a named person", "fr": "Une alerte est envoyée à une personne nommée" }, "level": 4 },
+        { "value": "monitored", "label": { "en": "It's monitored, retried, and nothing is silently lost", "fr": "C'est surveillé, repris, et rien n'est perdu en silence" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.doc.q01",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Is there a written procedure for getting from a customer order to an invoice?", "fr": "Existe-t-il une procédure écrite pour passer d'une commande client à une facture?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "Load-bearing: process_documentation caps every other dimension (see scoring cap_rules). An Odoo rollout onto undocumented process is the failure mode this encodes into the arithmetic.",
+      "artifact_probe": { "en": "Open it. Let's look at the last-modified date.", "fr": "Ouvrez-la. Regardons la date de dernière modification." },
+      "options": [
+        { "value": "none", "label": { "en": "No", "fr": "Non" }, "level": 1 },
+        { "value": "yes_unknown_age", "label": { "en": "Yes, but I don't know when it was last updated", "fr": "Oui, mais je ne sais pas quand elle a été mise à jour" }, "level": 2 },
+        { "value": "yes_recent", "label": { "en": "Yes, updated in the last 12 months", "fr": "Oui, mise à jour au cours des 12 derniers mois" }, "level": 3 },
+        { "value": "yes_reviewed", "label": { "en": "Yes, and it's reviewed on a schedule", "fr": "Oui, et elle est révisée selon un calendrier" }, "level": 4 },
+        { "value": "yes_trained", "label": { "en": "Yes, reviewed, and it's what we actually train new people on", "fr": "Oui, révisée, et c'est vraiment ce sur quoi nous formons les nouveaux" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.doc.q02",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Someone new starts Monday. How do they learn the job?", "fr": "Quelqu'un commence lundi. Comment apprend-il le travail?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "shadow", "label": { "en": "They sit beside someone and watch", "fr": "Il s'assoit à côté de quelqu'un et observe" }, "level": 1 },
+        { "value": "verbal", "label": { "en": "Someone explains it to them", "fr": "Quelqu'un lui explique" }, "level": 2 },
+        { "value": "notes_somewhere", "label": { "en": "There are notes somewhere they can find", "fr": "Il y a des notes quelque part qu'il peut trouver" }, "level": 3 },
+        { "value": "documented_onboarding", "label": { "en": "A documented onboarding with checklists", "fr": "Un accueil documenté avec des listes de vérification" }, "level": 4 },
+        { "value": "documented_maintained", "label": { "en": "That, and it gets updated whenever the process changes", "fr": "Cela, et c'est mis à jour chaque fois que le processus change" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.doc.q03",
+      "dimension": "process_documentation",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "How many of your core processes have one named person responsible for them?", "fr": "Combien de vos processus clés ont une personne nommée qui en est responsable?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "none", "label": { "en": "None — it's not set up that way", "fr": "Aucun — ce n'est pas organisé comme ça" }, "level": 1 },
+        { "value": "one_two", "label": { "en": "One or two", "fr": "Un ou deux" }, "level": 2 },
+        { "value": "most", "label": { "en": "Most of them", "fr": "La plupart" }, "level": 3 },
+        { "value": "all", "label": { "en": "All of them", "fr": "Tous" }, "level": 4 },
+        { "value": "all_reviewed", "label": { "en": "All of them, and the owners review them on a cadence", "fr": "Tous, et les responsables les révisent à intervalles réguliers" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.ppl.q01",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "The person who knows your billing or scheduling best takes three weeks off, starting tomorrow. What stops?", "fr": "La personne qui connaît le mieux votre facturation ou votre planification part trois semaines, à partir de demain. Qu'est-ce qui s'arrête?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "several", "label": { "en": "Several things would grind to a halt", "fr": "Plusieurs choses s'arrêteraient net" }, "level": 1 },
+        { "value": "one_important", "label": { "en": "One important thing would stop", "fr": "Une chose importante s'arrêterait" }, "level": 2 },
+        { "value": "slow", "label": { "en": "It would be slow and painful, but it would continue", "fr": "Ce serait lent et pénible, mais ça continuerait" }, "level": 3 },
+        { "value": "documented_cover", "label": { "en": "Someone else could cover from what's written down", "fr": "Quelqu'un d'autre pourrait prendre le relais avec ce qui est écrit" }, "level": 4 },
+        { "value": "two_people", "label": { "en": "Two people already do it routinely", "fr": "Deux personnes le font déjà régulièrement" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.ppl.q02",
+      "dimension": "people_continuity",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "How many parts of the business depend on exactly one person?", "fr": "Combien de parties de l'entreprise dépendent d'exactement une personne?" },
+      "instruments": ["audit"],
+      "reveals": ["single_point_processes"],
+      "numeric": {
+        "unit": { "en": "processes", "fr": "processus" },
+        "min": 0,
+        "integer": true,
+        "direction": "lower_is_better",
+        "bands": [
+          { "lte": 0, "level": 5 },
+          { "lte": 1, "level": 4 },
+          { "lte": 3, "level": 3 },
+          { "lte": 6, "level": 2 },
+          { "gt": 6, "level": 1 }
+        ]
+      }
+    },
+    {
+      "id": "base.ppl.q03",
+      "dimension": "people_continuity",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "Your main system is unavailable for two days. Is there a plan?", "fr": "Votre système principal est inaccessible pendant deux jours. Y a-t-il un plan?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "none", "label": { "en": "No, we'd improvise", "fr": "Non, on improviserait" }, "level": 1 },
+        { "value": "informal", "label": { "en": "Informally, in a few people's heads", "fr": "De façon informelle, dans la tête de quelques personnes" }, "level": 2 },
+        { "value": "written", "label": { "en": "It's written down somewhere", "fr": "C'est écrit quelque part" }, "level": 3 },
+        { "value": "documented", "label": { "en": "A documented plan people know about", "fr": "Un plan documenté que les gens connaissent" }, "level": 4 },
+        { "value": "tested", "label": { "en": "Documented, and we've actually tested it", "fr": "Documenté, et nous l'avons réellement testé" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.ai.q01",
+      "dimension": "ai_automation_readiness",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "When someone needs to look something up — a spec, a past quote, a policy — where do they go?", "fr": "Quand quelqu'un doit chercher une information — une spécification, une ancienne soumission, une politique — où va-t-il?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "heads", "label": { "en": "They ask whoever knows", "fr": "Il demande à celui qui sait" }, "level": 1 },
+        { "value": "scattered", "label": { "en": "Scattered files and old email threads", "fr": "Des fichiers éparpillés et de vieux fils de courriels" }, "level": 2 },
+        { "value": "shared_drive", "label": { "en": "A shared drive, no real structure", "fr": "Un disque partagé, sans réelle structure" }, "level": 3 },
+        { "value": "organized", "label": { "en": "An organized, searchable place", "fr": "Un endroit organisé et interrogeable" }, "level": 4 },
+        { "value": "owned_current", "label": { "en": "Organized, owned by someone, and kept current", "fr": "Organisé, sous la responsabilité de quelqu'un, et tenu à jour" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.ai.q02",
+      "dimension": "ai_automation_readiness",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Is there a specific task where you'd want a machine to do the first pass?", "fr": "Y a-t-il une tâche précise où vous voudriez qu'une machine fasse le premier jet?" },
+      "instruments": ["audit"],
+      "notes": "Grounded in NIST AI RMF MAP-3 and the Microsoft CAF 'identify AI use cases' step. Deliberately about a NAMED task with a MEASURED current cost, because that is the condition under which an AI pilot is scopeable at all.",
+      "options": [
+        { "value": "no", "label": { "en": "No, we haven't thought about it", "fr": "Non, nous n'y avons pas pensé" }, "level": 1 },
+        { "value": "vague", "label": { "en": "We're interested, nothing specific", "fr": "Nous sommes intéressés, rien de précis" }, "level": 2 },
+        { "value": "discussed_one", "label": { "en": "We've talked about one in particular", "fr": "Nous avons parlé d'une en particulier" }, "level": 3 },
+        { "value": "named_measured", "label": { "en": "One named task, and we know what it costs us today", "fr": "Une tâche nommée, et nous savons ce qu'elle nous coûte aujourd'hui" }, "level": 4 },
+        { "value": "named_with_test", "label": { "en": "That, plus we know how we'd judge whether it worked", "fr": "Cela, et nous savons comment nous jugerions si ça a fonctionné" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.ai.q03",
+      "dimension": "ai_automation_readiness",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "Who decides what an automated step is allowed to do without a person checking it?", "fr": "Qui décide ce qu'une étape automatisée peut faire sans qu'une personne la vérifie?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "nobody", "label": { "en": "That hasn't come up", "fr": "La question ne s'est pas posée" }, "level": 1 },
+        { "value": "builder", "label": { "en": "Whoever built it", "fr": "Celui qui l'a construite" }, "level": 2 },
+        { "value": "owner_informal", "label": { "en": "The owner, informally", "fr": "Le propriétaire, de façon informelle" }, "level": 3 },
+        { "value": "named_written", "label": { "en": "A named person, against written rules", "fr": "Une personne nommée, selon des règles écrites" }, "level": 4 },
+        { "value": "logged_reviewed", "label": { "en": "Written rules, and what the automation did is logged and reviewed", "fr": "Des règles écrites, et ce que l'automatisation a fait est journalisé et révisé" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.ai.q04",
+      "dimension": "ai_automation_readiness",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "The information a machine would need to read — what form is most of it in?", "fr": "L'information qu'une machine devrait lire — sous quelle forme est-elle principalement?" },
+      "instruments": ["quiz", "audit"],
+      "options": [
+        { "value": "paper", "label": { "en": "Paper", "fr": "Du papier" }, "level": 1 },
+        { "value": "pdfs", "label": { "en": "PDFs and scans", "fr": "Des PDF et des numérisations" }, "level": 2 },
+        { "value": "messy_sheets", "label": { "en": "Spreadsheets, each laid out differently", "fr": "Des chiffriers, chacun présenté différemment" }, "level": 3 },
+        { "value": "structured", "label": { "en": "Structured, inside a system", "fr": "Structurée, dans un système" }, "level": 4 },
+        { "value": "structured_validated", "label": { "en": "Structured, validated on entry, with written definitions", "fr": "Structurée, validée à la saisie, avec des définitions écrites" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.perf.q01",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "What did leadership last change its mind about because of a number?", "fr": "Sur quoi la direction a-t-elle changé d'avis pour la dernière fois à cause d'un chiffre?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "Separated from data_reporting on purpose. Without this split, a client with a pretty dashboard and no operating review scores the same as one that runs a weekly meeting off its numbers — the most common misdiagnosis in this category. CMMI makes measurement one of only two practice areas that reach level 5.",
+      "options": [
+        { "value": "not_how", "label": { "en": "That's not really how we run", "fr": "Ce n'est pas vraiment comme ça qu'on fonctionne" }, "level": 1 },
+        { "value": "bank_balance", "label": { "en": "We watch the bank balance", "fr": "Nous surveillons le solde bancaire" }, "level": 2 },
+        { "value": "monthly_financials", "label": { "en": "We go through the monthly financials", "fr": "Nous passons à travers les états financiers mensuels" }, "level": 3 },
+        { "value": "operating_cadence", "label": { "en": "We review a short list of operating numbers on a fixed cadence", "fr": "Nous révisons une courte liste d'indicateurs d'exploitation à intervalles fixes" }, "level": 4 },
+        { "value": "targets_variance", "label": { "en": "Those numbers have targets and owners, and we act on the gaps", "fr": "Ces indicateurs ont des cibles et des responsables, et nous agissons sur les écarts" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.perf.q02",
+      "dimension": "performance_management",
+      "type": "number",
+      "weight": 1,
+      "stem": { "en": "How many operating numbers — not financial statements — does leadership look at on a fixed cadence?", "fr": "Combien d'indicateurs d'exploitation — pas des états financiers — la direction consulte-t-elle à intervalles fixes?" },
+      "instruments": ["audit"],
+      "notes": "Bands are deliberately not monotonic. More than about twenty-five is a dashboard nobody reads, which scores level 3, not level 5.",
+      "numeric": {
+        "unit": { "en": "numbers", "fr": "indicateurs" },
+        "min": 0,
+        "integer": true,
+        "direction": "higher_is_better",
+        "bands": [
+          { "lte": 0, "level": 1 },
+          { "lte": 2, "level": 2 },
+          { "lte": 5, "level": 3 },
+          { "lte": 15, "level": 5 },
+          { "lte": 25, "level": 4 },
+          { "gt": 25, "level": 3 }
+        ]
+      }
+    },
+    {
+      "id": "base.perf.q03",
+      "dimension": "performance_management",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Do those numbers have a target and a named owner?", "fr": "Ces indicateurs ont-ils une cible et un responsable nommé?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "no_targets", "label": { "en": "No targets", "fr": "Pas de cibles" }, "level": 1 },
+        { "value": "targets_in_head", "label": { "en": "Targets, in someone's head", "fr": "Des cibles, dans la tête de quelqu'un" }, "level": 2 },
+        { "value": "targets_no_owners", "label": { "en": "Written targets, no named owners", "fr": "Des cibles écrites, sans responsables nommés" }, "level": 3 },
+        { "value": "targets_owners", "label": { "en": "Targets and named owners", "fr": "Des cibles et des responsables nommés" }, "level": 4 },
+        { "value": "variance_investigated", "label": { "en": "Targets, owners, and we investigate why we missed", "fr": "Des cibles, des responsables, et nous cherchons pourquoi nous avons manqué" }, "level": 5 }
+      ]
+    },
+
+    {
+      "id": "base.spon.q01",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "If you did a project like this, who inside the business would own the outcome?", "fr": "Si vous réalisiez un projet comme celui-ci, qui, dans l'entreprise, serait responsable du résultat?" },
+      "instruments": ["quiz", "audit"],
+      "notes": "The most universally present dimension in every ERP-readiness instrument surveyed and the strongest single predictor of ERP failure. It also protects NBT commercially: it is the dimension that says whether to take the engagement.",
+      "options": [
+        { "value": "nobody", "label": { "en": "We haven't identified anyone", "fr": "Nous n'avons identifié personne" }, "level": 1 },
+        { "value": "owner_on_top", "label": { "en": "The owner, on top of everything else they do", "fr": "Le propriétaire, en plus de tout le reste" }, "level": 2 },
+        { "value": "named_some_time", "label": { "en": "A named person with some time freed up", "fr": "Une personne nommée avec un peu de temps libéré" }, "level": 3 },
+        { "value": "named_authority", "label": { "en": "A named person with time, budget and authority", "fr": "Une personne nommée avec du temps, un budget et de l'autorité" }, "level": 4 },
+        { "value": "sponsor_and_lead", "label": { "en": "A sponsor and an internal lead, with a regular steering meeting", "fr": "Un parrain et un responsable interne, avec une rencontre de pilotage régulière" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.spon.q02",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Have you tried a system or process change like this before?", "fr": "Avez-vous déjà tenté un changement de système ou de processus comme celui-ci?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "never", "label": { "en": "Never", "fr": "Jamais" }, "level": 2 },
+        { "value": "abandoned", "label": { "en": "Yes, and we abandoned it", "fr": "Oui, et nous l'avons abandonné" }, "level": 1, "flag": "prior_failed_project" },
+        { "value": "partly", "label": { "en": "Yes, and we got part of the way", "fr": "Oui, et nous sommes allés une partie du chemin" }, "level": 3 },
+        { "value": "delivered", "label": { "en": "Yes, and we finished it", "fr": "Oui, et nous l'avons terminé" }, "level": 4 },
+        { "value": "delivered_know_why", "label": { "en": "Yes, finished, and we know why it worked", "fr": "Oui, terminé, et nous savons pourquoi ça a fonctionné" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.spon.q03",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "How would your team react to being asked to change how they work?", "fr": "Comment votre équipe réagirait-elle si on lui demandait de changer sa façon de travailler?" },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "resistance", "label": { "en": "I'd expect real resistance", "fr": "Je m'attendrais à une vraie résistance" }, "level": 1 },
+        { "value": "reluctance", "label": { "en": "Reluctantly, with grumbling", "fr": "À contrecœur, en rechignant" }, "level": 2 },
+        { "value": "mixed", "label": { "en": "Mixed — some would, some wouldn't", "fr": "Partagée — certains oui, d'autres non" }, "level": 3 },
+        { "value": "supportive", "label": { "en": "Mostly supportive", "fr": "Plutôt favorable" }, "level": 4 },
+        { "value": "asking", "label": { "en": "They're the ones asking for it", "fr": "Ce sont eux qui le demandent" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.spon.q04",
+      "dimension": "sponsorship_change",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "Has a budget range for this been discussed internally?", "fr": "Une fourchette budgétaire a-t-elle été discutée à l'interne?" },
+      "help": { "en": "We'd rather tell you early if what you want and what you'd spend don't meet.", "fr": "Nous préférons vous le dire tôt si ce que vous voulez et ce que vous dépenseriez ne se rejoignent pas." },
+      "instruments": ["audit"],
+      "options": [
+        { "value": "no", "label": { "en": "Not at all", "fr": "Pas du tout" }, "level": 1 },
+        { "value": "no_idea", "label": { "en": "We have no idea what this costs", "fr": "Nous n'avons aucune idée de ce que ça coûte" }, "level": 2 },
+        { "value": "rough", "label": { "en": "A rough idea", "fr": "Une idée approximative" }, "level": 3 },
+        { "value": "range_agreed", "label": { "en": "A range we agree on internally", "fr": "Une fourchette sur laquelle nous nous entendons à l'interne" }, "level": 4 },
+        { "value": "approved", "label": { "en": "A range, and it's approved", "fr": "Une fourchette, et elle est approuvée" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.spon.q05",
+      "dimension": "sponsorship_change",
+      "type": "multi",
+      "weight": 0,
+      "stem": { "en": "Is anything else big changing in the next 12 months?", "fr": "Y a-t-il autre chose d'important qui change au cours des 12 prochains mois?" },
+      "instruments": ["audit"],
+      "notes": "Unscored, but it is the 'why now'. Routes the growth-trigger layer and is usually what moves a deal off stage two.",
+      "routes": [
+        { "when_value": "acquisition", "activates": ["layer_growth_trigger"] },
+        { "when_value": "new_site", "activates": ["layer_growth_trigger"] },
+        { "when_value": "new_line", "activates": ["layer_growth_trigger"] },
+        { "when_value": "key_person", "activates": ["layer_growth_trigger"] },
+        { "when_value": "financing", "activates": ["layer_growth_trigger"] },
+        { "when_value": "big_customer", "activates": ["layer_growth_trigger"] },
+        { "when_value": "certification", "activates": ["layer_growth_trigger"] },
+        { "when_value": "succession", "activates": ["layer_growth_trigger"] }
+      ],
+      "options": [
+        { "value": "acquisition", "label": { "en": "We're buying or merging with another business", "fr": "Nous achetons ou fusionnons avec une autre entreprise" }, "informational": true },
+        { "value": "new_site", "label": { "en": "Opening a new location", "fr": "Ouverture d'un nouvel emplacement" }, "informational": true },
+        { "value": "new_line", "label": { "en": "Launching a new product or service line", "fr": "Lancement d'une nouvelle gamme de produits ou de services" }, "informational": true },
+        { "value": "key_person", "label": { "en": "Someone key is leaving or retiring", "fr": "Une personne clé part ou prend sa retraite" }, "informational": true },
+        { "value": "succession", "label": { "en": "Ownership or succession is changing", "fr": "La propriété ou la succession change" }, "informational": true },
+        { "value": "financing", "label": { "en": "A financing round or a bank review", "fr": "Un financement ou une révision bancaire" }, "informational": true },
+        { "value": "big_customer", "label": { "en": "Winning or losing a major customer", "fr": "Gain ou perte d'un client majeur" }, "informational": true },
+        { "value": "certification", "label": { "en": "An audit or a certification we have to pass", "fr": "Un audit ou une certification à réussir" }, "informational": true },
+        { "value": "none", "label": { "en": "Nothing out of the ordinary", "fr": "Rien d'inhabituel" }, "informational": true }
+      ]
+    },
+
+    {
+      "id": "base.comp.q01",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Who is named as the person in charge of personal information in your business?", "fr": "Qui est désigné comme responsable de la protection des renseignements personnels dans votre entreprise?" },
+      "help": { "en": "In Quebec this has been a legal requirement since September 2022, including publishing their contact details.", "fr": "Au Québec, c'est une obligation légale depuis septembre 2022, incluant la publication de ses coordonnées." },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "law25_privacy_officer",
+      "artifact_probe": { "en": "Show me where on your website that name and contact appear.", "fr": "Montrez-moi où, sur votre site Web, ce nom et ces coordonnées apparaissent." },
+      "options": [
+        { "value": "nobody", "label": { "en": "Nobody is named", "fr": "Personne n'est désigné" }, "level": 1, "flag": "law25_no_officer" },
+        { "value": "owner_default", "label": { "en": "The owner, by default, and it isn't published anywhere", "fr": "Le propriétaire, par défaut, et ce n'est publié nulle part" }, "level": 2, "flag": "law25_not_published" },
+        { "value": "named_internal", "label": { "en": "Someone is named internally", "fr": "Quelqu'un est désigné à l'interne" }, "level": 3, "flag": "law25_not_published" },
+        { "value": "named_published", "label": { "en": "Named, and their contact details are published", "fr": "Désigné, et ses coordonnées sont publiées" }, "level": 4 },
+        { "value": "named_policy", "label": { "en": "Named, published, with a written policy behind it", "fr": "Désigné, publié, avec une politique écrite derrière" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.comp.q02",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.5,
+      "stem": { "en": "Where is your business data actually stored?", "fr": "Où vos données d'entreprise sont-elles réellement stockées?" },
+      "help": { "en": "Two separate rules bite here and they pull in opposite directions — one about where records are kept, one about sending personal information out of Quebec.", "fr": "Deux règles distinctes s'appliquent ici et elles tirent dans des directions opposées — l'une sur le lieu de conservation des registres, l'autre sur la communication de renseignements personnels hors du Québec." },
+      "instruments": ["quiz", "audit"],
+      "benchmark_ref": "cra_records_in_canada",
+      "options": [
+        { "value": "unknown", "label": { "en": "I don't know", "fr": "Je ne sais pas" }, "level": 1, "flag": "data_location_unknown" },
+        { "value": "local_no_backup", "label": { "en": "On a computer here, with no copy offsite", "fr": "Sur un ordinateur ici, sans copie hors site" }, "level": 1, "flag": "no_offsite_backup" },
+        { "value": "local_backup", "label": { "en": "On our own server, with backups", "fr": "Sur notre propre serveur, avec des sauvegardes" }, "level": 3 },
+        { "value": "cloud_unknown_region", "label": { "en": "In the cloud, but I couldn't tell you which country", "fr": "Dans le nuage, mais je ne pourrais pas vous dire dans quel pays" }, "level": 2, "flag": "cross_border_unassessed" },
+        { "value": "cloud_known_region", "label": { "en": "In the cloud, and we know the region", "fr": "Dans le nuage, et nous connaissons la région" }, "level": 4 },
+        { "value": "cloud_contracted", "label": { "en": "In the cloud, region known, and it's in writing with the provider", "fr": "Dans le nuage, région connue, et c'est écrit dans l'entente avec le fournisseur" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.comp.q03",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "Is there a register where a privacy or data incident would get recorded?", "fr": "Existe-t-il un registre où un incident de confidentialité ou de données serait consigné?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "law25_incident_register",
+      "options": [
+        { "value": "none", "label": { "en": "No", "fr": "Non" }, "level": 1, "flag": "law25_no_register" },
+        { "value": "adhoc", "label": { "en": "We'd handle it, but nothing would get written down", "fr": "Nous le gérerions, mais rien ne serait consigné" }, "level": 2, "flag": "law25_no_register" },
+        { "value": "informal_notes", "label": { "en": "Someone would make notes", "fr": "Quelqu'un prendrait des notes" }, "level": 3 },
+        { "value": "register", "label": { "en": "There's a register", "fr": "Il y a un registre" }, "level": 4 },
+        { "value": "register_compliant", "label": { "en": "A register with the required fields, kept for the required period", "fr": "Un registre avec les champs requis, conservé pour la période requise" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.comp.q04",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1.25,
+      "stem": { "en": "Ransomware or a hardware failure hits tomorrow morning. How long until you're operating again?", "fr": "Un rançongiciel ou une panne matérielle frappe demain matin. Combien de temps avant de reprendre les opérations?" },
+      "instruments": ["quiz", "audit"],
+      "artifact_probe": { "en": "When was a restore last actually performed, not just scheduled?", "fr": "Quand une restauration a-t-elle été réellement effectuée, pas seulement planifiée?" },
+      "options": [
+        { "value": "no_idea", "label": { "en": "No idea", "fr": "Aucune idée" }, "level": 1 },
+        { "value": "weeks", "label": { "en": "Weeks", "fr": "Des semaines" }, "level": 2 },
+        { "value": "days", "label": { "en": "A few days", "fr": "Quelques jours" }, "level": 3 },
+        { "value": "hours_untested", "label": { "en": "Hours, in theory — we've never tested it", "fr": "Des heures, en théorie — nous ne l'avons jamais testé" }, "level": 4 },
+        { "value": "hours_tested", "label": { "en": "Hours, and we've restored from backup for real", "fr": "Des heures, et nous avons déjà restauré pour de vrai" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.comp.q05",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "How long are your accounting records kept, and where?", "fr": "Combien de temps vos registres comptables sont-ils conservés, et où?" },
+      "instruments": ["audit"],
+      "benchmark_ref": "record_retention_six_years",
+      "options": [
+        { "value": "unknown", "label": { "en": "I'd have to ask our accountant", "fr": "Il faudrait que je demande à notre comptable" }, "level": 1 },
+        { "value": "as_long_as_software", "label": { "en": "As long as the software keeps them", "fr": "Aussi longtemps que le logiciel les garde" }, "level": 2 },
+        { "value": "six_plus", "label": { "en": "Six years or more, somewhere we could find them", "fr": "Six ans ou plus, quelque part où nous pourrions les retrouver" }, "level": 3 },
+        { "value": "six_in_canada", "label": { "en": "Six years or more, and we know they're held in Canada", "fr": "Six ans ou plus, et nous savons qu'ils sont conservés au Canada" }, "level": 4 },
+        { "value": "schedule", "label": { "en": "A written retention schedule, with destruction after the period", "fr": "Un calendrier de conservation écrit, avec destruction après la période" }, "level": 5 }
+      ]
+    },
+    {
+      "id": "base.comp.q06",
+      "dimension": "compliance_risk",
+      "type": "single",
+      "weight": 1,
+      "stem": { "en": "When you email customers or prospects in a group, how do you know you're allowed to?", "fr": "Quand vous écrivez à des clients ou à des prospects en groupe, comment savez-vous que vous y êtes autorisé?" },
+      "help": { "en": "Under Canadian anti-spam law the burden of proving consent is on the sender, not the recipient.", "fr": "En vertu de la loi canadienne anti-pourriel, le fardeau de prouver le consentement repose sur l'expéditeur, non sur le destinataire." },
+      "instruments": ["audit"],
+      "benchmark_ref": "casl_consent_burden",
+      "options": [
+        { "value": "never_thought", "label": { "en": "We send to the list we have", "fr": "Nous écrivons à la liste que nous avons" }, "level": 1, "flag": "casl_no_consent_record" },
+        { "value": "assume_customers", "label": { "en": "They're customers, so we assume it's fine", "fr": "Ce sont des clients, donc on présume que c'est correct" }, "level": 2 },
+        { "value": "unsubscribe_only", "label": { "en": "There's an unsubscribe link and we honour it", "fr": "Il y a un lien de désabonnement et nous le respectons" }, "level": 3 },
+        { "value": "consent_recorded", "label": { "en": "We record how and when each contact consented", "fr": "Nous consignons comment et quand chaque contact a consenti" }, "level": 4 },
+        { "value": "consent_expires", "label": { "en": "That, and implied consent expires automatically when it should", "fr": "Cela, et le consentement implicite expire automatiquement au bon moment" }, "level": 5 }
+      ]
+    }
+  ]
+}

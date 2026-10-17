@@ -3,13 +3,18 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
+    "predev": "node scripts/build-quiz-bundle.mjs",
     "dev": "next dev",
+    "prebuild": "node scripts/build-quiz-bundle.mjs",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --experimental-strip-types --test src/lib/audit/*.test.ts",
+    "audit:validate": "cd content/audit && python3 validate.py"
   },
   "dependencies": {
     "next": "16.2.6",
+    "nodemailer": "^10.0.14",
     "react": "19.2.6",
     "react-dom": "19.2.6"
   },
@@ -18,6 +23,7 @@
     "@next/eslint-plugin-next": "16.2.6",
     "@tailwindcss/postcss": "4.2.1",
     "@types/node": "22.19.19",
+    "@types/nodemailer": "^8.0.2",
     "@types/react": "19.2.14",
     "@types/react-dom": "19.2.3",
     "eslint": "9.39.4",

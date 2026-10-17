@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
-import { contactTopics } from "../../_data/site";
-import { createOdooLead, EMAIL_PATTERN, errorResponse, escapeHtml, field } from "../../_lib/odoo";
+import { CONTACT_TOPICS } from "@/lib/contactTopics";
+import { createOdooLead, EMAIL_PATTERN, errorResponse, escapeHtml, field } from "@/lib/odoo";
 
+/** General contact form (/[locale]/get-in-touch) → Odoo CRM lead. */
 export async function POST(request: Request) {
   let data: Record<string, unknown>;
   try {
@@ -18,11 +19,12 @@ export async function POST(request: Request) {
   const name = field(data, "name", 120);
   const email = field(data, "email", 200);
   const company = field(data, "company", 160);
-  const topic = contactTopics.includes(field(data, "topic", 60)) ? field(data, "topic", 60) : "Other";
+  const topic = (CONTACT_TOPICS[field(data, "topic", 30)] ?? CONTACT_TOPICS.other).en;
+  const language = field(data, "locale", 2) === "en" ? "English" : "Français";
   const message = field(data, "message", 5000);
 
   if (!name || !EMAIL_PATTERN.test(email) || message.length < 10) {
-    return errorResponse("Please add your name, a valid email, and a short message.", 400);
+    return errorResponse("invalid_submission", 400);
   }
 
   const failure = await createOdooLead({
@@ -30,7 +32,11 @@ export async function POST(request: Request) {
     contact_name: name,
     email_from: email,
     partner_name: company || false,
-    description: `<p><strong>Source:</strong> Contact form</p><p><strong>Topic:</strong> ${escapeHtml(topic)}</p><p>${escapeHtml(message)}</p>`,
+    description:
+      `<p><strong>Source:</strong> Contact form</p>` +
+      `<p><strong>Topic:</strong> ${escapeHtml(topic)}</p>` +
+      `<p><strong>Language:</strong> ${language}</p>` +
+      `<p>${escapeHtml(message)}</p>`,
   });
 
   return failure ?? NextResponse.json({ ok: true });

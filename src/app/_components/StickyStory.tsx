@@ -5,49 +5,127 @@ import { AnimatedGridPattern } from "@/registry/magicui/animated-grid-pattern";
 import { Ripple } from "@/registry/magicui/ripple";
 import { PulsatingButton } from "@/registry/magicui/pulsating-button";
 import { useEffect, useId, useRef, useState } from "react";
+import { localePath } from "@/i18n/config";
+import type { Locale } from "@/lib/audit/types";
 
-const steps = [
-  {
-    eyebrow: "01 / Free · 20 min",
-    title: "Discovery call",
-    description:
-      "We ask about your current process, tools, and what’s actually costing you time. There is no pitch. We simply figure out if we’re a fit.",
-    outcome: "A clear fit and the right next step",
+type StoryStep = {
+  eyebrow: string;
+  title: string;
+  description: string;
+  outcome: string;
+};
+
+const STORY_STEPS: Record<Locale, readonly StoryStep[]> = {
+  fr: [
+    {
+      eyebrow: "01 / Gratuit · 20 min",
+      title: "Appel de découverte",
+      description:
+        "On vous demande comment votre processus fonctionne aujourd'hui, quels outils vous utilisez et ce qui vous coûte réellement du temps. Aucune présentation de vente. On regarde simplement si on est les bonnes personnes pour vous.",
+      outcome: "Un verdict clair et la bonne prochaine étape",
+    },
+    {
+      eyebrow: "02 / Audit",
+      title: "Audit de processus et d'automatisation",
+      description:
+        "On cartographie votre processus actuel, on chiffre le travail manuel et on vous remet un plan priorisé, que vous nous confiiez la suite ou non. L'audit est gratuit pour les clients fondateurs.",
+      outcome: "Votre cartographie de processus et votre plan priorisé",
+    },
+    {
+      eyebrow: "03 / Portée fixe",
+      title: "Implantation",
+      description:
+        "Projet à prix fixe et à échéancier fixe : Odoo configuré autour de votre processus, avec les automatisations et les intégrations issues de l'audit. Vous connaissez le coût et la date avant qu'on commence.",
+      outcome: "Un système testé, à coût et à date fixes",
+    },
+    {
+      eyebrow: "04 / Lancement",
+      title: "Mise en service",
+      description:
+        "La formation et le soutien à la mise en service sont inclus. On lance le processus amélioré, on accompagne votre équipe pendant la transition et on s'assure que le système tient la route dans le vrai monde.",
+      outcome: "Un système en service que votre équipe utilise avec confiance",
+    },
+    {
+      eyebrow: "05 / Croissance",
+      title: "Croître",
+      description:
+        "Une fois le noyau en place, la plupart des clients ajoutent de l'automatisation et de l'IA par petits morceaux : un processus ici, un agent là. On gère ça par forfait mensuel, pas par un autre gros projet.",
+      outcome: "Un chemin graduel vers plus d'automatisation et d'intelligence",
+    },
+  ],
+  en: [
+    {
+      eyebrow: "01 / Free · 20 min",
+      title: "Discovery call",
+      description:
+        "We ask about your current process, tools, and what’s actually costing you time. There is no pitch. We simply figure out if we’re a fit.",
+      outcome: "A clear fit and the right next step",
+    },
+    {
+      eyebrow: "02 / Audit",
+      title: "Process & automation audit",
+      description:
+        "We map your current process, quantify the manual work, and hand you a prioritized roadmap, whether or not you hire us for the next step. The audit is free for founding clients.",
+      outcome: "Your process map and prioritized roadmap",
+    },
+    {
+      eyebrow: "03 / Fixed scope",
+      title: "Implementation",
+      description:
+        "Fixed-price, fixed-timeline build: Odoo configured around your process, plus any automation or integrations from the audit. You know the cost and the date before we start.",
+      outcome: "A tested system with a fixed cost and date",
+    },
+    {
+      eyebrow: "04 / Launch",
+      title: "Go live",
+      description:
+        "Training and go-live support are included. We launch the improved process, support your team through the transition, and make sure the system works in the real world.",
+      outcome: "A live system your team can use with confidence",
+    },
+    {
+      eyebrow: "05 / Grow",
+      title: "Grow",
+      description:
+        "Once the core is working, most clients add automation and AI incrementally, with a workflow here and an agent there. We handle this through a monthly retainer, not another big project.",
+      outcome: "An incremental path to more automation and intelligence",
+    },
+  ],
+};
+
+/** Both locales describe the same five steps; the scroll maths only needs the count. */
+const STEP_COUNT = STORY_STEPS.fr.length;
+
+const COPY = {
+  fr: {
+    eyebrow: "Notre approche",
+    heading: "Un processus clair, du premier appel au système en service.",
+    intro:
+      "La transformation numérique échoue quand on la traite comme un achat de logiciel. On la traite comme un problème de processus avec une réponse technologique. Chaque mandat commence par l’amélioration des processus, pour voir où le temps et l’argent fuient vraiment. Ça se passe avant qu’un seul module Odoo soit configuré. Cet ordre compte : c’est la différence entre numériser un processus brisé et le réparer.",
+    /** Template with {n}. */
+    stepLabel: "Étape 0{n}",
+    timelineMeta: "Échéancier du mandat · défilez pour déplacer le signal",
+    cta: "Audit gratuit",
+    /** Template with {n}, {total} and {title}. */
+    liveRegion: "Étape {n} sur {total} : {title}",
   },
-  {
-    eyebrow: "02 / Audit",
-    title: "Process & automation audit",
-    description:
-      "We map your current process, quantify the manual work, and hand you a prioritized roadmap, whether or not you hire us for the next step. The audit is free for founding clients.",
-    outcome: "Your process map and prioritized roadmap",
+  en: {
+    eyebrow: "How we work",
+    heading: "A clear process, from first call to live system.",
+    intro:
+      "Digital transformation fails when it’s treated as a software purchase. We treat it as a process problem with a technology answer. Every engagement starts with process improvement to understand where time and money actually leak. This happens before a single Odoo module gets configured. That order matters because it’s the difference between digitizing a broken process and fixing it.",
+    stepLabel: "Step 0{n}",
+    timelineMeta: "Engagement timeline · scroll to move the signal",
+    cta: "Free audit",
+    liveRegion: "Step {n} of {total}: {title}",
   },
-  {
-    eyebrow: "03 / Fixed scope",
-    title: "Implementation",
-    description:
-      "Fixed-price, fixed-timeline build: Odoo configured around your process, plus any automation or integrations from the audit. You know the cost and the date before we start.",
-    outcome: "A tested system with a fixed cost and date",
-  },
-  {
-    eyebrow: "04 / Launch",
-    title: "Go live",
-    description:
-      "Training and go-live support are included. We launch the improved process, support your team through the transition, and make sure the system works in the real world.",
-    outcome: "A live system your team can use with confidence",
-  },
-  {
-    eyebrow: "05 / Grow",
-    title: "Grow",
-    description:
-      "Once the core is working, most clients add automation and AI incrementally, with a workflow here and an agent there. We handle this through a monthly retainer, not another big project.",
-    outcome: "An incremental path to more automation and intelligence",
-  },
-] as const;
+} as const;
 
 const clamp = (value: number) => Math.min(Math.max(value, 0), 1);
 const smooth = (value: number) => value * value * (3 - 2 * value);
 
-export default function StickyStory() {
+export default function StickyStory({ locale }: { locale: Locale }) {
+  const steps = STORY_STEPS[locale];
+  const copy = COPY[locale];
   const [activeStep, setActiveStep] = useState(0);
   const trackRef = useRef<HTMLDivElement | null>(null);
   const signalTrailRef = useRef<HTMLDivElement | null>(null);
@@ -96,10 +174,10 @@ export default function StickyStory() {
       const trackRect = track.getBoundingClientRect();
       const scrollDistance = Math.max(track.offsetHeight - viewportHeight, 1);
       const progress = clamp(-trackRect.top / scrollDistance);
-      const exactStep = progress * (steps.length - 1);
-      const baseStep = Math.min(Math.floor(exactStep), steps.length - 1);
-      const nextStep = Math.min(baseStep + 1, steps.length - 1);
-      const localProgress = baseStep === steps.length - 1
+      const exactStep = progress * (STEP_COUNT - 1);
+      const baseStep = Math.min(Math.floor(exactStep), STEP_COUNT - 1);
+      const nextStep = Math.min(baseStep + 1, STEP_COUNT - 1);
+      const localProgress = baseStep === STEP_COUNT - 1
         ? 0
         : exactStep - baseStep;
       const transitionProgress = smooth(clamp(localProgress));
@@ -109,7 +187,7 @@ export default function StickyStory() {
         : transitionProgress;
       const activeIndex = resolvedTransition >= 0.5 ? nextStep : baseStep;
       const anchorForStep = (index: number) =>
-        viewportHeight * (0.5 + (0.12 * index) / (steps.length - 1));
+        viewportHeight * (0.5 + (0.12 * index) / (STEP_COUNT - 1));
       const baseAnchor = anchorForStep(baseStep);
       const nextAnchor = anchorForStep(nextStep);
       const approachStart = viewportHeight * 0.42;
@@ -265,7 +343,7 @@ export default function StickyStory() {
       <header className="relative z-10 mx-auto max-w-7xl px-5 pb-12 pt-40 sm:px-8 sm:pt-48 lg:px-12 lg:pb-0">
         <p className="story-eyebrow mb-5 flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.22em]">
           <span className="h-px w-8 bg-current" aria-hidden="true" />
-          How we work
+          {copy.eyebrow}
         </p>
         <TextAnimate
           as="h2"
@@ -275,7 +353,7 @@ export default function StickyStory() {
           id={headingId}
           className="max-w-4xl text-balance text-4xl font-medium leading-[0.98] tracking-[-0.045em] sm:text-6xl lg:text-7xl"
         >
-          A clear process, from first call to live system.
+          {copy.heading}
         </TextAnimate>
         <TextAnimate
           as="p"
@@ -284,7 +362,7 @@ export default function StickyStory() {
           scrub
           className="story-intro mt-7 max-w-2xl text-pretty text-base leading-7 sm:text-lg sm:leading-8"
         >
-          {`Digital transformation fails when it’s treated as a software purchase. We treat it as a process problem with a technology answer. Every engagement starts with process improvement to understand where time and money actually leak. This happens before a single Odoo module gets configured. That order matters because it’s the difference between digitizing a broken process and fixing it.`}
+          {copy.intro}
         </TextAnimate>
       </header>
 
@@ -366,7 +444,8 @@ export default function StickyStory() {
                       }}
                     >
                       <p className="story-step-label font-mono text-[10px] font-semibold uppercase tracking-[0.22em]">
-                        Step 0{index + 1} / {step.eyebrow.split("/")[1]?.trim()}
+                        {copy.stepLabel.replace("{n}", String(index + 1))} /{" "}
+                        {step.eyebrow.split("/")[1]?.trim()}
                       </p>
                       <h3
                         id={`story-step-title-${index + 1}`}
@@ -392,7 +471,7 @@ export default function StickyStory() {
             </div>
 
             <div className="story-timeline-meta pointer-events-none absolute inset-x-12 top-8 flex items-center justify-between font-mono text-[9px] uppercase tracking-[0.2em]">
-              <span>Engagement timeline · scroll to move the signal</span>
+              <span>{copy.timelineMeta}</span>
               <span className="story-timeline-count">
                 {String(activeStep + 1).padStart(2, "0")} / {String(steps.length).padStart(2, "0")}
               </span>
@@ -453,15 +532,18 @@ export default function StickyStory() {
       <div className="relative z-10 mx-auto flex max-w-7xl justify-center px-5 pb-28 sm:px-8 lg:px-12">
         <PulsatingButton
           className="story-pulsating-cta"
-          href="/contact"
+          href={localePath(locale, "/contact")}
           background="#b9f45d"
         >
-          Book a Free Audit <span aria-hidden="true">↗</span>
+          {copy.cta} <span aria-hidden="true">↗</span>
         </PulsatingButton>
       </div>
 
       <span className="sr-only" aria-live="polite" aria-atomic="true">
-        Step {activeStep + 1} of {steps.length}: {steps[activeStep].title}
+        {copy.liveRegion
+          .replace("{n}", String(activeStep + 1))
+          .replace("{total}", String(steps.length))
+          .replace("{title}", steps[activeStep].title)}
       </span>
     </section>
   );
