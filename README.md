@@ -23,7 +23,21 @@ npm install
 npm run dev
 ```
 
-The development server prints its local URL after startup. No environment variables are currently required.
+The development server prints its local URL after startup.
+
+### Forms → Odoo CRM
+
+Both website forms create a lead in Odoo CRM (`crm.lead`) through Odoo's JSON-2 API (shared helper: `src/app/_lib/odoo.ts`):
+
+- `/get-in-touch` → `POST /api/contact` (name, email, company, topic, message)
+- Free audit (`/contact` form and the audit scorecard) → `POST /api/audit` (contact details, `answers: [{ question, answer }]`, optional `report` and `score`; the payload is documented at the top of `src/app/api/audit/route.ts`)
+
+ Copy `.env.example` to `.env.local` and set:
+
+- `ODOO_BASE_URL`: e.g. `https://nbtlabs.odoo.com`
+- `ODOO_API_KEY_WEBSITE`: API key of the Odoo user that owns website leads (Preferences → Account Security → New API Key)
+
+`docker compose` reads `.env.local` automatically. On Vercel, add the same variables under Project → Settings → Environment Variables. Never put the real key in `.env.example`: that file is committed.
 
 ## Build
 
@@ -71,7 +85,8 @@ src/
 - Why NBT Labs: `src/app/why-nbt/page.tsx`
 - How We Work: `src/app/how-we-work/page.tsx`
 - Who We Help: `src/app/who-we-help/page.tsx`
-- Contact: `src/app/contact/page.tsx`
+- Contact (free audit): `src/app/contact/page.tsx`
+- Get in touch (general contact form): `src/app/get-in-touch/page.tsx`, creates Odoo CRM leads via `src/app/api/contact/route.ts`
 - Results: `src/app/case-studies/page.tsx`
 - Global styling and responsive behavior: `src/app/globals.css`
 

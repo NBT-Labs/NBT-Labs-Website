@@ -156,3 +156,5 @@ export const processSteps = [
     output: "An incremental path to more automation and intelligence",
   },
 ];
+
+export const contactTopics = ["General question", "Partnership", "Careers", "Other"];

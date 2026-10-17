@@ -53,7 +53,7 @@ export function SiteHeader() {
             href="/contact"
             background="#b9f45d"
           >
-            Free process audit <span aria-hidden="true">↗</span>
+            Free Audit <span aria-hidden="true">↗</span>
           </ShimmerButton>
 
           <button

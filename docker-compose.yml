@@ -9,4 +9,7 @@ services:
       - "${WEB_PORT:-3010}:3000"
     environment:
       - NODE_ENV=production
+    env_file:
+      - path: .env.local
+        required: false
     restart: unless-stopped

@@ -8,6 +8,7 @@ const footerLinks = [
   { href: "/who-we-help", label: "Who we help" },
   { href: "/why-nbt", label: "Why NBT" },
   { href: "/case-studies", label: "Results" },
+  { href: "/get-in-touch", label: "Contact" },
 ];
 
 export function SiteFooter() {

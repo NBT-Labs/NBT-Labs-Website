@@ -2,25 +2,44 @@
 
 import { FormEvent, useState } from "react";
 
+const BOTTLENECK_QUESTION = "What is the biggest manual or slow part of your operations right now?";
+
 export function AuditForm() {
-  const [status, setStatus] = useState("");
+  const [status, setStatus] = useState({ error: false, message: "" });
+  const [sending, setSending] = useState(false);
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    const data = new FormData(event.currentTarget);
-    const name = String(data.get("name") ?? "");
-    const company = String(data.get("company") ?? "");
-    const email = String(data.get("email") ?? "");
-    const phone = String(data.get("phone") ?? "");
-    const language = String(data.get("language") ?? "English");
-    const bottleneck = String(data.get("bottleneck") ?? "");
-    const subject = encodeURIComponent(`Free process audit request: ${company || name}`);
-    const body = encodeURIComponent(
-      `Name: ${name}\nCompany: ${company}\nEmail: ${email}\nPhone: ${phone || "Not provided"}\nPreferred language: ${language}\n\nBiggest operational bottleneck:\n${bottleneck}`,
-    );
+    const form = event.currentTarget;
+    const data = new FormData(form);
+    setSending(true);
+    setStatus({ error: false, message: "Sending your request…" });
 
-    setStatus("Your email app is opening with your details ready to send.");
-    window.location.href = `mailto:info@nbtlabs.ca?subject=${subject}&body=${body}`;
+    try {
+      const response = await fetch("/api/audit", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          name: data.get("name"),
+          company: data.get("company"),
+          email: data.get("email"),
+          phone: data.get("phone"),
+          language: data.get("language"),
+          website: data.get("website"),
+          answers: [{ question: BOTTLENECK_QUESTION, answer: data.get("bottleneck") }],
+        }),
+      });
+      const result = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        throw new Error(result.error ?? "Something went wrong. Please try again.");
+      }
+      form.reset();
+      setStatus({ error: false, message: "Thanks! We received your request and will reply within one business day to book your call." });
+    } catch (error) {
+      setStatus({ error: true, message: error instanceof Error ? error.message : "Something went wrong. Please try again." });
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -59,17 +78,21 @@ export function AuditForm() {
         </div>
       </fieldset>
       <label>
-        <span>What is the biggest manual or slow part of your operations right now?</span>
-        <textarea name="bottleneck" rows={5} required />
+        <span>{BOTTLENECK_QUESTION}</span>
+        <textarea name="bottleneck" rows={5} maxLength={2000} required />
+      </label>
+      <label className="form-honeypot" aria-hidden="true">
+        <span>Website</span>
+        <input name="website" tabIndex={-1} autoComplete="off" />
       </label>
       <div className="form-submit-row">
-        <button className="button" type="submit">
-          Book my free process audit <span aria-hidden="true">↗</span>
+        <button className="button" type="submit" disabled={sending}>
+          {sending ? "Sending…" : "Book my Free Audit"} <span aria-hidden="true">↗</span>
         </button>
-        <small>This opens your email app. No data is stored on this website.</small>
+        <small>We only use your details to prepare and book your audit call.</small>
       </div>
-      <p className="form-status" aria-live="polite">
-        {status}
+      <p className={`form-status${status.error ? " is-error" : ""}`} aria-live="polite">
+        {status.message}
       </p>
     </form>
   );
